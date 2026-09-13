@@ -11,7 +11,7 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased">
 
-    <!-- Supabase Canlı Veritabanı Bağlantısı -->
+    <!-- Supabase Bağlantısı -->
     <script>
         const SUPABASE_URL = "https://uywoqcoutebyszemfulx.supabase.co"; 
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5d29xY291dGVieXN6ZW1mdWx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTY3NjgsImV4cCI6MjEwNDg3Mjc2OH0.PPpm0UgFlHzvG3tATsWsH6cZDPCf1MPVJvzKlw0JRaY";
@@ -19,13 +19,13 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     </script>
 
-    <!-- 1. GİRİŞ EKRANI (LOGIN) -->
+    <!-- 1. GİRİŞ EKRANI -->
     <div id="loginScreen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full space-y-6 border border-slate-700">
             <div class="text-center space-y-2">
                 <div class="inline-block bg-amber-500 text-slate-900 font-extrabold px-4 py-1.5 rounded-xl text-2xl tracking-wider">BROOKLYN</div>
                 <h2 class="text-xl font-bold text-slate-800">K-12 Yönetim Portalı</h2>
-                <p class="text-xs text-slate-500">Supabase Bulut Veritabanı Bağlantılı</p>
+                <p class="text-xs text-slate-500">Tam Yetkili Yönetim Paneli</p>
             </div>
 
             <form onsubmit="handleLogin(event)" class="space-y-4">
@@ -98,7 +98,7 @@
                         <i class="fa-solid fa-chalkboard-user w-5"></i> Sınıflar & Dersler
                     </button>
                     <button onclick="switchTab('students')" id="btn-students" class="tab-btn role-admin role-teacher w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
-                        <i class="fa-solid fa-address-book w-5"></i> Veli & Öğrenci Rehberi
+                        <i class="fa-solid fa-address-book w-5"></i> Kullanıcı Yönetimi
                     </button>
                     <button onclick="switchTab('attendance')" id="btn-attendance" class="tab-btn role-admin role-teacher role-parent role-student w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
                         <i class="fa-solid fa-clipboard-user w-5"></i> Yoklama & Devam
@@ -121,7 +121,7 @@
                         <span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs px-3 py-1 rounded-full font-semibold">Aktif Dönem: 2026-Güz</span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="dashboardStats">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
                             <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl font-bold">
                                 <i class="fa-solid fa-database"></i>
@@ -138,17 +138,47 @@
                 <section id="tab-classes" class="tab-content hidden space-y-4">
                     <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200">
                         <h3 class="text-lg font-bold">Sınıf Bilgileri</h3>
+                        <button onclick="toggleAdminForm('formAddClass')" class="role-admin bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all">
+                            <i class="fa-solid fa-plus"></i> Yeni Sınıf Ekle
+                        </button>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="classesList">
-                        <!-- Supabase'den Çekilecek -->
-                    </div>
+
+                    <!-- ADMIN: Sınıf Ekleme Formu -->
+                    <form id="formAddClass" onsubmit="addClass(event)" class="hidden bg-slate-100 p-4 rounded-xl border border-slate-300 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="text" id="clsName" placeholder="Sınıf Adı (Örn: B1 Hafta Sonu)" required class="p-2 border rounded text-sm">
+                        <input type="text" id="clsLevel" placeholder="Seviye (Örn: B1 - Intermediate)" required class="p-2 border rounded text-sm">
+                        <input type="text" id="clsTeacher" placeholder="Eğitmen Adı" required class="p-2 border rounded text-sm">
+                        <input type="text" id="clsSchedule" placeholder="Ders Programı (Örn: Cmt-Pzr 10:00)" required class="p-2 border rounded text-sm">
+                        <button type="submit" class="sm:col-span-2 bg-slate-900 text-amber-400 font-bold py-2 rounded text-sm">Kaydet</button>
+                    </form>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="classesList"></div>
                 </section>
 
-                <!-- 3. ÖĞRENCİ VE VELİ REHBERİ TAB -->
+                <!-- 3. KULLANICI YÖNETİMİ TAB -->
                 <section id="tab-students" class="tab-content hidden space-y-4">
                     <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center">
-                        <h3 class="text-lg font-bold">Veli & Öğrenci Rehberi</h3>
+                        <h3 class="text-lg font-bold">Veli, Öğrenci & Öğretmen Listesi</h3>
+                        <button onclick="toggleAdminForm('formAddUser')" class="role-admin bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all">
+                            <i class="fa-solid fa-user-plus"></i> Yeni Kullanıcı Ekle
+                        </button>
                     </div>
+
+                    <!-- ADMIN: Kullanıcı Ekleme Formu -->
+                    <form id="formAddUser" onsubmit="addUser(event)" class="hidden bg-slate-100 p-4 rounded-xl border border-slate-300 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <input type="text" id="usrName" placeholder="Kullanıcı Adı" required class="p-2 border rounded text-sm">
+                        <input type="password" id="usrPass" placeholder="Şifre" required class="p-2 border rounded text-sm">
+                        <input type="text" id="usrFullName" placeholder="Ad Soyad" required class="p-2 border rounded text-sm">
+                        <select id="usrRole" class="p-2 border rounded text-sm bg-white">
+                            <option value="student">Öğrenci</option>
+                            <option value="parent">Veli</option>
+                            <option value="teacher">Öğretmen</option>
+                            <option value="admin">Yönetici (Admin)</option>
+                        </select>
+                        <input type="text" id="usrPhone" placeholder="Telefon (5xx...)" class="p-2 border rounded text-sm">
+                        <button type="submit" class="sm:col-span-3 bg-slate-900 text-amber-400 font-bold py-2 rounded text-sm">Kullanıcıyı Kaydet</button>
+                    </form>
+
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-slate-100 text-slate-600 text-xs uppercase font-semibold">
@@ -156,18 +186,17 @@
                                     <th class="p-3.5">Ad Soyad</th>
                                     <th class="p-3.5">Rol</th>
                                     <th class="p-3.5">Telefon / WhatsApp</th>
+                                    <th class="p-3.5 role-admin">İşlem</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100" id="usersTableBody">
-                                <!-- Supabase'den Çekilecek -->
-                            </tbody>
+                            <tbody class="divide-y divide-slate-100" id="usersTableBody"></tbody>
                         </table>
                     </div>
                 </section>
 
-                <!-- 4. YOKLAMA VE DEVAM TAB -->
+                <!-- 4. YOKLAMA TAB -->
                 <section id="tab-attendance" class="tab-content hidden space-y-4">
-                    <div class="bg-white p-4 rounded-xl border border-slate-200">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center">
                         <h3 class="text-lg font-bold">Yoklama & Devam Durumu</h3>
                     </div>
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
@@ -178,20 +207,35 @@
                                     <th class="p-3.5">Sınıf</th>
                                     <th class="p-3.5">Tarih</th>
                                     <th class="p-3.5">Durum</th>
+                                    <th class="p-3.5 role-admin">İşlem</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100" id="attendanceTableBody">
-                                <!-- Supabase'den Çekilecek -->
-                            </tbody>
+                            <tbody class="divide-y divide-slate-100" id="attendanceTableBody"></tbody>
                         </table>
                     </div>
                 </section>
 
                 <!-- 5. ÖDEME TAB -->
                 <section id="tab-payments" class="tab-content hidden space-y-4">
-                    <div class="bg-white p-4 rounded-xl border border-slate-200">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center">
                         <h3 class="text-lg font-bold">Ödeme Takibi & Taksitler</h3>
+                        <button onclick="toggleAdminForm('formAddPayment')" class="role-admin bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all">
+                            <i class="fa-solid fa-plus"></i> Ödeme / Taksit Ekle
+                        </button>
                     </div>
+
+                    <!-- ADMIN: Ödeme Ekleme Formu -->
+                    <form id="formAddPayment" onsubmit="addPayment(event)" class="hidden bg-slate-100 p-4 rounded-xl border border-slate-300 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="text" id="payStudent" placeholder="Öğrenci Adı Soyadı" required class="p-2 border rounded text-sm">
+                        <input type="date" id="payDate" required class="p-2 border rounded text-sm bg-white">
+                        <input type="number" id="payAmount" placeholder="Tutar (₺)" required class="p-2 border rounded text-sm">
+                        <select id="payStatus" class="p-2 border rounded text-sm bg-white">
+                            <option value="Bekliyor">Bekliyor</option>
+                            <option value="Ödendi">Ödendi</option>
+                        </select>
+                        <button type="submit" class="sm:col-span-2 bg-slate-900 text-amber-400 font-bold py-2 rounded text-sm">Ödemeyi Kaydet</button>
+                    </form>
+
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-slate-100 text-slate-600 text-xs uppercase font-semibold">
@@ -200,11 +244,10 @@
                                     <th class="p-3.5">Son Ödeme Tarihi</th>
                                     <th class="p-3.5">Tutar</th>
                                     <th class="p-3.5">Durum</th>
+                                    <th class="p-3.5 role-admin">İşlem</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100" id="paymentsTableBody">
-                                <!-- Supabase'den Çekilecek -->
-                            </tbody>
+                            <tbody class="divide-y divide-slate-100" id="paymentsTableBody"></tbody>
                         </table>
                     </div>
                 </section>
@@ -213,7 +256,7 @@
         </div>
     </div>
 
-    <!-- JavaScript - Supabase İşlemleri -->
+    <!-- JavaScript - Supabase İşlemleri & Admin Yetkileri -->
     <script>
         let currentUser = null;
 
@@ -222,19 +265,13 @@
             if (activeUser) showApp(activeUser);
         };
 
-        // SUPABASE ILE GERÇEK GİRİŞ
         async function handleLogin(e) {
             e.preventDefault();
             const uName = document.getElementById('username').value.trim().toLowerCase();
             const pass = document.getElementById('password').value;
             const errDiv = document.getElementById('loginError');
 
-            const { data, error } = await _supabase
-                .from('users')
-                .select('*')
-                .eq('username', uName)
-                .eq('password', pass)
-                .single();
+            const { data, error } = await _supabase.from('users').select('*').eq('username', uName).eq('password', pass).single();
 
             if (data && !error) {
                 errDiv.classList.add('hidden');
@@ -277,7 +314,8 @@
             const { data: classes } = await _supabase.from('classes').select('*');
             if (classes) {
                 document.getElementById('classesList').innerHTML = classes.map(c => `
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3 relative">
+                        ${currentUser.role === 'admin' ? `<button onclick="deleteRecord('classes', ${c.id})" class="absolute top-3 right-3 text-rose-500 hover:text-rose-700 text-xs"><i class="fa-solid fa-trash"></i> Sil</button>` : ''}
                         <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded">${c.level}</span>
                         <h4 class="text-lg font-bold text-slate-800">${c.class_name}</h4>
                         <p class="text-sm text-slate-500"><i class="fa-solid fa-user-chalkboard mr-1"></i> Eğitmen: ${c.teacher_name}</p>
@@ -292,11 +330,14 @@
                 document.getElementById('usersTableBody').innerHTML = users.map(u => `
                     <tr class="hover:bg-slate-50">
                         <td class="p-3.5 font-medium">${u.full_name}</td>
-                        <td class="p-3.5"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs uppercase">${u.role}</span></td>
+                        <td class="p-3.5"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs uppercase font-bold">${u.role}</span></td>
                         <td class="p-3.5">
                             <a href="https://wa.me/90${u.phone}" target="_blank" class="inline-flex items-center gap-1.5 text-emerald-600 font-semibold hover:underline">
                                 <i class="fa-brands fa-whatsapp text-lg"></i> ${u.phone || 'Yok'}
                             </a>
+                        </td>
+                        <td class="p-3.5 role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
+                            <button onclick="deleteRecord('users', ${u.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash"></i> Sil</button>
                         </td>
                     </tr>
                 `).join('');
@@ -313,6 +354,9 @@
                         <td class="p-3.5">
                             <span class="${a.status === 'Geldi' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'} text-xs font-bold px-2.5 py-1 rounded-full">${a.status}</span>
                         </td>
+                        <td class="p-3.5 role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
+                            <button onclick="deleteRecord('attendance', ${a.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash"></i> Sil</button>
+                        </td>
                     </tr>
                 `).join('');
             }
@@ -328,8 +372,78 @@
                         <td class="p-3.5">
                             <span class="${p.status === 'Ödendi' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} text-xs font-bold px-2.5 py-1 rounded-full">${p.status}</span>
                         </td>
+                        <td class="p-3.5 role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
+                            <button onclick="deleteRecord('payments', ${p.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash"></i> Sil</button>
+                        </td>
                     </tr>
                 `).join('');
+            }
+        }
+
+        // ADMIN FORMLARI GÖSTER/GİZLE
+        function toggleAdminForm(formId) {
+            const form = document.getElementById(formId);
+            form.classList.toggle('hidden');
+        }
+
+        // ADMIN: YENİ KULLANICI EKLE
+        async function addUser(e) {
+            e.preventDefault();
+            const username = document.getElementById('usrName').value.trim();
+            const password = document.getElementById('usrPass').value.trim();
+            const full_name = document.getElementById('usrFullName').value.trim();
+            const role = document.getElementById('usrRole').value;
+            const phone = document.getElementById('usrPhone').value.trim();
+
+            const { error } = await _supabase.from('users').insert([{ username, password, full_name, role, phone }]);
+            if (!error) {
+                alert('Kullanıcı başarıyla eklendi!');
+                document.getElementById('formAddUser').reset();
+                toggleAdminForm('formAddUser');
+                loadDataFromSupabase();
+            } else alert('Hata oluştu: ' + error.message);
+        }
+
+        // ADMIN: YENİ SINIF EKLE
+        async function addClass(e) {
+            e.preventDefault();
+            const class_name = document.getElementById('clsName').value.trim();
+            const level = document.getElementById('clsLevel').value.trim();
+            const teacher_name = document.getElementById('clsTeacher').value.trim();
+            const schedule = document.getElementById('clsSchedule').value.trim();
+
+            const { error } = await _supabase.from('classes').insert([{ class_name, level, teacher_name, schedule }]);
+            if (!error) {
+                alert('Sınıf başarıyla eklendi!');
+                document.getElementById('formAddClass').reset();
+                toggleAdminForm('formAddClass');
+                loadDataFromSupabase();
+            } else alert('Hata oluştu: ' + error.message);
+        }
+
+        // ADMIN: YENİ ÖDEME EKLE
+        async function addPayment(e) {
+            e.preventDefault();
+            const student_name = document.getElementById('payStudent').value.trim();
+            const due_date = document.getElementById('payDate').value;
+            const amount = document.getElementById('payAmount').value;
+            const status = document.getElementById('payStatus').value;
+
+            const { error } = await _supabase.from('payments').insert([{ student_name, due_date, amount, status }]);
+            if (!error) {
+                alert('Ödeme başarıyla eklendi!');
+                document.getElementById('formAddPayment').reset();
+                toggleAdminForm('formAddPayment');
+                loadDataFromSupabase();
+            } else alert('Hata oluştu: ' + error.message);
+        }
+
+        // ADMIN: KAYIT SİLME
+        async function deleteRecord(table, id) {
+            if (confirm('Bu kaydı veritabanından silmek istediğinize emin misiniz?')) {
+                const { error } = await _supabase.from(table).delete().eq('id', id);
+                if (!error) loadDataFromSupabase();
+                else alert('Silme işleminde hata oluştu.');
             }
         }
 
