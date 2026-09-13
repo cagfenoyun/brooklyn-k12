@@ -6,16 +6,26 @@
     <title>Brooklyn İngilizce Kursu - K12 Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased">
 
-    <!-- 1. TEK GİRİŞ EKRANI (LOGIN) -->
+    <!-- Supabase Canlı Veritabanı Bağlantısı -->
+    <script>
+        const SUPABASE_URL = "https://uywoqcoutebyszemfulx.supabase.co"; 
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5d29xY291dGVieXN6ZW1mdWx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTY3NjgsImV4cCI6MjEwNDg3Mjc2OH0.PPpm0UgFlHzvG3tATsWsH6cZDPCf1MPVJvzKlw0JRaY";
+
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    </script>
+
+    <!-- 1. GİRİŞ EKRANI (LOGIN) -->
     <div id="loginScreen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full space-y-6 border border-slate-700">
             <div class="text-center space-y-2">
                 <div class="inline-block bg-amber-500 text-slate-900 font-extrabold px-4 py-1.5 rounded-xl text-2xl tracking-wider">BROOKLYN</div>
                 <h2 class="text-xl font-bold text-slate-800">K-12 Yönetim Portalı</h2>
-                <p class="text-xs text-slate-500">Lütfen kullanıcı adı ve şifrenizle giriş yapınız.</p>
+                <p class="text-xs text-slate-500">Supabase Bulut Veritabanı Bağlantılı</p>
             </div>
 
             <form onsubmit="handleLogin(event)" class="space-y-4">
@@ -39,14 +49,13 @@
                     Kullanıcı adı veya şifre hatalı!
                 </div>
 
-                <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-lg text-sm transition-all shadow-md">
-                    Giriş Yap <i class="fa-solid fa-arrow-right ml-1"></i>
+                <button type="submit" id="btnLogin" class="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-lg text-sm transition-all shadow-md flex items-center justify-center gap-2">
+                    <span>Giriş Yap</span> <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </form>
 
-            <!-- Test Hesapları Bilgilendirmesi -->
             <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-[11px] text-slate-500 space-y-1">
-                <p class="font-bold text-slate-700 border-b pb-1 mb-1">🔑 Test Giriş Hesapları (Şifre hepsi için: 1234):</p>
+                <p class="font-bold text-slate-700 border-b pb-1 mb-1">🔑 Test Hesapları (Şifre: 1234):</p>
                 <div class="grid grid-cols-2 gap-1">
                     <p>👨‍💼 <b>Admin:</b> <code class="bg-slate-200 px-1 rounded">admin</code></p>
                     <p>👨‍🏫 <b>Öğretmen:</b> <code class="bg-slate-200 px-1 rounded">ahmethoca</code></p>
@@ -57,10 +66,8 @@
         </div>
     </div>
 
-    <!-- 2. PANALLER (ROL E GÖRE AÇILAN EKRAN) -->
+    <!-- 2. ANA PANEL -->
     <div id="appScreen" class="hidden">
-        
-        <!-- Üst Bar / Header -->
         <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
             <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
                 <div class="flex items-center gap-3">
@@ -68,13 +75,12 @@
                     <span class="text-xs sm:text-sm font-medium text-slate-300 hidden sm:inline">İngilizce Kursu K-12 Portal</span>
                 </div>
                 
-                <!-- Giriş Yapan Kullanıcı Profil Bilgisi -->
                 <div class="flex items-center gap-4">
                     <div class="text-right">
                         <span id="userDisplayName" class="block text-xs sm:text-sm font-bold text-amber-400">Kullanıcı</span>
                         <span id="userRoleBadge" class="block text-[10px] text-slate-300 bg-slate-800 px-2 py-0.5 rounded-full inline-block border border-slate-700">Rol</span>
                     </div>
-                    <button onclick="logout()" class="bg-slate-800 hover:bg-rose-900/40 text-rose-400 hover:text-rose-300 border border-slate-700 p-2 rounded-lg text-xs font-semibold transition-all" title="Çıkış Yap">
+                    <button onclick="logout()" class="bg-slate-800 hover:bg-rose-900/40 text-rose-400 border border-slate-700 p-2 rounded-lg text-xs font-semibold transition-all">
                         <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">Çıkış</span>
                     </button>
                 </div>
@@ -83,7 +89,6 @@
 
         <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row gap-6">
 
-            <!-- Sol Yan Menü (Dinamik Gizlenip Açılır) -->
             <aside class="w-full md:w-64 bg-white rounded-xl shadow-sm border border-slate-200 p-4 shrink-0 h-fit">
                 <nav class="space-y-1" id="sidebarMenu">
                     <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-all bg-amber-500 text-slate-900 font-semibold">
@@ -95,9 +100,6 @@
                     <button onclick="switchTab('students')" id="btn-students" class="tab-btn role-admin role-teacher w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
                         <i class="fa-solid fa-address-book w-5"></i> Veli & Öğrenci Rehberi
                     </button>
-                    <button onclick="switchTab('schedule')" id="btn-schedule" class="tab-btn role-admin role-teacher role-student role-parent w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
-                        <i class="fa-solid fa-calendar-days w-5"></i> Ders Programı
-                    </button>
                     <button onclick="switchTab('attendance')" id="btn-attendance" class="tab-btn role-admin role-teacher role-parent role-student w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
                         <i class="fa-solid fa-clipboard-user w-5"></i> Yoklama & Devam
                     </button>
@@ -107,7 +109,6 @@
                 </nav>
             </aside>
 
-            <!-- İçerik Alanı -->
             <main class="flex-1">
 
                 <!-- 1. GENEL BAKIŞ TAB -->
@@ -115,14 +116,21 @@
                     <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 rounded-xl shadow-sm flex justify-between items-center">
                         <div>
                             <h2 class="text-2xl font-bold" id="welcomeHeading">Hoş Geldiniz! 👋</h2>
-                            <p class="text-slate-300 text-sm mt-1" id="welcomeSub">Brooklyn İngilizce Kursu K12 Bilgi Sistemine Hoş Geldiniz.</p>
+                            <p class="text-slate-300 text-sm mt-1" id="welcomeSub">Veritabanına canlı olarak bağlandınız.</p>
                         </div>
                         <span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs px-3 py-1 rounded-full font-semibold">Aktif Dönem: 2026-Güz</span>
                     </div>
 
-                    <!-- İstatistik Kartları (Role Göre Değişir) -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="dashboardStats">
-                        <!-- JS Tarafından Dinamik Doldurulur -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-database"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium">Veritabanı Durumu</p>
+                                <p class="text-lg font-bold text-emerald-600">Supabase Canlı 🟢</p>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -130,26 +138,37 @@
                 <section id="tab-classes" class="tab-content hidden space-y-4">
                     <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200">
                         <h3 class="text-lg font-bold">Sınıf Bilgileri</h3>
-                        <button class="role-admin bg-slate-900 hover:bg-slate-800 text-white text-xs px-3 py-2 rounded-lg font-semibold transition-all">+ Yeni Sınıf Ekle</button>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
-                            <div class="flex justify-between items-start">
-                                <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded">A1 - Beginner</span>
-                                <span class="text-xs text-slate-400">14 Öğrenci</span>
-                            </div>
-                            <h4 class="text-lg font-bold text-slate-800">A1-A Hafta İçi Akşam</h4>
-                            <p class="text-sm text-slate-500"><i class="fa-solid fa-user-chalkboard mr-1"></i> Eğitmen: Ahmet Yılmaz</p>
-                            <p class="text-xs text-slate-400"><i class="fa-regular fa-clock mr-1"></i> Pzt - Çrş - Cum (18:30 - 20:30)</p>
-                        </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="classesList">
+                        <!-- Supabase'den Çekilecek -->
                     </div>
                 </section>
 
-                <!-- 3. ÖĞRENCİ VE VELİ REHBERİ TAB (Sadece Admin & Öğretmen) -->
+                <!-- 3. ÖĞRENCİ VE VELİ REHBERİ TAB -->
                 <section id="tab-students" class="tab-content hidden space-y-4">
                     <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center">
-                        <h3 class="text-lg font-bold">Veli İletişim Rehberi</h3>
-                        <input type="text" placeholder="Öğrenci veya veli ara..." class="border border-slate-300 rounded-lg px-3 py-1.5 text-xs w-48 sm:w-64 focus:outline-none focus:border-amber-500">
+                        <h3 class="text-lg font-bold">Veli & Öğrenci Rehberi</h3>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-100 text-slate-600 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3.5">Ad Soyad</th>
+                                    <th class="p-3.5">Rol</th>
+                                    <th class="p-3.5">Telefon / WhatsApp</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100" id="usersTableBody">
+                                <!-- Supabase'den Çekilecek -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 4. YOKLAMA VE DEVAM TAB -->
+                <section id="tab-attendance" class="tab-content hidden space-y-4">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200">
+                        <h3 class="text-lg font-bold">Yoklama & Devam Durumu</h3>
                     </div>
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                         <table class="w-full text-left text-sm">
@@ -157,107 +176,21 @@
                                 <tr>
                                     <th class="p-3.5">Öğrenci Adı</th>
                                     <th class="p-3.5">Sınıf</th>
-                                    <th class="p-3.5">Veli Adı</th>
-                                    <th class="p-3.5">Veli Telefon / WhatsApp</th>
+                                    <th class="p-3.5">Tarih</th>
+                                    <th class="p-3.5">Durum</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-3.5 font-medium">Ali Kaya</td>
-                                    <td class="p-3.5"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs">A1-A</span></td>
-                                    <td class="p-3.5 text-slate-600">Mehmet Kaya (Veli)</td>
-                                    <td class="p-3.5">
-                                        <a href="https://wa.me/905551112233" target="_blank" class="inline-flex items-center gap-1.5 text-emerald-600 font-semibold hover:underline">
-                                            <i class="fa-brands fa-whatsapp text-lg"></i> 0555 111 22 33
-                                        </a>
-                                    </td>
-                                </tr>
+                            <tbody class="divide-y divide-slate-100" id="attendanceTableBody">
+                                <!-- Supabase'den Çekilecek -->
                             </tbody>
                         </table>
                     </div>
                 </section>
 
-                <!-- 4. DERS PROGRAMI TAB -->
-                <section id="tab-schedule" class="tab-content hidden space-y-4">
-                    <div class="bg-white p-4 rounded-xl border border-slate-200">
-                        <h3 class="text-lg font-bold">Haftalık Ders Programı</h3>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-                        <div class="grid grid-cols-5 gap-2 min-w-[600px] text-center text-xs">
-                            <div class="font-bold bg-slate-100 p-2 rounded">Pazartesi</div>
-                            <div class="font-bold bg-slate-100 p-2 rounded">Salı</div>
-                            <div class="font-bold bg-slate-100 p-2 rounded">Çarşamba</div>
-                            <div class="font-bold bg-slate-100 p-2 rounded">Perşembe</div>
-                            <div class="font-bold bg-slate-100 p-2 rounded">Cuma</div>
-
-                            <div class="bg-amber-50 border border-amber-200 p-3 rounded text-left space-y-1">
-                                <span class="font-bold block text-amber-900">18:30 - 20:30</span>
-                                <span class="text-slate-700 block">Sınıf: A1-A</span>
-                                <span class="text-slate-500 text-[10px] block">Derslik: Lab 2</span>
-                            </div>
-                            <div class="bg-slate-50 p-3 rounded text-slate-400 text-center flex items-center justify-center">Ders Yok</div>
-                            <div class="bg-amber-50 border border-amber-200 p-3 rounded text-left space-y-1">
-                                <span class="font-bold block text-amber-900">18:30 - 20:30</span>
-                                <span class="text-slate-700 block">Sınıf: A1-A</span>
-                                <span class="text-slate-500 text-[10px] block">Derslik: Lab 2</span>
-                            </div>
-                            <div class="bg-slate-50 p-3 rounded text-slate-400 text-center flex items-center justify-center">Ders Yok</div>
-                            <div class="bg-amber-50 border border-amber-200 p-3 rounded text-left space-y-1">
-                                <span class="font-bold block text-amber-900">18:30 - 20:30</span>
-                                <span class="text-slate-700 block">Sınıf: A1-A</span>
-                                <span class="text-slate-500 text-[10px] block">Derslik: Lab 2</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- 5. YOKLAMA VE DEVAM TAB (Rol Tipine Göre Görünüm Değişir) -->
-                <section id="tab-attendance" class="tab-content hidden space-y-4">
-                    <!-- Öğretmen ve Admin Yoklama Alma Formu -->
-                    <div class="role-admin role-teacher space-y-4">
-                        <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4">
-                            <h3 class="text-lg font-bold">Ders Yoklama Formu</h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-500 mb-1">Sınıf Seçin</label>
-                                    <select class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500">
-                                        <option>A1-A Hafta İçi Akşam</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-500 mb-1">Tarih</label>
-                                    <input type="date" value="2026-09-13" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
-                            <h4 class="font-semibold text-sm border-b pb-2">Öğrenci Listesi</h4>
-                            <div class="flex items-center justify-between py-2 border-b border-slate-100 text-sm">
-                                <span class="font-medium">Ali Kaya</span>
-                                <div class="flex gap-2">
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="att_1" checked class="accent-emerald-600"> <span class="text-xs text-emerald-700 font-medium">Geldi</span></label>
-                                    <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="att_1" class="accent-rose-600"> <span class="text-xs text-rose-700 font-medium">Gelmedi</span></label>
-                                </div>
-                            </div>
-                            <button onclick="alert('Yoklama kaydedildi!')" class="w-full bg-emerald-600 text-white font-semibold py-2.5 rounded-lg text-sm mt-4">Yoklamayı Kaydet</button>
-                        </div>
-                    </div>
-
-                    <!-- Veli ve Öğrenci Devamsızlık İzleme Görünümü -->
-                    <div class="role-parent role-student bg-white p-5 rounded-xl border border-slate-200 space-y-3">
-                        <h3 class="text-lg font-bold">Devam / Devamsızlık Durumu</h3>
-                        <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-sm">
-                            <i class="fa-solid fa-circle-check text-lg mr-2"></i> Ali Kaya bu dönem toplam <b>%96</b> derse katılım gösterdi.
-                        </div>
-                    </div>
-                </section>
-
-                <!-- 6. ÖDEME TAB (Admin ve Veli Görür) -->
+                <!-- 5. ÖDEME TAB -->
                 <section id="tab-payments" class="tab-content hidden space-y-4">
-                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200">
                         <h3 class="text-lg font-bold">Ödeme Takibi & Taksitler</h3>
-                        <button class="role-admin bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs px-3 py-2 rounded-lg font-bold">+ Ödeme Ekle</button>
                     </div>
                     <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                         <table class="w-full text-left text-sm">
@@ -269,13 +202,8 @@
                                     <th class="p-3.5">Durum</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-3.5 font-medium">Ali Kaya</td>
-                                    <td class="p-3.5 text-slate-500">15 Eylül 2026</td>
-                                    <td class="p-3.5 font-semibold">₺3,500</td>
-                                    <td class="p-3.5"><span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full">Ödendi</span></td>
-                                </tr>
+                            <tbody class="divide-y divide-slate-100" id="paymentsTableBody">
+                                <!-- Supabase'den Çekilecek -->
                             </tbody>
                         </table>
                     </div>
@@ -285,100 +213,123 @@
         </div>
     </div>
 
-    <!-- JavaScript - 4 Rol Yönetimi Mantığı -->
+    <!-- JavaScript - Supabase İşlemleri -->
     <script>
-        // 4 Farklı Rol Tanımlı Kullanıcı Veritabanı (Simülasyon)
-        const users = {
-            'admin': { name: 'Ahmet Bey (Yönetici)', role: 'admin', pass: '1234', roleTitle: '👨‍💼 Kurs Yöneticisi' },
-            'ahmethoca': { name: 'Ahmet Yılmaz (Öğretmen)', role: 'teacher', pass: '1234', roleTitle: '👨‍🏫 İngilizce Öğretmeni' },
-            'veliahmet': { name: 'Mehmet Kaya (Veli)', role: 'parent', pass: '1234', roleTitle: '👨‍👩‍👦 Öğrenci Velisi' },
-            'alikaya': { name: 'Ali Kaya (Öğrenci)', role: 'student', pass: '1234', roleTitle: '🎓 A1 Seviye Öğrencisi' }
-        };
+        let currentUser = null;
 
         window.onload = function() {
             const activeUser = JSON.parse(localStorage.getItem('brooklyn_user'));
             if (activeUser) showApp(activeUser);
         };
 
-        function handleLogin(e) {
+        // SUPABASE ILE GERÇEK GİRİŞ
+        async function handleLogin(e) {
             e.preventDefault();
             const uName = document.getElementById('username').value.trim().toLowerCase();
             const pass = document.getElementById('password').value;
             const errDiv = document.getElementById('loginError');
 
-            if (users[uName] && users[uName].pass === pass) {
+            const { data, error } = await _supabase
+                .from('users')
+                .select('*')
+                .eq('username', uName)
+                .eq('password', pass)
+                .single();
+
+            if (data && !error) {
                 errDiv.classList.add('hidden');
-                const userObj = users[uName];
-                localStorage.setItem('brooklyn_user', JSON.stringify(userObj));
-                showApp(userObj);
+                localStorage.setItem('brooklyn_user', JSON.stringify(data));
+                showApp(data);
             } else {
                 errDiv.classList.remove('hidden');
             }
         }
 
         function showApp(user) {
+            currentUser = user;
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appScreen').classList.remove('hidden');
 
-            document.getElementById('userDisplayName').innerText = user.name;
-            document.getElementById('userRoleBadge').innerText = user.roleTitle;
-            document.getElementById('welcomeHeading').innerText = `Hoş Geldiniz, ${user.name}! 👋`;
-            document.getElementById('welcomeSub').innerText = `${user.roleTitle} olarak sisteme giriş yaptınız.`;
+            const roleTitles = {
+                'admin': '👨‍💼 Kurs Yöneticisi',
+                'teacher': '👨‍🏫 İngilizce Öğretmeni',
+                'parent': '👨‍👩‍👦 Öğrenci Velisi',
+                'student': '🎓 Öğrenci'
+            };
 
-            // Rol Bazlı Eleman Filtreleme
-            const roles = ['admin', 'teacher', 'parent', 'student'];
-            roles.forEach(r => {
+            document.getElementById('userDisplayName').innerText = user.full_name;
+            document.getElementById('userRoleBadge').innerText = roleTitles[user.role] || user.role;
+            document.getElementById('welcomeHeading').innerText = `Hoş Geldiniz, ${user.full_name}! 👋`;
+            document.getElementById('welcomeSub').innerText = `${roleTitles[user.role]} paneline canlı bağlandınız.`;
+
+            ['admin', 'teacher', 'parent', 'student'].forEach(r => {
                 document.querySelectorAll('.role-' + r).forEach(el => el.classList.add('hidden'));
             });
-
-            // Aktif Rolün Elemanlarını Aç
             document.querySelectorAll('.role-' + user.role).forEach(el => el.classList.remove('hidden'));
 
-            // Dashboard İstatistiklerini Role Göre Özelleştir
-            renderStats(user.role);
-
+            loadDataFromSupabase();
             switchTab('dashboard');
         }
 
-        function renderStats(role) {
-            const container = document.getElementById('dashboardStats');
-            if (role === 'admin') {
-                container.innerHTML = `
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-xl"><i class="fa-solid fa-graduation-cap"></i></div>
-                        <div><p class="text-xs font-semibold text-slate-400 uppercase">Toplam Öğrenci</p><p class="text-2xl font-bold text-slate-800">124</p></div>
+        // VERİLERİ SUPABASE'DEN ÇEKME
+        async function loadDataFromSupabase() {
+            // Sınıflar
+            const { data: classes } = await _supabase.from('classes').select('*');
+            if (classes) {
+                document.getElementById('classesList').innerHTML = classes.map(c => `
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                        <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded">${c.level}</span>
+                        <h4 class="text-lg font-bold text-slate-800">${c.class_name}</h4>
+                        <p class="text-sm text-slate-500"><i class="fa-solid fa-user-chalkboard mr-1"></i> Eğitmen: ${c.teacher_name}</p>
+                        <p class="text-xs text-slate-400"><i class="fa-regular fa-clock mr-1"></i> ${c.schedule}</p>
                     </div>
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center text-xl"><i class="fa-solid fa-chalkboard"></i></div>
-                        <div><p class="text-xs font-semibold text-slate-400 uppercase">Aktif Sınıflar</p><p class="text-2xl font-bold text-slate-800">8</p></div>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center text-xl"><i class="fa-solid fa-wallet"></i></div>
-                        <div><p class="text-xs font-semibold text-slate-400 uppercase">Bekleyen Ödeme</p><p class="text-2xl font-bold text-slate-800">₺14,500</p></div>
-                    </div>
-                `;
-            } else if (role === 'teacher') {
-                container.innerHTML = `
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center text-xl"><i class="fa-solid fa-chalkboard"></i></div>
-                        <div><p class="text-xs font-semibold text-slate-400 uppercase">Girdiğim Sınıflar</p><p class="text-2xl font-bold text-slate-800">3</p></div>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-xl"><i class="fa-solid fa-users"></i></div>
-                        <div><p class="text-xs font-semibold text-slate-400 uppercase">Toplam Öğrencim</p><p class="text-2xl font-bold text-slate-800">38</p></div>
-                    </div>
-                `;
-            } else if (role === 'parent' || role === 'student') {
-                container.innerHTML = `
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-xl"><i class="fa-solid fa-clock"></i></div>
-                        <div><p class="text-xs font-semibold text-slate-400 uppercase">Devamsızlık Oranı</p><p class="text-2xl font-bold text-slate-800">%4</p></div>
-                    </div>
-                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-xl"><i class="fa-solid fa-book-open"></i></div>
-                        <div><p class="text-xs font-semibold text-slate-400 uppercase">Kayıtlı Kur</p><p class="text-2xl font-bold text-slate-800">A1 Beginner</p></div>
-                    </div>
-                `;
+                `).join('');
+            }
+
+            // Kullanıcılar
+            const { data: users } = await _supabase.from('users').select('*');
+            if (users) {
+                document.getElementById('usersTableBody').innerHTML = users.map(u => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3.5 font-medium">${u.full_name}</td>
+                        <td class="p-3.5"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs uppercase">${u.role}</span></td>
+                        <td class="p-3.5">
+                            <a href="https://wa.me/90${u.phone}" target="_blank" class="inline-flex items-center gap-1.5 text-emerald-600 font-semibold hover:underline">
+                                <i class="fa-brands fa-whatsapp text-lg"></i> ${u.phone || 'Yok'}
+                            </a>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Yoklama
+            const { data: attendance } = await _supabase.from('attendance').select('*');
+            if (attendance) {
+                document.getElementById('attendanceTableBody').innerHTML = attendance.map(a => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3.5 font-medium">${a.student_name}</td>
+                        <td class="p-3.5">${a.class_name}</td>
+                        <td class="p-3.5 text-slate-500">${a.date}</td>
+                        <td class="p-3.5">
+                            <span class="${a.status === 'Geldi' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'} text-xs font-bold px-2.5 py-1 rounded-full">${a.status}</span>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Ödemeler
+            const { data: payments } = await _supabase.from('payments').select('*');
+            if (payments) {
+                document.getElementById('paymentsTableBody').innerHTML = payments.map(p => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3.5 font-medium">${p.student_name}</td>
+                        <td class="p-3.5 text-slate-500">${p.due_date}</td>
+                        <td class="p-3.5 font-semibold">₺${p.amount}</td>
+                        <td class="p-3.5">
+                            <span class="${p.status === 'Ödendi' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} text-xs font-bold px-2.5 py-1 rounded-full">${p.status}</span>
+                        </td>
+                    </tr>
+                `).join('');
             }
         }
 
