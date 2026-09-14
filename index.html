@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome İkonlar -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts (Montserrat & Plus Jakarta Sans) -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,6 +23,12 @@
             background-image: radial-gradient(#1e293b 1px, transparent 1px);
             background-size: 24px 24px;
         }
+        /* Tablo kaydırma stil düzenlemesi */
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased selection:bg-amber-500 selection:text-slate-900">
@@ -34,24 +40,16 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     </script>
 
-    <!-- 1. KURUMSAL GİRİŞ EKRANI -->
+    <!-- 1. GİRİŞ EKRANI -->
     <div id="loginScreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4 bg-pattern overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 border border-slate-800/40 my-auto">
-            
-            <!-- Sol Görsel / Kurumsal Logo Paneli -->
             <div class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-8 sm:p-12 text-white flex flex-col justify-between relative overflow-hidden border-r border-slate-800/50">
-                <div class="absolute -right-12 -top-12 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl"></div>
-                <div class="absolute -left-12 -bottom-12 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl"></div>
-
                 <div class="relative z-10 space-y-6 text-center md:text-left">
                     <div class="inline-flex flex-col items-center md:items-start space-y-2">
-                        <svg class="w-28 h-16" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg class="w-28 h-16" viewBox="0 0 200 90" fill="none">
                             <path d="M 30 70 A 35 35 0 0 1 100 70" stroke="#d4a373" stroke-width="4" fill="none"/>
                             <path d="M 100 70 A 35 35 0 0 1 170 70" stroke="#d4a373" stroke-width="4" fill="none"/>
-                            <path d="M 75 70 A 20 20 0 0 1 125 70" stroke="#d4a373" stroke-width="3" fill="none"/>
-                            <line x1="30" y1="70" x2="30" y2="80" stroke="#d4a373" stroke-width="4"/>
                             <line x1="100" y1="40" x2="100" y2="80" stroke="#d4a373" stroke-width="4"/>
-                            <line x1="170" y1="70" x2="170" y2="80" stroke="#d4a373" stroke-width="4"/>
                             <line x1="10" y1="65" x2="190" y2="65" stroke="#d4a373" stroke-width="3"/>
                             <circle cx="65" cy="73" r="4" fill="#eab308"/>
                             <circle cx="100" cy="73" r="4" fill="#e11d48"/>
@@ -60,428 +58,186 @@
                         <div class="brand-font text-2xl font-black tracking-widest text-white leading-none">BROOKLYN</div>
                         <div class="brand-font text-xs tracking-widest text-amber-400 font-bold uppercase">A C A D E M Y</div>
                     </div>
-
                     <p class="text-xs sm:text-sm text-slate-400 leading-relaxed font-normal pt-4">
-                        Brooklyn Academy K-12 Kurumsal Yönetim Portalı. Sınıf takibi, ders programı yönetimi ve veli bildirimleri için tek merkez.
+                        Brooklyn Academy K-12 Kurumsal Yönetim Portalı.
                     </p>
                 </div>
-
-                <div class="relative z-10 pt-8 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
-                    <span>© 2026 Brooklyn Academy</span>
-                    <span class="flex items-center gap-1.5 text-emerald-400"><i class="fa-solid fa-shield-halved"></i> Güvenli Bağlantı</span>
-                </div>
             </div>
 
-            <!-- Sağ Form Alanı -->
             <div class="p-8 sm:p-12 flex flex-col justify-between space-y-6 bg-white">
                 <div>
-                    <div class="flex items-center gap-3 mb-6">
-                        <svg class="w-10 h-8" viewBox="0 0 200 90" fill="none">
-                            <path d="M 30 70 A 35 35 0 0 1 100 70" stroke="#c89d7c" stroke-width="5" fill="none"/>
-                            <path d="M 100 70 A 35 35 0 0 1 170 70" stroke="#c89d7c" stroke-width="5" fill="none"/>
-                            <line x1="100" y1="40" x2="100" y2="80" stroke="#c89d7c" stroke-width="5"/>
-                            <line x1="10" y1="65" x2="190" y2="65" stroke="#c89d7c" stroke-width="4"/>
-                            <circle cx="65" cy="73" r="5" fill="#eab308"/>
-                            <circle cx="100" cy="73" r="5" fill="#e11d48"/>
-                            <circle cx="135" cy="73" r="5" fill="#0284c7"/>
-                        </svg>
-                        <div>
-                            <h2 class="text-xl font-black text-slate-900 brand-font leading-none">GİRİŞ YAPIN</h2>
-                            <p class="text-[11px] text-slate-500 font-medium">K-12 Yönetim Paneli</p>
-                        </div>
-                    </div>
-
+                    <h2 class="text-xl font-black text-slate-900 brand-font leading-none mb-4">GİRİŞ YAPIN</h2>
                     <form onsubmit="handleLogin(event)" class="space-y-4">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Kullanıcı Adı</label>
-                            <div class="relative">
-                                <i class="fa-solid fa-user absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
-                                <input type="text" id="username" required placeholder="Kullanıcı adınızı girin" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50/50">
-                            </div>
+                            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Kullanıcı Adı</label>
+                            <input type="text" id="username" required placeholder="Kullanıcı adınızı girin" class="w-full px-4 py-2.5 border rounded-xl text-sm bg-slate-50">
                         </div>
-
                         <div>
-                            <div class="flex items-center justify-between mb-1.5">
-                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">Şifre</label>
-                                <a href="#" onclick="alert('Şifre sıfırlama işlemi için lütfen kurum yönetimi ile iletişime geçiniz.'); return false;" class="text-[11px] font-semibold text-amber-600 hover:text-amber-700 transition-colors">Şifrenizi mi unuttunuz?</a>
-                            </div>
-                            <div class="relative">
-                                <i class="fa-solid fa-lock absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
-                                <input type="password" id="password" required placeholder="••••••••" class="w-full pl-10 pr-10 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50/50">
-                                <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 transition-colors">
-                                    <i id="togglePassIcon" class="fa-solid fa-eye text-xs"></i>
-                                </button>
-                            </div>
+                            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Şifre</label>
+                            <input type="password" id="password" required placeholder="••••••••" class="w-full px-4 py-2.5 border rounded-xl text-sm bg-slate-50">
                         </div>
-
-                        <div id="loginError" class="hidden text-xs text-rose-600 font-semibold bg-rose-50 p-3 rounded-xl border border-rose-200 flex items-center gap-2">
-                            <i class="fa-solid fa-circle-exclamation text-sm"></i> Kullanıcı adı veya şifre hatalı!
+                        <div id="loginError" class="hidden text-xs text-rose-600 font-semibold bg-rose-50 p-3 rounded-xl border border-rose-200">
+                            Kullanıcı adı veya şifre hatalı!
                         </div>
-
-                        <button type="submit" id="btnLogin" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2 brand-font">
-                            <span>SİSTEME GİRİŞ</span> <i class="fa-solid fa-arrow-right text-xs"></i>
-                        </button>
+                        <button type="submit" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl text-sm brand-font">SİSTEME GİRİŞ</button>
                     </form>
                 </div>
-
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-headset text-slate-400"></i> Teknik Destek</span>
-                    <a href="mailto:info@brooklynacademy.com" class="hover:text-slate-600 transition-colors font-medium">Destek Talebi Oluştur</a>
-                </div>
             </div>
-
         </div>
     </div>
 
     <!-- 2. ANA PANEL -->
     <div id="appScreen" class="hidden min-h-screen flex flex-col">
         
-        <!-- HEADER -->
         <header class="bg-slate-950 text-white sticky top-0 z-40 shadow-xl border-b border-slate-800">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="bg-slate-900 p-1.5 rounded-xl border border-slate-800 flex items-center gap-2.5 px-3">
-                        <svg class="w-8 h-6" viewBox="0 0 200 90" fill="none">
-                            <path d="M 30 70 A 35 35 0 0 1 100 70" stroke="#d4a373" stroke-width="5" fill="none"/>
-                            <path d="M 100 70 A 35 35 0 0 1 170 70" stroke="#d4a373" stroke-width="5" fill="none"/>
-                            <line x1="100" y1="40" x2="100" y2="80" stroke="#d4a373" stroke-width="5"/>
-                            <line x1="10" y1="65" x2="190" y2="65" stroke="#d4a373" stroke-width="4"/>
-                            <circle cx="65" cy="73" r="5" fill="#eab308"/>
-                            <circle cx="100" cy="73" r="5" fill="#e11d48"/>
-                            <circle cx="135" cy="73" r="5" fill="#0284c7"/>
-                        </svg>
-                        <div>
-                            <span class="brand-font font-black text-sm text-white tracking-widest block leading-none">BROOKLYN</span>
-                            <span class="brand-font font-bold text-[9px] text-amber-400 tracking-widest block">ACADEMY</span>
-                        </div>
-                    </div>
-                </div>
-                
+                <div class="brand-font font-black text-sm text-white tracking-widest">BROOKLYN ACADEMY</div>
                 <div class="flex items-center gap-4">
-                    <div class="text-right hidden sm:block">
-                        <span id="userDisplayName" class="block text-xs font-bold text-slate-100">Kullanıcı</span>
-                        <span id="userRoleBadge" class="inline-block text-[9px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">Rol</span>
-                    </div>
-                    <button onclick="logout()" class="bg-slate-900 hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 border border-slate-800 p-2 sm:px-3 rounded-xl text-xs font-semibold transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">Çıkış</span>
-                    </button>
+                    <span id="userDisplayName" class="text-xs font-bold text-slate-100">Kullanıcı</span>
+                    <button onclick="logout()" class="bg-slate-900 text-rose-400 border border-slate-800 px-3 py-1.5 rounded-xl text-xs font-semibold">Çıkış</button>
                 </div>
             </div>
         </header>
 
-        <!-- İÇERİK ALANI -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex flex-col md:flex-row gap-8 flex-1 w-full">
 
-            <!-- YAN MENÜ (SIDEBAR) -->
+            <!-- YAN MENÜ -->
             <aside class="w-full md:w-64 shrink-0">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-3 sticky top-20 space-y-1">
-                    <div class="px-3 py-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Menü</div>
-                    
+                <div class="bg-white rounded-2xl shadow-sm border p-3 sticky top-20 space-y-1">
                     <nav class="space-y-1" id="sidebarMenu">
-                        <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all bg-slate-900 text-white shadow-md">
-                            <i class="fa-solid fa-chart-pie w-5 text-center text-amber-400"></i> Genel Bakış
+                        <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm bg-slate-900 text-white">
+                            <i class="fa-solid fa-chart-pie w-5 text-amber-400"></i> Genel Bakış
                         </button>
-                        <button onclick="switchTab('classes')" id="btn-classes" class="tab-btn role-admin role-teacher role-student w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
-                            <i class="fa-solid fa-chalkboard-user w-5 text-center text-slate-400"></i> Sınıflar & Program
+                        <button onclick="switchTab('classes')" id="btn-classes" class="tab-btn role-admin role-teacher role-student w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100">
+                            <i class="fa-solid fa-chalkboard-user w-5 text-slate-400"></i> Sınıflar & Program
                         </button>
-                        <button onclick="switchTab('students')" id="btn-students" class="tab-btn role-admin role-teacher w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
-                            <i class="fa-solid fa-users-gear w-5 text-center text-slate-400"></i> Kullanıcı Yönetimi
+                        <button onclick="switchTab('students')" id="btn-students" class="tab-btn role-admin role-teacher w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100">
+                            <i class="fa-solid fa-users-gear w-5 text-slate-400"></i> Kullanıcı Yönetimi
                         </button>
-                        <button onclick="switchTab('attendance')" id="btn-attendance" class="tab-btn role-admin role-teacher role-parent role-student w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
-                            <i class="fa-solid fa-clipboard-user w-5 text-center text-slate-400"></i> Yoklama Takibi
+                        <button onclick="switchTab('attendance')" id="btn-attendance" class="tab-btn role-admin role-teacher role-parent role-student w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100">
+                            <i class="fa-solid fa-clipboard-user w-5 text-slate-400"></i> Yoklama Takibi
                         </button>
-                        <button onclick="switchTab('payments')" id="btn-payments" class="tab-btn role-admin role-parent w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
-                            <i class="fa-solid fa-wallet w-5 text-center text-slate-400"></i> Finans & Ödemeler
+                        <button onclick="switchTab('payments')" id="btn-payments" class="tab-btn role-admin role-parent w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100">
+                            <i class="fa-solid fa-wallet w-5 text-slate-400"></i> Finans & Ödemeler
                         </button>
                     </nav>
-
-                    <div class="pt-4 border-t border-slate-100 text-center">
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60 flex flex-col items-center">
-                            <svg class="w-12 h-8" viewBox="0 0 200 90" fill="none">
-                                <path d="M 30 70 A 35 35 0 0 1 100 70" stroke="#c89d7c" stroke-width="5" fill="none"/>
-                                <path d="M 100 70 A 35 35 0 0 1 170 70" stroke="#c89d7c" stroke-width="5" fill="none"/>
-                                <line x1="100" y1="40" x2="100" y2="80" stroke="#c89d7c" stroke-width="5"/>
-                                <line x1="10" y1="65" x2="190" y2="65" stroke="#c89d7c" stroke-width="4"/>
-                                <circle cx="65" cy="73" r="5" fill="#eab308"/>
-                                <circle cx="100" cy="73" r="5" fill="#e11d48"/>
-                                <circle cx="135" cy="73" r="5" fill="#0284c7"/>
-                            </svg>
-                            <span class="brand-font text-[10px] font-bold text-slate-700 tracking-wider mt-1">BROOKLYN ACADEMY</span>
-                        </div>
-                    </div>
                 </div>
             </aside>
 
-            <!-- ANA İÇERİK (TABLAR) -->
+            <!-- İÇERİK ALANI -->
             <main class="flex-1 min-w-0">
 
-                <!-- 1. GENEL BAKIŞ TAB -->
                 <section id="tab-dashboard" class="tab-content space-y-6">
-                    <div class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white p-6 sm:p-8 rounded-3xl shadow-lg relative overflow-hidden border border-slate-800">
-                        <div class="absolute right-0 top-0 bottom-0 w-1/3 bg-amber-500/5 rounded-l-full blur-2xl"></div>
-                        <div class="relative z-10 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                            <div>
-                                <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2">2026 Akademik Yılı</span>
-                                <h2 class="text-2xl sm:text-3xl font-extrabold brand-font" id="welcomeHeading">Hoş Geldiniz! 👋</h2>
-                                <p class="text-slate-400 text-xs sm:text-sm mt-1" id="welcomeSub">Brooklyn Academy canlı yönetim konsolu.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- İstatistik Kartları -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center text-xl">
-                                <i class="fa-solid fa-chalkboard-user"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Aktif Sınıflar</p>
-                                <p class="text-2xl font-black text-slate-800 brand-font" id="statClasses">--</p>
-                            </div>
-                        </div>
-
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center text-xl">
-                                <i class="fa-solid fa-users"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Kayıtlı Kullanıcı</p>
-                                <p class="text-2xl font-black text-slate-800 brand-font" id="statUsers">--</p>
-                            </div>
-                        </div>
-
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-xl">
-                                <i class="fa-solid fa-database"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Veritabanı Durumu</p>
-                                <p class="text-xs font-bold text-emerald-600 flex items-center gap-1.5 mt-1">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> Supabase Bağlı
-                                </p>
-                            </div>
-                        </div>
+                    <div class="bg-slate-900 text-white p-6 rounded-3xl">
+                        <h2 class="text-2xl font-extrabold brand-font" id="welcomeHeading">Hoş Geldiniz! 👋</h2>
                     </div>
                 </section>
 
-                <!-- 2. SINIFLAR TAB -->
                 <section id="tab-classes" class="tab-content hidden space-y-5">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                        <div>
-                            <h3 class="text-lg font-bold text-slate-900 brand-font">Sınıflar & Ders Programı Yönetimi</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Kurs bünyesindeki aktif sınıflar ve haftalık programlar.</p>
-                        </div>
-                        <button onclick="toggleAdminForm('formAddClass')" class="role-admin bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md w-fit">
-                            <i class="fa-solid fa-plus"></i> Yeni Sınıf Ekle
-                        </button>
-                    </div>
-
-                    <form id="formAddClass" onsubmit="addClass(event)" class="hidden bg-slate-100 p-5 rounded-2xl border border-slate-300/80 grid grid-cols-1 sm:grid-cols-2 gap-3 shadow-inner">
-                        <input type="text" id="clsName" placeholder="Sınıf Adı (Örn: B1 Hafta Sonu)" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <input type="text" id="clsLevel" placeholder="Seviye (Örn: B1 - Intermediate)" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <input type="text" id="clsTeacher" placeholder="Eğitmen Adı" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <input type="text" id="clsSchedule" placeholder="Ders Programı (Örn: Cmt-Pzr 10:00-13:00)" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <button type="submit" class="sm:col-span-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow">Sınıf ve Programı Kaydet</button>
-                    </form>
-
+                    <h3 class="text-lg font-bold brand-font">Sınıflar & Program</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="classesList"></div>
                 </section>
 
-                <!-- 3. KULLANICI YÖNETİMİ TAB -->
                 <section id="tab-students" class="tab-content hidden space-y-5">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                        <div>
-                            <h3 class="text-lg font-bold text-slate-900 brand-font">Kullanıcı Yönetim Paneli</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Sisteme kayıtlı idari kadro, öğretmen, veli ve öğrenciler.</p>
-                        </div>
-                        <button onclick="toggleAdminForm('formAddUser')" class="role-admin bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md w-fit">
-                            <i class="fa-solid fa-user-plus"></i> Yeni Kullanıcı Ekle
-                        </button>
-                    </div>
-
-                    <form id="formAddUser" onsubmit="addUser(event)" class="hidden bg-slate-100 p-5 rounded-2xl border border-slate-300/80 grid grid-cols-1 sm:grid-cols-3 gap-3 shadow-inner">
-                        <input type="text" id="usrName" placeholder="Kullanıcı Adı" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <input type="password" id="usrPass" placeholder="Şifre" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <input type="text" id="usrFullName" placeholder="Ad Soyad" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <select id="usrRole" class="p-2.5 border rounded-xl text-sm bg-white">
-                            <option value="student">Öğrenci</option>
-                            <option value="parent">Veli</option>
-                            <option value="teacher">Öğretmen</option>
-                            <option value="admin">Yönetici (Admin)</option>
-                        </select>
-                        <input type="text" id="usrPhone" placeholder="Telefon (5xx...)" class="p-2.5 border rounded-xl text-sm bg-white">
-                        <button type="submit" class="sm:col-span-3 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow">Kullanıcıyı Kaydet</button>
-                    </form>
-
-                    <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm">
-                                <thead class="bg-slate-100/80 text-slate-700 text-xs uppercase font-bold tracking-wider">
-                                    <tr>
-                                        <th class="p-4">Ad Soyad</th>
-                                        <th class="p-4">Rol</th>
-                                        <th class="p-4">İletişim / WhatsApp</th>
-                                        <th class="p-4 role-admin">İşlem</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100" id="usersTableBody"></tbody>
-                            </table>
-                        </div>
+                    <h3 class="text-lg font-bold brand-font">Kullanıcı Yönetimi</h3>
+                    <div class="bg-white rounded-2xl border overflow-hidden">
+                        <table class="w-full text-left text-sm">
+                            <tbody id="usersTableBody"></tbody>
+                        </table>
                     </div>
                 </section>
 
-                <!-- 4. YOKLAMA TAB -->
                 <section id="tab-attendance" class="tab-content hidden space-y-5">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                        <h3 class="text-lg font-bold text-slate-900 brand-font">Yoklama & Devam Takip Modülü</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Öğrencilerin derse katılım kayıtları.</p>
-                    </div>
-
-                    <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm">
-                                <thead class="bg-slate-100/80 text-slate-700 text-xs uppercase font-bold tracking-wider">
-                                    <tr>
-                                        <th class="p-4">Öğrenci Adı</th>
-                                        <th class="p-4">Sınıf</th>
-                                        <th class="p-4">Tarih</th>
-                                        <th class="p-4">Durum</th>
-                                        <th class="p-4 role-admin">İşlem</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100" id="attendanceTableBody"></tbody>
-                            </table>
-                        </div>
+                    <h3 class="text-lg font-bold brand-font">Yoklama Takibi</h3>
+                    <div class="bg-white rounded-2xl border overflow-hidden">
+                        <table class="w-full text-left text-sm">
+                            <tbody id="attendanceTableBody"></tbody>
+                        </table>
                     </div>
                 </section>
 
-                <!-- 5. ÖDEME & FİNANS TAB (GÜNCELLENEN ALAN) -->
+                <!-- 5. 12 AYLIK YAN YANA ÖDEME MATRİSİ (YENİLENEN ALAN) -->
                 <section id="tab-payments" class="tab-content hidden space-y-6">
                     
-                    <!-- Başlık & Ay Seçimi & Yeni Ekle Butonu -->
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
                         <div>
                             <h3 class="text-xl font-extrabold text-slate-900 brand-font flex items-center gap-2">
-                                <i class="fa-solid fa-wallet text-amber-500"></i> Aylık Veli Ödeme & Taksit Paneli
+                                <i class="fa-solid fa-calendar-days text-amber-500"></i> Yıllık Veli Ödeme Matrisi (12 Ay)
                             </h3>
-                            <p class="text-xs text-slate-500 mt-1">Hangi velinin ne kadar ödeme yaptığını veya geciktiğini ay ay takip edin.</p>
+                            <p class="text-xs text-slate-500 mt-1">Öğrenci bazında Ocak'tan Aralık'a tüm taksitlerin ödeme durumunu tek bakışta görün.</p>
                         </div>
 
-                        <div class="flex flex-wrap items-center gap-3">
-                            <!-- Ay Filtresi -->
-                            <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
-                                <i class="fa-regular fa-calendar-days text-slate-500 ml-2 text-sm"></i>
-                                <select id="monthFilter" onchange="filterPaymentsByMonth()" class="bg-transparent text-xs font-bold text-slate-700 focus:outline-none pr-2 py-1">
-                                    <option value="ALL">Tüm Ayları Göster</option>
-                                    <option value="2026-09" selected>Eylül 2026</option>
-                                    <option value="2026-10">Ekim 2026</option>
-                                    <option value="2026-11">Kasım 2026</option>
-                                    <option value="2026-12">Aralık 2026</option>
-                                    <option value="2027-01">Ocak 2027</option>
-                                    <option value="2027-02">Şubat 2027</option>
-                                </select>
-                            </div>
-
-                            <button onclick="toggleAdminForm('formAddPayment')" class="role-admin bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
-                                <i class="fa-solid fa-plus"></i> Ödeme / Taksit Ekle
+                        <div class="flex items-center gap-2">
+                            <select id="yearFilter" onchange="loadPaymentsMatrix()" class="bg-slate-100 font-bold text-xs p-2 rounded-xl border">
+                                <option value="2026" selected>2026 Yılı</option>
+                                <option value="2027">2027 Yılı</option>
+                            </select>
+                            <button onclick="toggleAdminForm('formAddPayment')" class="role-admin bg-slate-900 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Hızlı Taksit Ekle
                             </button>
                         </div>
                     </div>
 
-                    <!-- Finansal İstatistik Kartları -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center text-xl">
-                                <i class="fa-solid fa-calculator"></i>
-                            </div>
-                            <div>
-                                <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Toplam Planlanan</p>
-                                <p class="text-2xl font-black text-slate-800 brand-font" id="statTotalAmount">₺0</p>
-                            </div>
-                        </div>
-
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-xl">
-                                <i class="fa-solid fa-circle-check"></i>
-                            </div>
-                            <div>
-                                <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Tahsil Edilen (Ödendi)</p>
-                                <p class="text-2xl font-black text-emerald-600 brand-font" id="statPaidAmount">₺0</p>
-                            </div>
-                        </div>
-
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center text-xl">
-                                <i class="fa-solid fa-clock-rotate-left"></i>
-                            </div>
-                            <div>
-                                <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Kalan / Geciken</p>
-                                <p class="text-2xl font-black text-rose-600 brand-font" id="statPendingAmount">₺0</p>
-                            </div>
-                        </div>
+                    <!-- Renk Açıklama Lejantı -->
+                    <div class="flex flex-wrap items-center gap-6 bg-slate-100 p-3 px-5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
+                        <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-md bg-emerald-500 inline-block"></span> Ödendi (Yeşil)</span>
+                        <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-md bg-rose-500 inline-block"></span> Ödenmedi / Gecikti (Kırmızı)</span>
+                        <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-md bg-slate-200 border border-slate-300 inline-block"></span> Tanımsız / Taksit Yok</span>
                     </div>
 
-                    <!-- Ödeme Ekleme Formu -->
-                    <form id="formAddPayment" onsubmit="addPayment(event)" class="hidden bg-slate-100 p-6 rounded-2xl border border-slate-300/80 space-y-4 shadow-inner">
-                        <h4 class="text-sm font-bold text-slate-800 brand-font">Yeni Taksit Kaydı Tanımla</h4>
+                    <!-- Taksit Ekle Formu -->
+                    <form id="formAddPayment" onsubmit="addPayment(event)" class="hidden bg-slate-100 p-5 rounded-2xl border space-y-3">
                         <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                            <input type="text" id="payStudent" placeholder="Öğrenci / Veli Adı" required class="p-2.5 border rounded-xl text-sm bg-white">
-                            <input type="date" id="payDate" required class="p-2.5 border rounded-xl text-sm bg-white">
-                            <input type="number" id="payAmount" placeholder="Tutar (₺)" required class="p-2.5 border rounded-xl text-sm bg-white">
-                            <select id="payStatus" class="p-2.5 border rounded-xl text-sm bg-white">
-                                <option value="Bekliyor">Bekliyor (Ödenmedi)</option>
+                            <input type="text" id="payStudent" placeholder="Öğrenci / Veli Adı" required class="p-2.5 border rounded-xl text-sm">
+                            <input type="date" id="payDate" required class="p-2.5 border rounded-xl text-sm">
+                            <input type="number" id="payAmount" placeholder="Tutar (₺)" required class="p-2.5 border rounded-xl text-sm">
+                            <select id="payStatus" class="p-2.5 border rounded-xl text-sm">
+                                <option value="Bekliyor">Ödenmedi</option>
                                 <option value="Ödendi">Ödendi</option>
                             </select>
                         </div>
-                        <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-all shadow">Taksiti Kaydet</button>
+                        <button type="submit" class="bg-slate-900 text-white font-bold px-5 py-2 rounded-xl text-xs">Kaydet</button>
                     </form>
 
-                    <!-- Veli Ödeme Listesi Tablosu -->
-                    <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm">
-                                <thead class="bg-slate-900 text-white text-[11px] uppercase font-bold tracking-wider brand-font">
-                                    <tr>
-                                        <th class="p-4">Öğrenci / Veli Bilgisi</th>
-                                        <th class="p-4">Son Ödeme Tarihi</th>
-                                        <th class="p-4">Tutar</th>
-                                        <th class="p-4">Ödeme Durumu</th>
-                                        <th class="p-4 text-right role-admin">Durum Değiştir / İşlem</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100" id="paymentsTableBody"></tbody>
-                            </table>
-                        </div>
+                    <!-- MATRİS TABLOSU (YAN YANA 12 AY KAYDIRILABİLİR) -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[1200px]">
+                            <thead>
+                                <tr class="bg-slate-900 text-white text-[11px] font-bold uppercase brand-font">
+                                    <th class="p-3.5 sticky-col bg-slate-900 min-w-[180px] shadow-r">Öğrenci Adı</th>
+                                    <th class="p-3 text-center border-l border-slate-800">Ocak</th>
+                                    <th class="p-3 text-center border-l border-slate-800">Şubat</th>
+                                    <th class="p-3 text-center border-l border-slate-800">Mart</th>
+                                    <th class="p-3 text-center border-l border-slate-800">Nisan</th>
+                                    <th class="p-3 text-center border-l border-slate-800">Mayıs</th>
+                                    <th class="p-3 text-center border-l border-slate-800">Haziran</th>
+                                    <th class="p-3 text-center border-l border-slate-800">Temmuz</th>
+                                    <th class="p-3 text-center border-l border-slate-800">Ağustos</th>
+                                    <th class="p-3 text-center border-l border-slate-800">Eylül</th>
+                                    <th class="p-3 text-center border-l border-slate-800">Ekim</th>
+                                    <th class="p-3 text-center border-l border-slate-800">Kasım</th>
+                                    <th class="p-3 text-center border-l border-slate-800">Aralık</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsMatrixBody" class="divide-y divide-slate-100 text-xs">
+                                <!-- Dinamik Matris Yüklenecek -->
+                            </tbody>
+                        </table>
                     </div>
+
                 </section>
 
             </main>
         </div>
     </div>
 
-    <!-- JavaScript - Supabase İşlemleri & Mantık -->
     <script>
         let currentUser = null;
-        let globalPaymentsData = [];
 
         window.onload = function() {
             const activeUser = JSON.parse(localStorage.getItem('brooklyn_user'));
             if (activeUser) showApp(activeUser);
         };
-
-        function togglePasswordVisibility() {
-            const passInput = document.getElementById('password');
-            const passIcon = document.getElementById('togglePassIcon');
-            if (passInput.type === 'password') {
-                passInput.type = 'text';
-                passIcon.classList.remove('fa-eye');
-                passIcon.classList.add('fa-eye-slash');
-            } else {
-                passInput.type = 'password';
-                passIcon.classList.remove('fa-eye-slash');
-                passIcon.classList.add('fa-eye');
-            }
-        }
 
         async function handleLogin(e) {
             e.preventDefault();
@@ -490,23 +246,14 @@
             const errDiv = document.getElementById('loginError');
 
             if (uName === 'adminadmin' && pass === '19651965') {
-                const adminUser = {
-                    id: 999,
-                    username: 'adminadmin',
-                    full_name: 'Kurs Yöneticisi',
-                    role: 'admin',
-                    phone: ''
-                };
-                errDiv.classList.add('hidden');
+                const adminUser = { id: 999, username: 'adminadmin', full_name: 'Kurs Yöneticisi', role: 'admin' };
                 localStorage.setItem('brooklyn_user', JSON.stringify(adminUser));
                 showApp(adminUser);
                 return;
             }
 
             const { data, error } = await _supabase.from('users').select('*').eq('username', uName).eq('password', pass).single();
-
             if (data && !error) {
-                errDiv.classList.add('hidden');
                 localStorage.setItem('brooklyn_user', JSON.stringify(data));
                 showApp(data);
             } else {
@@ -519,17 +266,8 @@
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appScreen').classList.remove('hidden');
 
-            const roleTitles = {
-                'admin': '👨‍💼 Kurs Yöneticisi',
-                'teacher': '👨‍🏫 Öğretmen',
-                'parent': '👨‍👩‍👦 Veli',
-                'student': '🎓 Öğrenci'
-            };
-
             document.getElementById('userDisplayName').innerText = user.full_name;
-            document.getElementById('userRoleBadge').innerText = roleTitles[user.role] || user.role;
             document.getElementById('welcomeHeading').innerText = `Hoş Geldiniz, ${user.full_name}! 👋`;
-            document.getElementById('welcomeSub').innerText = `${roleTitles[user.role]} paneline canlı bağlandınız.`;
 
             ['admin', 'teacher', 'parent', 'student'].forEach(r => {
                 document.querySelectorAll('.role-' + r).forEach(el => el.classList.add('hidden'));
@@ -541,205 +279,136 @@
         }
 
         async function loadDataFromSupabase() {
-            // 1. Sınıflar & Ders Programları
+            // Sınıflar
             const { data: classes } = await _supabase.from('classes').select('*');
             if (classes) {
-                document.getElementById('statClasses').innerText = classes.length;
                 document.getElementById('classesList').innerHTML = classes.map(c => `
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3 relative hover:shadow-md transition-all">
-                        ${currentUser.role === 'admin' ? `
-                            <div class="absolute top-4 right-4 flex items-center gap-2">
-                                <button onclick="editSchedule(${c.id}, '${c.schedule}')" class="text-amber-600 hover:text-amber-800 text-xs font-bold bg-amber-50 px-2 py-1 rounded-lg border border-amber-200"><i class="fa-solid fa-pen"></i> Düzenle</button>
-                                <button onclick="deleteRecord('classes', ${c.id})" class="text-rose-600 hover:text-rose-800 text-xs font-bold bg-rose-50 px-2 py-1 rounded-lg border border-rose-200"><i class="fa-solid fa-trash"></i> Sil</button>
-                            </div>
-                        ` : ''}
-                        <span class="bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md inline-block uppercase tracking-wider">${c.level}</span>
-                        <h4 class="text-lg font-extrabold text-slate-800 brand-font">${c.class_name}</h4>
-                        <p class="text-xs text-slate-500 font-medium"><i class="fa-solid fa-user-chalkboard mr-1.5 text-slate-400"></i> Eğitmen: <b>${c.teacher_name}</b></p>
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 text-xs text-slate-700 font-semibold flex items-center gap-2">
-                            <i class="fa-regular fa-clock text-amber-500 text-sm"></i>
-                            <div>
-                                <span class="text-[10px] text-slate-400 uppercase font-bold block">Ders Programı</span>
-                                <span id="sched-text-${c.id}">${c.schedule}</span>
-                            </div>
-                        </div>
+                    <div class="bg-white p-4 rounded-xl border">
+                        <h4 class="font-bold text-slate-800">${c.class_name} (${c.level})</h4>
+                        <p class="text-xs text-slate-500">Eğitmen: ${c.teacher_name}</p>
+                        <p class="text-xs font-semibold text-amber-600 mt-2">${c.schedule}</p>
                     </div>
                 `).join('');
             }
 
-            // 2. Kullanıcılar
-            const { data: users } = await _supabase.from('users').select('*');
-            if (users) {
-                document.getElementById('statUsers').innerText = users.length;
-                document.getElementById('usersTableBody').innerHTML = users.map(u => `
-                    <tr class="hover:bg-slate-50/80 transition-all">
-                        <td class="p-4 font-semibold text-slate-800">${u.full_name}</td>
-                        <td class="p-4"><span class="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-lg text-[10px] uppercase font-bold tracking-wider">${u.role}</span></td>
-                        <td class="p-4">
-                            <a href="https://wa.me/90${u.phone}" target="_blank" class="inline-flex items-center gap-1.5 text-emerald-600 font-semibold hover:underline text-xs bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
-                                <i class="fa-brands fa-whatsapp text-sm"></i> ${u.phone || 'Yok'}
-                            </a>
-                        </td>
-                        <td class="p-4 role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
-                            <button onclick="deleteRecord('users', ${u.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash mr-1"></i> Sil</button>
-                        </td>
-                    </tr>
-                `).join('');
-            }
+            // Ödeme Matrisini Yükle
+            loadPaymentsMatrix();
+        }
 
-            // 3. Yoklama
-            const { data: attendance } = await _supabase.from('attendance').select('*');
-            if (attendance) {
-                document.getElementById('attendanceTableBody').innerHTML = attendance.map(a => `
-                    <tr class="hover:bg-slate-50/80 transition-all">
-                        <td class="p-4 font-semibold text-slate-800">${a.student_name}</td>
-                        <td class="p-4 text-slate-600">${a.class_name}</td>
-                        <td class="p-4 text-slate-500 text-xs">${a.date}</td>
-                        <td class="p-4">
-                            <span class="${a.status === 'Geldi' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-rose-100 text-rose-800 border-rose-200'} text-[11px] font-bold px-2.5 py-1 rounded-full border">${a.status}</span>
-                        </td>
-                        <td class="p-4 role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
-                            <button onclick="deleteRecord('attendance', ${a.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash mr-1"></i> Sil</button>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-
-            // 4. Ödemeler
+        // --- 12 AYLIK YAN YANA ÖDEME MATRİSİ MANTIĞI ---
+        async function loadPaymentsMatrix() {
+            const selectedYear = document.getElementById('yearFilter').value;
             const { data: payments } = await _supabase.from('payments').select('*');
-            if (payments) {
-                globalPaymentsData = payments;
-                filterPaymentsByMonth();
-            }
-        }
+            const { data: users } = await _supabase.from('users').select('*');
 
-        // Ödemeleri Aya Göre Filtreleme & İstatistik Hesaplama
-        function filterPaymentsByMonth() {
-            const selectedMonth = document.getElementById('monthFilter').value;
-            let filtered = globalPaymentsData;
+            if (!payments) return;
 
-            if (selectedMonth !== 'ALL') {
-                filtered = globalPaymentsData.filter(p => p.due_date && p.due_date.startsWith(selectedMonth));
+            // 1. Ödemesi olan veya öğrenci olan benzersiz isim listesi çıkar
+            let studentNames = [...new Set(payments.map(p => p.student_name))];
+            if (users) {
+                const studentsFromUsers = users.filter(u => u.role === 'student' || u.role === 'parent').map(u => u.full_name);
+                studentNames = [...new Set([...studentNames, ...studentsFromUsers])];
             }
 
-            let total = 0;
-            let paid = 0;
-            let pending = 0;
+            const tbody = document.getElementById('paymentsMatrixBody');
+            if (studentNames.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center text-slate-400">Kayıtlı öğrenci veya ödeme bulunamadı.</td></tr>`;
+                return;
+            }
 
-            const today = new Date().toISOString().split('T')[0];
+            let html = '';
 
-            const tbody = document.getElementById('paymentsTableBody');
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium">Bu döneme ait kayıtlı ödeme bulunamadı.</td></tr>`;
-            } else {
-                tbody.innerHTML = filtered.map(p => {
-                    const amt = parseFloat(p.amount) || 0;
-                    total += amt;
-                    
-                    const isOverdue = (p.status !== 'Ödendi' && p.due_date < today);
+            studentNames.forEach(student => {
+                html += `<tr class="hover:bg-slate-50 border-b border-slate-100">`;
+                html += `<td class="p-3.5 font-bold text-slate-800 sticky-col bg-white border-r border-slate-200">${student}</td>`;
 
-                    if (p.status === 'Ödendi') paid += amt;
-                    else pending += amt;
+                // 12 Ayı Döngüye Al (01: Ocak, 02: Şubat ... 12: Aralık)
+                for (let m = 1; m <= 12; m++) {
+                    const monthStr = m < 10 ? `0${m}` : `${m}`;
+                    const targetYearMonth = `${selectedYear}-${monthStr}`;
 
-                    let statusBadge = '';
-                    if (p.status === 'Ödendi') {
-                        statusBadge = `<span class="bg-emerald-100 text-emerald-800 border-emerald-300 text-[11px] font-bold px-3 py-1 rounded-full border inline-flex items-center gap-1.5"><i class="fa-solid fa-check text-xs"></i> ÖDENDİ</span>`;
-                    } else if (isOverdue) {
-                        statusBadge = `<span class="bg-rose-100 text-rose-800 border-rose-300 text-[11px] font-bold px-3 py-1 rounded-full border inline-flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation text-xs"></i> GECİKTİ</span>`;
-                    } else {
-                        statusBadge = `<span class="bg-amber-100 text-amber-800 border-amber-300 text-[11px] font-bold px-3 py-1 rounded-full border inline-flex items-center gap-1.5"><i class="fa-solid fa-hourglass-half text-xs"></i> BEKLİYOR</span>`;
-                    }
+                    // İlgili öğrenci ve ilgili aya ait kaydı bul
+                    const payRecord = payments.find(p => p.student_name === student && p.due_date && p.due_date.startsWith(targetYearMonth));
 
-                    return `
-                        <tr class="hover:bg-slate-50/80 transition-all">
-                            <td class="p-4 font-bold text-slate-800 flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs border border-slate-200">
-                                    ${p.student_name.charAt(0)}
-                                </div>
-                                <span>${p.student_name}</span>
-                            </td>
-                            <td class="p-4 text-slate-600 font-medium text-xs">
-                                <i class="fa-regular fa-calendar text-slate-400 mr-1"></i> ${p.due_date}
-                            </td>
-                            <td class="p-4 font-black text-slate-900 brand-font">₺${amt.toLocaleString('tr-TR')}</td>
-                            <td class="p-4">${statusBadge}</td>
-                            <td class="p-4 text-right role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
-                                <div class="inline-flex items-center gap-2">
-                                    <button onclick="togglePaymentStatus(${p.id}, '${p.status}')" class="text-xs font-bold px-2.5 py-1 rounded-lg border transition-all ${p.status === 'Ödendi' ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'}">
-                                        ${p.status === 'Ödendi' ? 'Bekliyor Yap' : 'Ödendi Yap'}
+                    if (payRecord) {
+                        const amt = parseFloat(payRecord.amount) || 0;
+                        const formattedAmt = amt.toLocaleString('tr-TR') + ' ₺';
+
+                        if (payRecord.status === 'Ödendi') {
+                            // YEŞİL HÜCRE
+                            html += `
+                                <td class="p-2 text-center border-l">
+                                    <button onclick="togglePaymentStatus(${payRecord.id}, 'Ödendi')" 
+                                            title="Tıklayarak durumu değiştirin" 
+                                            class="w-full py-2 px-1 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] shadow-sm transition-all flex flex-col items-center justify-center gap-0.5">
+                                        <span>${formattedAmt}</span>
+                                        <span class="text-[9px] font-medium opacity-90"><i class="fa-solid fa-check"></i> Ödendi</span>
                                     </button>
-                                    <button onclick="deleteRecord('payments', ${p.id})" class="text-rose-600 hover:text-rose-800 p-1 font-bold text-xs"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            }
+                                </td>`;
+                        } else {
+                            // KIRMIZI HÜCRE (Ödenmedi / Gecikti / Bekliyor)
+                            html += `
+                                <td class="p-2 text-center border-l">
+                                    <button onclick="togglePaymentStatus(${payRecord.id}, 'Bekliyor')" 
+                                            title="Tıklayarak Ödendi yapın" 
+                                            class="w-full py-2 px-1 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-black text-[11px] shadow-sm transition-all flex flex-col items-center justify-center gap-0.5">
+                                        <span>${formattedAmt}</span>
+                                        <span class="text-[9px] font-medium opacity-90"><i class="fa-solid fa-xmark"></i> Ödenmedi</span>
+                                    </button>
+                                </td>`;
+                        }
+                    } else {
+                        // KART / TAKSİT YOK (GRİ)
+                        html += `
+                            <td class="p-2 text-center border-l">
+                                <button onclick="quickAddForMonth('${student}', '${selectedYear}-${monthStr}-15')" 
+                                        title="Bu aya taksit ekle" 
+                                        class="w-full py-2 px-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 text-[11px] transition-all border border-dashed border-slate-300">
+                                    <i class="fa-solid fa-plus"></i> Ekle
+                                </button>
+                            </td>`;
+                    }
+                }
 
-            document.getElementById('statTotalAmount').innerText = '₺' + total.toLocaleString('tr-TR');
-            document.getElementById('statPaidAmount').innerText = '₺' + paid.toLocaleString('tr-TR');
-            document.getElementById('statPendingAmount').innerText = '₺' + pending.toLocaleString('tr-TR');
+                html += `</tr>`;
+            });
+
+            tbody.innerHTML = html;
         }
 
+        // Tıklandığında Anında Durum Değiştirme (Ödendi <-> Ödenmedi)
         async function togglePaymentStatus(id, currentStatus) {
+            if (currentUser.role !== 'admin') return;
             const newStatus = (currentStatus === 'Ödendi') ? 'Bekliyor' : 'Ödendi';
             const { error } = await _supabase.from('payments').update({ status: newStatus }).eq('id', id);
             if (!error) {
-                loadDataFromSupabase();
+                loadPaymentsMatrix();
             } else {
-                alert('Ödeme durumu güncellenirken hata oluştu: ' + error.message);
+                alert('Hata: ' + error.message);
             }
         }
 
-        async function editSchedule(classId, oldSchedule) {
-            const newSchedule = prompt("Yeni Ders Programını Girin:", oldSchedule);
-            if (newSchedule !== null && newSchedule.trim() !== "") {
-                const { error } = await _supabase.from('classes').update({ schedule: newSchedule.trim() }).eq('id', classId);
+        // Boş Hücreye Tıklandığında Hızlı Taksit Oluşturma
+        async function quickAddForMonth(studentName, dueDate) {
+            if (currentUser.role !== 'admin') return;
+            const amount = prompt(`${studentName} için ${dueDate.substring(0,7)} dönemi taksit tutarını girin (₺):`, "3500");
+            if (amount !== null && amount.trim() !== "") {
+                const { error } = await _supabase.from('payments').insert([{
+                    student_name: studentName,
+                    due_date: dueDate,
+                    amount: parseFloat(amount),
+                    status: 'Bekliyor'
+                }]);
                 if (!error) {
-                    alert('Ders programı başarıyla güncellendi!');
-                    loadDataFromSupabase();
+                    loadPaymentsMatrix();
                 } else {
-                    alert('Güncelleme hatası: ' + error.message);
+                    alert('Hata: ' + error.message);
                 }
             }
         }
 
         function toggleAdminForm(formId) {
-            const form = document.getElementById(formId);
-            form.classList.toggle('hidden');
-        }
-
-        async function addUser(e) {
-            e.preventDefault();
-            const username = document.getElementById('usrName').value.trim();
-            const password = document.getElementById('usrPass').value.trim();
-            const full_name = document.getElementById('usrFullName').value.trim();
-            const role = document.getElementById('usrRole').value;
-            const phone = document.getElementById('usrPhone').value.trim();
-
-            const { error } = await _supabase.from('users').insert([{ username, password, full_name, role, phone }]);
-            if (!error) {
-                alert('Kullanıcı başarıyla eklendi!');
-                document.getElementById('formAddUser').reset();
-                toggleAdminForm('formAddUser');
-                loadDataFromSupabase();
-            } else alert('Hata oluştu: ' + error.message);
-        }
-
-        async function addClass(e) {
-            e.preventDefault();
-            const class_name = document.getElementById('clsName').value.trim();
-            const level = document.getElementById('clsLevel').value.trim();
-            const teacher_name = document.getElementById('clsTeacher').value.trim();
-            const schedule = document.getElementById('clsSchedule').value.trim();
-
-            const { error } = await _supabase.from('classes').insert([{ class_name, level, teacher_name, schedule }]);
-            if (!error) {
-                alert('Sınıf ve ders programı başarıyla eklendi!');
-                document.getElementById('formAddClass').reset();
-                toggleAdminForm('formAddClass');
-                loadDataFromSupabase();
-            } else alert('Hata oluştu: ' + error.message);
+            document.getElementById(formId).classList.toggle('hidden');
         }
 
         async function addPayment(e) {
@@ -751,19 +420,10 @@
 
             const { error } = await _supabase.from('payments').insert([{ student_name, due_date, amount, status }]);
             if (!error) {
-                alert('Ödeme taksiti başarıyla eklendi!');
                 document.getElementById('formAddPayment').reset();
                 toggleAdminForm('formAddPayment');
-                loadDataFromSupabase();
-            } else alert('Hata oluştu: ' + error.message);
-        }
-
-        async function deleteRecord(table, id) {
-            if (confirm('Bu kaydı veritabanından silmek istediğinize emin misiniz?')) {
-                const { error } = await _supabase.from(table).delete().eq('id', id);
-                if (!error) loadDataFromSupabase();
-                else alert('Silme işleminde hata oluştu.');
-            }
+                loadPaymentsMatrix();
+            } else alert('Hata: ' + error.message);
         }
 
         function logout() {
@@ -775,8 +435,8 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-slate-900', 'text-white', 'shadow-md');
-                btn.classList.add('text-slate-600', 'font-medium');
+                btn.classList.remove('bg-slate-900', 'text-white');
+                btn.classList.add('text-slate-600');
             });
 
             const targetTab = document.getElementById('tab-' + tabId);
@@ -784,8 +444,8 @@
 
             const activeBtn = document.getElementById('btn-' + tabId);
             if (activeBtn) {
-                activeBtn.classList.add('bg-slate-900', 'text-white', 'shadow-md');
-                activeBtn.classList.remove('text-slate-600', 'font-medium');
+                activeBtn.classList.add('bg-slate-900', 'text-white');
+                activeBtn.classList.remove('text-slate-600');
             }
         }
     </script>
