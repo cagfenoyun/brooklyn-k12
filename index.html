@@ -46,16 +46,13 @@
                 <div class="relative z-10 space-y-6 text-center md:text-left">
                     <div class="inline-flex flex-col items-center md:items-start space-y-2">
                         <svg class="w-28 h-16" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <!-- Kemerler -->
                             <path d="M 30 70 A 35 35 0 0 1 100 70" stroke="#d4a373" stroke-width="4" fill="none"/>
                             <path d="M 100 70 A 35 35 0 0 1 170 70" stroke="#d4a373" stroke-width="4" fill="none"/>
                             <path d="M 75 70 A 20 20 0 0 1 125 70" stroke="#d4a373" stroke-width="3" fill="none"/>
-                            <!-- Dikey Çizgiler -->
                             <line x1="30" y1="70" x2="30" y2="80" stroke="#d4a373" stroke-width="4"/>
                             <line x1="100" y1="40" x2="100" y2="80" stroke="#d4a373" stroke-width="4"/>
                             <line x1="170" y1="70" x2="170" y2="80" stroke="#d4a373" stroke-width="4"/>
                             <line x1="10" y1="65" x2="190" y2="65" stroke="#d4a373" stroke-width="3"/>
-                            <!-- Renkli Noktalar -->
                             <circle cx="65" cy="73" r="4" fill="#eab308"/>
                             <circle cx="100" cy="73" r="4" fill="#e11d48"/>
                             <circle cx="135" cy="73" r="4" fill="#0284c7"/>
@@ -127,7 +124,6 @@
                     </form>
                 </div>
 
-                <!-- Kurumsal Alt Bilgi Bildirimi -->
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-headset text-slate-400"></i> Teknik Destek</span>
                     <a href="mailto:info@brooklynacademy.com" class="hover:text-slate-600 transition-colors font-medium">Destek Talebi Oluştur</a>
@@ -195,7 +191,7 @@
                             <i class="fa-solid fa-clipboard-user w-5 text-center text-slate-400"></i> Yoklama Takibi
                         </button>
                         <button onclick="switchTab('payments')" id="btn-payments" class="tab-btn role-admin role-parent w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
-                            <i class="fa-solid fa-credit-card w-5 text-center text-slate-400"></i> Ödeme Bilgileri
+                            <i class="fa-solid fa-wallet w-5 text-center text-slate-400"></i> Finans & Ödemeler
                         </button>
                     </nav>
 
@@ -359,39 +355,98 @@
                     </div>
                 </section>
 
-                <!-- 5. ÖDEME TAB -->
-                <section id="tab-payments" class="tab-content hidden space-y-5">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                <!-- 5. ÖDEME & FİNANS TAB (GÜNCELLENEN ALAN) -->
+                <section id="tab-payments" class="tab-content hidden space-y-6">
+                    
+                    <!-- Başlık & Ay Seçimi & Yeni Ekle Butonu -->
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
                         <div>
-                            <h3 class="text-lg font-bold text-slate-900 brand-font">Ödeme & Taksit Takip Modülü</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Öğrenci taksit ödemeleri ve muhasebe durumları.</p>
+                            <h3 class="text-xl font-extrabold text-slate-900 brand-font flex items-center gap-2">
+                                <i class="fa-solid fa-wallet text-amber-500"></i> Aylık Veli Ödeme & Taksit Paneli
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-1">Hangi velinin ne kadar ödeme yaptığını veya geciktiğini ay ay takip edin.</p>
                         </div>
-                        <button onclick="toggleAdminForm('formAddPayment')" class="role-admin bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md w-fit">
-                            <i class="fa-solid fa-plus"></i> Ödeme / Taksit Ekle
-                        </button>
+
+                        <div class="flex flex-wrap items-center gap-3">
+                            <!-- Ay Filtresi -->
+                            <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                                <i class="fa-regular fa-calendar-days text-slate-500 ml-2 text-sm"></i>
+                                <select id="monthFilter" onchange="filterPaymentsByMonth()" class="bg-transparent text-xs font-bold text-slate-700 focus:outline-none pr-2 py-1">
+                                    <option value="ALL">Tüm Ayları Göster</option>
+                                    <option value="2026-09" selected>Eylül 2026</option>
+                                    <option value="2026-10">Ekim 2026</option>
+                                    <option value="2026-11">Kasım 2026</option>
+                                    <option value="2026-12">Aralık 2026</option>
+                                    <option value="2027-01">Ocak 2027</option>
+                                    <option value="2027-02">Şubat 2027</option>
+                                </select>
+                            </div>
+
+                            <button onclick="toggleAdminForm('formAddPayment')" class="role-admin bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
+                                <i class="fa-solid fa-plus"></i> Ödeme / Taksit Ekle
+                            </button>
+                        </div>
                     </div>
 
-                    <form id="formAddPayment" onsubmit="addPayment(event)" class="hidden bg-slate-100 p-5 rounded-2xl border border-slate-300/80 grid grid-cols-1 sm:grid-cols-2 gap-3 shadow-inner">
-                        <input type="text" id="payStudent" placeholder="Öğrenci Adı Soyadı" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <input type="date" id="payDate" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <input type="number" id="payAmount" placeholder="Tutar (₺)" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <select id="payStatus" class="p-2.5 border rounded-xl text-sm bg-white">
-                            <option value="Bekliyor">Bekliyor</option>
-                            <option value="Ödendi">Ödendi</option>
-                        </select>
-                        <button type="submit" class="sm:col-span-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow">Ödemeyi Kaydet</button>
+                    <!-- Finansal İstatistik Kartları -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-calculator"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Toplam Planlanan</p>
+                                <p class="text-2xl font-black text-slate-800 brand-font" id="statTotalAmount">₺0</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Tahsil Edilen (Ödendi)</p>
+                                <p class="text-2xl font-black text-emerald-600 brand-font" id="statPaidAmount">₺0</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Kalan / Geciken</p>
+                                <p class="text-2xl font-black text-rose-600 brand-font" id="statPendingAmount">₺0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ödeme Ekleme Formu -->
+                    <form id="formAddPayment" onsubmit="addPayment(event)" class="hidden bg-slate-100 p-6 rounded-2xl border border-slate-300/80 space-y-4 shadow-inner">
+                        <h4 class="text-sm font-bold text-slate-800 brand-font">Yeni Taksit Kaydı Tanımla</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                            <input type="text" id="payStudent" placeholder="Öğrenci / Veli Adı" required class="p-2.5 border rounded-xl text-sm bg-white">
+                            <input type="date" id="payDate" required class="p-2.5 border rounded-xl text-sm bg-white">
+                            <input type="number" id="payAmount" placeholder="Tutar (₺)" required class="p-2.5 border rounded-xl text-sm bg-white">
+                            <select id="payStatus" class="p-2.5 border rounded-xl text-sm bg-white">
+                                <option value="Bekliyor">Bekliyor (Ödenmedi)</option>
+                                <option value="Ödendi">Ödendi</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-all shadow">Taksiti Kaydet</button>
                     </form>
 
+                    <!-- Veli Ödeme Listesi Tablosu -->
                     <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm">
-                                <thead class="bg-slate-100/80 text-slate-700 text-xs uppercase font-bold tracking-wider">
+                                <thead class="bg-slate-900 text-white text-[11px] uppercase font-bold tracking-wider brand-font">
                                     <tr>
-                                        <th class="p-4">Öğrenci</th>
+                                        <th class="p-4">Öğrenci / Veli Bilgisi</th>
                                         <th class="p-4">Son Ödeme Tarihi</th>
                                         <th class="p-4">Tutar</th>
-                                        <th class="p-4">Durum</th>
-                                        <th class="p-4 role-admin">İşlem</th>
+                                        <th class="p-4">Ödeme Durumu</th>
+                                        <th class="p-4 text-right role-admin">Durum Değiştir / İşlem</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100" id="paymentsTableBody"></tbody>
@@ -407,6 +462,7 @@
     <!-- JavaScript - Supabase İşlemleri & Mantık -->
     <script>
         let currentUser = null;
+        let globalPaymentsData = [];
 
         window.onload = function() {
             const activeUser = JSON.parse(localStorage.getItem('brooklyn_user'));
@@ -552,19 +608,86 @@
             // 4. Ödemeler
             const { data: payments } = await _supabase.from('payments').select('*');
             if (payments) {
-                document.getElementById('paymentsTableBody').innerHTML = payments.map(p => `
-                    <tr class="hover:bg-slate-50/80 transition-all">
-                        <td class="p-4 font-semibold text-slate-800">${p.student_name}</td>
-                        <td class="p-4 text-slate-500 text-xs">${p.due_date}</td>
-                        <td class="p-4 font-bold text-slate-900">₺${p.amount}</td>
-                        <td class="p-4">
-                            <span class="${p.status === 'Ödendi' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-amber-100 text-amber-800 border-amber-200'} text-[11px] font-bold px-2.5 py-1 rounded-full border">${p.status}</span>
-                        </td>
-                        <td class="p-4 role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
-                            <button onclick="deleteRecord('payments', ${p.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash mr-1"></i> Sil</button>
-                        </td>
-                    </tr>
-                `).join('');
+                globalPaymentsData = payments;
+                filterPaymentsByMonth();
+            }
+        }
+
+        // Ödemeleri Aya Göre Filtreleme & İstatistik Hesaplama
+        function filterPaymentsByMonth() {
+            const selectedMonth = document.getElementById('monthFilter').value;
+            let filtered = globalPaymentsData;
+
+            if (selectedMonth !== 'ALL') {
+                filtered = globalPaymentsData.filter(p => p.due_date && p.due_date.startsWith(selectedMonth));
+            }
+
+            let total = 0;
+            let paid = 0;
+            let pending = 0;
+
+            const today = new Date().toISOString().split('T')[0];
+
+            const tbody = document.getElementById('paymentsTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium">Bu döneme ait kayıtlı ödeme bulunamadı.</td></tr>`;
+            } else {
+                tbody.innerHTML = filtered.map(p => {
+                    const amt = parseFloat(p.amount) || 0;
+                    total += amt;
+                    
+                    const isOverdue = (p.status !== 'Ödendi' && p.due_date < today);
+
+                    if (p.status === 'Ödendi') paid += amt;
+                    else pending += amt;
+
+                    let statusBadge = '';
+                    if (p.status === 'Ödendi') {
+                        statusBadge = `<span class="bg-emerald-100 text-emerald-800 border-emerald-300 text-[11px] font-bold px-3 py-1 rounded-full border inline-flex items-center gap-1.5"><i class="fa-solid fa-check text-xs"></i> ÖDENDİ</span>`;
+                    } else if (isOverdue) {
+                        statusBadge = `<span class="bg-rose-100 text-rose-800 border-rose-300 text-[11px] font-bold px-3 py-1 rounded-full border inline-flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation text-xs"></i> GECİKTİ</span>`;
+                    } else {
+                        statusBadge = `<span class="bg-amber-100 text-amber-800 border-amber-300 text-[11px] font-bold px-3 py-1 rounded-full border inline-flex items-center gap-1.5"><i class="fa-solid fa-hourglass-half text-xs"></i> BEKLİYOR</span>`;
+                    }
+
+                    return `
+                        <tr class="hover:bg-slate-50/80 transition-all">
+                            <td class="p-4 font-bold text-slate-800 flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs border border-slate-200">
+                                    ${p.student_name.charAt(0)}
+                                </div>
+                                <span>${p.student_name}</span>
+                            </td>
+                            <td class="p-4 text-slate-600 font-medium text-xs">
+                                <i class="fa-regular fa-calendar text-slate-400 mr-1"></i> ${p.due_date}
+                            </td>
+                            <td class="p-4 font-black text-slate-900 brand-font">₺${amt.toLocaleString('tr-TR')}</td>
+                            <td class="p-4">${statusBadge}</td>
+                            <td class="p-4 text-right role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
+                                <div class="inline-flex items-center gap-2">
+                                    <button onclick="togglePaymentStatus(${p.id}, '${p.status}')" class="text-xs font-bold px-2.5 py-1 rounded-lg border transition-all ${p.status === 'Ödendi' ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'}">
+                                        ${p.status === 'Ödendi' ? 'Bekliyor Yap' : 'Ödendi Yap'}
+                                    </button>
+                                    <button onclick="deleteRecord('payments', ${p.id})" class="text-rose-600 hover:text-rose-800 p-1 font-bold text-xs"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('statTotalAmount').innerText = '₺' + total.toLocaleString('tr-TR');
+            document.getElementById('statPaidAmount').innerText = '₺' + paid.toLocaleString('tr-TR');
+            document.getElementById('statPendingAmount').innerText = '₺' + pending.toLocaleString('tr-TR');
+        }
+
+        async function togglePaymentStatus(id, currentStatus) {
+            const newStatus = (currentStatus === 'Ödendi') ? 'Bekliyor' : 'Ödendi';
+            const { error } = await _supabase.from('payments').update({ status: newStatus }).eq('id', id);
+            if (!error) {
+                loadDataFromSupabase();
+            } else {
+                alert('Ödeme durumu güncellenirken hata oluştu: ' + error.message);
             }
         }
 
@@ -628,7 +751,7 @@
 
             const { error } = await _supabase.from('payments').insert([{ student_name, due_date, amount, status }]);
             if (!error) {
-                alert('Ödeme başarıyla eklendi!');
+                alert('Ödeme taksiti başarıyla eklendi!');
                 document.getElementById('formAddPayment').reset();
                 toggleAdminForm('formAddPayment');
                 loadDataFromSupabase();
