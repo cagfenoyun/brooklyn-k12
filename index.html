@@ -23,7 +23,6 @@
             background-image: radial-gradient(#1e293b 1px, transparent 1px);
             background-size: 24px 24px;
         }
-        /* Tablo kaydırma stil düzenlemesi */
         .sticky-col {
             position: sticky;
             left: 0;
@@ -156,19 +155,56 @@
                     </div>
                 </section>
 
-                <!-- 5. 12 AYLIK YAN YANA ÖDEME MATRİSİ (YENİLENEN ALAN) -->
+                <!-- FİNANS & ÖDEMELER SAYFASI -->
                 <section id="tab-payments" class="tab-content hidden space-y-6">
                     
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <!-- FİNANSAL ÖZET KARTLARI (YENİ EKLENEN KISIM) -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Toplam Beklenen -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Beklenen Toplam Alacak</p>
+                                <h4 id="statExpected" class="text-2xl font-black text-slate-800 brand-font mt-0.5">0 ₺</h4>
+                            </div>
+                        </div>
+
+                        <!-- Geciken / Vadesi Geçmiş -->
+                        <div class="bg-white p-5 rounded-2xl border border-rose-100 shadow-sm flex items-center gap-4 bg-rose-50/20">
+                            <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-rose-500 uppercase tracking-wider">Ödeme Tarihi Geçmiş Alacak</p>
+                                <h4 id="statOverdue" class="text-2xl font-black text-rose-600 brand-font mt-0.5">0 ₺</h4>
+                            </div>
+                        </div>
+
+                        <!-- Tahsil Edilen / Alınan -->
+                        <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm flex items-center gap-4 bg-emerald-50/20">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Tahsil Edilen (Alınan) Tutar</p>
+                                <h4 id="statCollected" class="text-2xl font-black text-emerald-600 brand-font mt-0.5">0 ₺</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MATRİS ÜST BAŞLIK VE FİLTRE -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
                         <div>
-                            <h3 class="text-xl font-extrabold text-slate-900 brand-font flex items-center gap-2">
-                                <i class="fa-solid fa-calendar-days text-amber-500"></i> Yıllık Veli Ödeme Matrisi (12 Ay)
+                            <h3 class="text-lg font-extrabold text-slate-900 brand-font flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-days text-amber-500"></i> Yıllık Öğrenci Ödeme Çizelgesi
                             </h3>
-                            <p class="text-xs text-slate-500 mt-1">Öğrenci bazında Ocak'tan Aralık'a tüm taksitlerin ödeme durumunu tek bakışta görün.</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Kayıt tarihinden önceki aylar kilitlidir.</p>
                         </div>
 
                         <div class="flex items-center gap-2">
-                            <select id="yearFilter" onchange="loadPaymentsMatrix()" class="bg-slate-100 font-bold text-xs p-2 rounded-xl border">
+                            <select id="yearFilter" onchange="loadPaymentsMatrix()" class="bg-slate-100 font-bold text-xs p-2.5 rounded-xl border">
                                 <option value="2026" selected>2026 Yılı</option>
                                 <option value="2027">2027 Yılı</option>
                             </select>
@@ -179,16 +215,17 @@
                     </div>
 
                     <!-- Renk Açıklama Lejantı -->
-                    <div class="flex flex-wrap items-center gap-6 bg-slate-100 p-3 px-5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
-                        <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-md bg-emerald-500 inline-block"></span> Ödendi (Yeşil)</span>
-                        <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-md bg-rose-500 inline-block"></span> Ödenmedi / Gecikti (Kırmızı)</span>
-                        <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-md bg-slate-200 border border-slate-300 inline-block"></span> Tanımsız / Taksit Yok</span>
+                    <div class="flex flex-wrap items-center gap-5 bg-slate-100/80 p-3 px-5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span> Ödendi</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-rose-500 inline-block"></span> Ödenmedi / Geçti</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-500 inline-block"></span> Gelecek Taksit</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-300 inline-block"></span> Kayıt Öncesi (Kilitli)</span>
                     </div>
 
                     <!-- Taksit Ekle Formu -->
                     <form id="formAddPayment" onsubmit="addPayment(event)" class="hidden bg-slate-100 p-5 rounded-2xl border space-y-3">
                         <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                            <input type="text" id="payStudent" placeholder="Öğrenci / Veli Adı" required class="p-2.5 border rounded-xl text-sm">
+                            <input type="text" id="payStudent" placeholder="Öğrenci Adı Soyadı" required class="p-2.5 border rounded-xl text-sm">
                             <input type="date" id="payDate" required class="p-2.5 border rounded-xl text-sm">
                             <input type="number" id="payAmount" placeholder="Tutar (₺)" required class="p-2.5 border rounded-xl text-sm">
                             <select id="payStatus" class="p-2.5 border rounded-xl text-sm">
@@ -199,12 +236,12 @@
                         <button type="submit" class="bg-slate-900 text-white font-bold px-5 py-2 rounded-xl text-xs">Kaydet</button>
                     </form>
 
-                    <!-- MATRİS TABLOSU (YAN YANA 12 AY KAYDIRILABİLİR) -->
+                    <!-- MATRİS TABLOSU -->
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-x-auto">
                         <table class="w-full text-left border-collapse min-w-[1200px]">
                             <thead>
                                 <tr class="bg-slate-900 text-white text-[11px] font-bold uppercase brand-font">
-                                    <th class="p-3.5 sticky-col bg-slate-900 min-w-[180px] shadow-r">Öğrenci Adı</th>
+                                    <th class="p-3.5 sticky-col bg-slate-900 min-w-[190px]">Öğrenci Adı</th>
                                     <th class="p-3 text-center border-l border-slate-800">Ocak</th>
                                     <th class="p-3 text-center border-l border-slate-800">Şubat</th>
                                     <th class="p-3 text-center border-l border-slate-800">Mart</th>
@@ -279,7 +316,6 @@
         }
 
         async function loadDataFromSupabase() {
-            // Sınıflar
             const { data: classes } = await _supabase.from('classes').select('*');
             if (classes) {
                 document.getElementById('classesList').innerHTML = classes.map(c => `
@@ -290,80 +326,135 @@
                     </div>
                 `).join('');
             }
-
-            // Ödeme Matrisini Yükle
             loadPaymentsMatrix();
         }
 
-        // --- 12 AYLIK YAN YANA ÖDEME MATRİSİ MANTIĞI ---
+        // --- 12 AYLIK YAN YANA ÖDEME MATRİSİ VE FİNANSSAL HESAPLAMALAR ---
         async function loadPaymentsMatrix() {
-            const selectedYear = document.getElementById('yearFilter').value;
+            const selectedYear = parseInt(document.getElementById('yearFilter').value);
             const { data: payments } = await _supabase.from('payments').select('*');
             const { data: users } = await _supabase.from('users').select('*');
 
-            if (!payments) return;
+            if (!payments || !users) return;
 
-            // 1. Ödemesi olan veya öğrenci olan benzersiz isim listesi çıkar
-            let studentNames = [...new Set(payments.map(p => p.student_name))];
-            if (users) {
-                const studentsFromUsers = users.filter(u => u.role === 'student' || u.role === 'parent').map(u => u.full_name);
-                studentNames = [...new Set([...studentNames, ...studentsFromUsers])];
-            }
+            // Yalnızca Öğrenci ve Velileri Alın
+            const studentUsers = users.filter(u => u.role === 'student' || u.role === 'parent');
+            
+            // Finansal Sayaçlar
+            let totalExpected = 0;
+            let totalOverdue = 0;
+            let totalCollected = 0;
+
+            const today = new Date();
+
+            // Finansal Özet İstatistiklerini Hesapla
+            payments.forEach(p => {
+                const amt = parseFloat(p.amount) || 0;
+                totalExpected += amt;
+
+                if (p.status === 'Ödendi') {
+                    totalCollected += amt;
+                } else {
+                    // Tarihi geçmiş mi?
+                    if (p.due_date && new Date(p.due_date) < today) {
+                        totalOverdue += amt;
+                    }
+                }
+            });
+
+            // Üst İstatistik Kartlarını Güncelle
+            document.getElementById('statExpected').innerText = totalExpected.toLocaleString('tr-TR') + ' ₺';
+            document.getElementById('statOverdue').innerText = totalOverdue.toLocaleString('tr-TR') + ' ₺';
+            document.getElementById('statCollected').innerText = totalCollected.toLocaleString('tr-TR') + ' ₺';
 
             const tbody = document.getElementById('paymentsMatrixBody');
-            if (studentNames.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center text-slate-400">Kayıtlı öğrenci veya ödeme bulunamadı.</td></tr>`;
+            
+            if (studentUsers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="13" class="p-6 text-center text-slate-400">Kayıtlı öğrenci bulunamadı.</td></tr>`;
                 return;
             }
 
             let html = '';
 
-            studentNames.forEach(student => {
-                html += `<tr class="hover:bg-slate-50 border-b border-slate-100">`;
-                html += `<td class="p-3.5 font-bold text-slate-800 sticky-col bg-white border-r border-slate-200">${student}</td>`;
+            studentUsers.forEach(stUser => {
+                // Öğrencinin Kayıt Yılı ve Ayını Al (Varsayılan yoksa en eski tarih)
+                const regDate = stUser.created_at ? new Date(stUser.created_at) : new Date('2026-01-01');
+                const regYear = regDate.getFullYear();
+                const regMonth = regDate.getMonth() + 1; // 1-12
 
-                // 12 Ayı Döngüye Al (01: Ocak, 02: Şubat ... 12: Aralık)
+                html += `<tr class="hover:bg-slate-50 border-b border-slate-100">`;
+                html += `<td class="p-3.5 font-bold text-slate-800 sticky-col bg-white border-r border-slate-200">
+                            ${stUser.full_name}
+                            <span class="block text-[10px] text-slate-400 font-normal">Kayıt: ${regDate.toLocaleDateString('tr-TR')}</span>
+                         </td>`;
+
+                // 12 Ay Döngüsü
                 for (let m = 1; m <= 12; m++) {
                     const monthStr = m < 10 ? `0${m}` : `${m}`;
                     const targetYearMonth = `${selectedYear}-${monthStr}`;
 
-                    // İlgili öğrenci ve ilgili aya ait kaydı bul
-                    const payRecord = payments.find(p => p.student_name === student && p.due_date && p.due_date.startsWith(targetYearMonth));
+                    // DURUM 1: Öğrencinin Kayıt Tarihinden Önceki Aylar (KİLİTLİ)
+                    if (selectedYear < regYear || (selectedYear === regYear && m < regMonth)) {
+                        html += `
+                            <td class="p-2 text-center border-l bg-slate-100/60 text-slate-400">
+                                <div class="py-2.5 px-1 rounded-xl bg-slate-200/50 text-[10px] font-semibold border border-slate-200/60 select-none">
+                                    <i class="fa-solid fa-lock text-[9px] mr-0.5"></i> Kayıt Öncesi
+                                </div>
+                            </td>`;
+                        continue;
+                    }
+
+                    // İlgili aya ait ödeme kaydını ara
+                    const payRecord = payments.find(p => p.student_name === stUser.full_name && p.due_date && p.due_date.startsWith(targetYearMonth));
 
                     if (payRecord) {
                         const amt = parseFloat(payRecord.amount) || 0;
                         const formattedAmt = amt.toLocaleString('tr-TR') + ' ₺';
+                        const isPastDueDate = new Date(payRecord.due_date) < today;
 
                         if (payRecord.status === 'Ödendi') {
-                            // YEŞİL HÜCRE
+                            // YEŞİL (ÖDENDİ)
                             html += `
                                 <td class="p-2 text-center border-l">
                                     <button onclick="togglePaymentStatus(${payRecord.id}, 'Ödendi')" 
-                                            title="Tıklayarak durumu değiştirin" 
+                                            title="Tıklayarak Bekliyor yapın" 
                                             class="w-full py-2 px-1 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-[11px] shadow-sm transition-all flex flex-col items-center justify-center gap-0.5">
                                         <span>${formattedAmt}</span>
                                         <span class="text-[9px] font-medium opacity-90"><i class="fa-solid fa-check"></i> Ödendi</span>
                                     </button>
                                 </td>`;
                         } else {
-                            // KIRMIZI HÜCRE (Ödenmedi / Gecikti / Bekliyor)
-                            html += `
-                                <td class="p-2 text-center border-l">
-                                    <button onclick="togglePaymentStatus(${payRecord.id}, 'Bekliyor')" 
-                                            title="Tıklayarak Ödendi yapın" 
-                                            class="w-full py-2 px-1 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-black text-[11px] shadow-sm transition-all flex flex-col items-center justify-center gap-0.5">
-                                        <span>${formattedAmt}</span>
-                                        <span class="text-[9px] font-medium opacity-90"><i class="fa-solid fa-xmark"></i> Ödenmedi</span>
-                                    </button>
-                                </td>`;
+                            if (isPastDueDate) {
+                                // KIRMIZI (GECİKTİ / ÖDENMEDİ)
+                                html += `
+                                    <td class="p-2 text-center border-l">
+                                        <button onclick="togglePaymentStatus(${payRecord.id}, 'Bekliyor')" 
+                                                title="Tıklayarak Ödendi yapın" 
+                                                class="w-full py-2 px-1 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-black text-[11px] shadow-sm transition-all flex flex-col items-center justify-center gap-0.5">
+                                            <span>${formattedAmt}</span>
+                                            <span class="text-[9px] font-medium opacity-90"><i class="fa-solid fa-xmark"></i> Ödenmedi</span>
+                                        </button>
+                                    </td>`;
+                            } else {
+                                // SARI / TURUNCU (GELECEK VADELİ TAKSİT)
+                                html += `
+                                    <td class="p-2 text-center border-l">
+                                        <button onclick="togglePaymentStatus(${payRecord.id}, 'Bekliyor')" 
+                                                title="Tıklayarak Ödendi yapın" 
+                                                class="w-full py-2 px-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-[11px] shadow-sm transition-all flex flex-col items-center justify-center gap-0.5">
+                                            <span>${formattedAmt}</span>
+                                            <span class="text-[9px] font-medium opacity-90"><i class="fa-solid fa-clock"></i> Bekliyor</span>
+                                        </button>
+                                    </td>`;
+                            }
                         }
                     } else {
-                        // KART / TAKSİT YOK (GRİ)
+                        // TAKSİT HENÜZ EKLENMEMİŞ (Ekle Butonu)
                         html += `
                             <td class="p-2 text-center border-l">
-                                <button onclick="quickAddForMonth('${student}', '${selectedYear}-${monthStr}-15')" 
+                                <button onclick="quickAddForMonth('${stUser.full_name}', '${selectedYear}-${monthStr}-15')" 
                                         title="Bu aya taksit ekle" 
-                                        class="w-full py-2 px-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 text-[11px] transition-all border border-dashed border-slate-300">
+                                        class="w-full py-2 px-1 rounded-xl bg-slate-50 hover:bg-slate-200 text-slate-400 hover:text-slate-700 text-[11px] transition-all border border-dashed border-slate-300">
                                     <i class="fa-solid fa-plus"></i> Ekle
                                 </button>
                             </td>`;
@@ -376,7 +467,6 @@
             tbody.innerHTML = html;
         }
 
-        // Tıklandığında Anında Durum Değiştirme (Ödendi <-> Ödenmedi)
         async function togglePaymentStatus(id, currentStatus) {
             if (currentUser.role !== 'admin') return;
             const newStatus = (currentStatus === 'Ödendi') ? 'Bekliyor' : 'Ödendi';
@@ -388,7 +478,6 @@
             }
         }
 
-        // Boş Hücreye Tıklandığında Hızlı Taksit Oluşturma
         async function quickAddForMonth(studentName, dueDate) {
             if (currentUser.role !== 'admin') return;
             const amount = prompt(`${studentName} için ${dueDate.substring(0,7)} dönemi taksit tutarını girin (₺):`, "3500");
