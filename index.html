@@ -364,40 +364,65 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
                         <div>
                             <h3 class="text-lg font-bold text-slate-900 brand-font">Ödeme & Taksit Takip Modülü</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Öğrenci taksit ödemeleri ve muhasebe durumları.</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Öğrenci ödeme planları, taksitler ve tahsilat durumu.</p>
                         </div>
                         <button onclick="toggleAdminForm('formAddPayment')" class="role-admin bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md w-fit">
-                            <i class="fa-solid fa-plus"></i> Ödeme / Taksit Ekle
+                            <i class="fa-solid fa-plus"></i> Yeni Ödeme Planı Ekle
                         </button>
                     </div>
 
-                    <form id="formAddPayment" onsubmit="addPayment(event)" class="hidden bg-slate-100 p-5 rounded-2xl border border-slate-300/80 grid grid-cols-1 sm:grid-cols-2 gap-3 shadow-inner">
-                        <input type="text" id="payStudent" placeholder="Öğrenci Adı Soyadı" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <input type="date" id="payDate" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <input type="number" id="payAmount" placeholder="Tutar (₺)" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <select id="payStatus" class="p-2.5 border rounded-xl text-sm bg-white">
-                            <option value="Bekliyor">Bekliyor</option>
-                            <option value="Ödendi">Ödendi</option>
-                        </select>
-                        <button type="submit" class="sm:col-span-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow">Ödemeyi Kaydet</button>
+                    <!-- Yeni Ödeme Planı Formu -->
+                    <form id="formAddPayment" onsubmit="addPaymentPlan(event)" class="hidden bg-slate-100 p-5 sm:p-6 rounded-2xl border border-slate-300/80 shadow-inner space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="sm:col-span-2">
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                                    <i class="fa-solid fa-user-graduate mr-1 text-amber-500"></i> Öğrenci
+                                </label>
+                                <select id="payStudentSelect" onchange="toggleManualStudentInput()" required class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                                    <option value="">-- Öğrenci Seçin --</option>
+                                    <option value="__manual__">✏️ Elle Yaz (Listede Yok)</option>
+                                </select>
+                                <input type="text" id="payStudentManual" placeholder="Öğrenci Adı Soyadı" class="hidden mt-2 w-full p-2.5 border rounded-xl text-sm bg-white">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Ödeme Yöntemi</label>
+                                <select id="payMethod" class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                                    <option value="Nakit">💵 Nakit</option>
+                                    <option value="Kredi Kartı">💳 Kredi Kartı</option>
+                                    <option value="Banka Havalesi">🏦 Banka Havalesi / EFT</option>
+                                    <option value="Çek">🧾 Çek</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">İlk Taksit / Vade Tarihi</label>
+                                <input type="date" id="payFirstDueDate" required class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Toplam Tutar (₺)</label>
+                                <input type="number" id="payTotalAmount" min="0" step="0.01" oninput="updateInstallmentPreview()" placeholder="Örn: 24000" required class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Taksit Sayısı</label>
+                                <input type="number" id="payInstallmentCount" min="1" max="24" value="1" oninput="updateInstallmentPreview()" required class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Taksit Başına Tutar</label>
+                                <div id="payInstallmentPreview" class="w-full p-3 border border-dashed border-amber-300 rounded-xl text-sm bg-amber-50 text-amber-800 font-bold">
+                                    Toplam tutar ve taksit sayısı girin
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-sm transition-all shadow flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> Ödeme Planını Kaydet
+                        </button>
                     </form>
 
-                    <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm">
-                                <thead class="bg-slate-100/80 text-slate-700 text-xs uppercase font-bold tracking-wider">
-                                    <tr>
-                                        <th class="p-4">Öğrenci</th>
-                                        <th class="p-4">Son Ödeme Tarihi</th>
-                                        <th class="p-4">Tutar</th>
-                                        <th class="p-4">Durum</th>
-                                        <th class="p-4 role-admin">İşlem</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100" id="paymentsTableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <div class="space-y-4" id="paymentsPlanList"></div>
                 </section>
 
             </main>
@@ -515,6 +540,18 @@
             const { data: users } = await _supabase.from('users').select('*');
             if (users) {
                 document.getElementById('statUsers').innerText = users.length;
+
+                // Ödeme formundaki "Öğrenci Seçin" listesini doldur
+                const studentSelect = document.getElementById('payStudentSelect');
+                if (studentSelect) {
+                    const currentSelection = studentSelect.value;
+                    const students = users.filter(u => u.role === 'student');
+                    studentSelect.innerHTML = '<option value="">-- Öğrenci Seçin --</option>' +
+                        students.map(s => `<option value="${s.full_name}">${s.full_name}</option>`).join('') +
+                        '<option value="__manual__">✏️ Elle Yaz (Listede Yok)</option>';
+                    if (currentSelection) studentSelect.value = currentSelection;
+                }
+
                 document.getElementById('usersTableBody').innerHTML = users.map(u => `
                     <tr class="hover:bg-slate-50/80 transition-all">
                         <td class="p-4 font-semibold text-slate-800">${u.full_name}</td>
@@ -549,23 +586,107 @@
                 `).join('');
             }
 
-            // 4. Ödemeler
+            // 4. Ödemeler (taksit planları olarak grupla)
             const { data: payments } = await _supabase.from('payments').select('*');
             if (payments) {
-                document.getElementById('paymentsTableBody').innerHTML = payments.map(p => `
-                    <tr class="hover:bg-slate-50/80 transition-all">
-                        <td class="p-4 font-semibold text-slate-800">${p.student_name}</td>
-                        <td class="p-4 text-slate-500 text-xs">${p.due_date}</td>
-                        <td class="p-4 font-bold text-slate-900">₺${p.amount}</td>
-                        <td class="p-4">
-                            <span class="${p.status === 'Ödendi' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-amber-100 text-amber-800 border-amber-200'} text-[11px] font-bold px-2.5 py-1 rounded-full border">${p.status}</span>
-                        </td>
-                        <td class="p-4 role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
-                            <button onclick="deleteRecord('payments', ${p.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash mr-1"></i> Sil</button>
-                        </td>
-                    </tr>
-                `).join('');
+                renderPaymentsPlans(payments);
             }
+        }
+
+        function renderPaymentsPlans(payments) {
+            const listEl = document.getElementById('paymentsPlanList');
+            if (!listEl) return;
+
+            if (!payments || payments.length === 0) {
+                listEl.innerHTML = `
+                    <div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 text-sm">
+                        <i class="fa-solid fa-inbox text-2xl mb-2 block"></i>
+                        Henüz kayıtlı ödeme planı yok.
+                    </div>`;
+                return;
+            }
+
+            // Taksitleri plan_id'ye göre grupla (plan_id yoksa tekil kayıt olarak ele al)
+            const groups = {};
+            payments.forEach(p => {
+                const key = p.plan_id || ('single_' + p.id);
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(p);
+            });
+
+            const planKeys = Object.keys(groups).sort((a, b) => {
+                const da = groups[a][0].due_date || '';
+                const db = groups[b][0].due_date || '';
+                return db.localeCompare(da);
+            });
+
+            const methodIcons = { 'Nakit': '💵', 'Kredi Kartı': '💳', 'Banka Havalesi': '🏦', 'Çek': '🧾' };
+
+            listEl.innerHTML = planKeys.map(key => {
+                const rows = groups[key].slice().sort((a, b) => (a.installment_no || 1) - (b.installment_no || 1));
+                const first = rows[0];
+                const totalAmount = first.total_amount ? Number(first.total_amount) : rows.reduce((s, r) => s + Number(r.amount || 0), 0);
+                const totalCount = first.installment_count || rows.length;
+                const paidRows = rows.filter(r => r.status === 'Ödendi');
+                const paidCount = paidRows.length;
+                const paidAmount = paidRows.reduce((s, r) => s + Number(r.amount || 0), 0);
+                const progressPct = totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0;
+                const isFullyPaid = paidCount === totalCount;
+
+                return `
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-xl ${isFullyPaid ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-600 border-amber-200'} border flex items-center justify-center text-lg font-black shrink-0">
+                                ${(first.student_name || '?').charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">${first.student_name}</h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5">${methodIcons[first.payment_method] || ''} ${first.payment_method || 'Belirtilmedi'} · ${totalCount} Taksit</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-5 sm:gap-6">
+                            <div class="text-right">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Toplam Tutar</p>
+                                <p class="text-base font-black text-slate-900">₺${totalAmount.toLocaleString('tr-TR')}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Tahsilat</p>
+                                <p class="text-base font-black ${isFullyPaid ? 'text-emerald-600' : 'text-amber-600'}">${paidCount}/${totalCount}</p>
+                            </div>
+                            ${currentUser.role === 'admin' ? `<button onclick="deletePlan('${key}')" class="text-rose-500 hover:text-rose-700 text-xs font-bold bg-rose-50 border border-rose-200 px-3 py-2.5 rounded-lg shrink-0"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        </div>
+                    </div>
+                    <div class="px-5 pt-4">
+                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div class="h-full ${isFullyPaid ? 'bg-emerald-500' : 'bg-amber-500'} rounded-full transition-all" style="width:${progressPct}%"></div>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1.5">₺${paidAmount.toLocaleString('tr-TR')} tahsil edildi · ₺${(totalAmount - paidAmount).toLocaleString('tr-TR')} kaldı</p>
+                    </div>
+                    <div class="divide-y divide-slate-100 mt-3">
+                        ${rows.map(r => `
+                            <div class="px-5 py-3 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition-all">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 text-[11px] font-bold flex items-center justify-center shrink-0">${r.installment_no || 1}</span>
+                                    <div>
+                                        <p class="text-xs font-semibold text-slate-700">${r.due_date}</p>
+                                        <p class="text-[11px] text-slate-400">₺${Number(r.amount || 0).toLocaleString('tr-TR')}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="${r.status === 'Ödendi' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-amber-100 text-amber-800 border-amber-200'} text-[10px] font-bold px-2.5 py-1 rounded-full border">${r.status}</span>
+                                    ${currentUser.role === 'admin' ? `
+                                        <button onclick="togglePaymentStatus(${r.id}, '${r.status}')" class="text-[11px] font-bold ${r.status === 'Ödendi' ? 'text-slate-500 hover:text-slate-700' : 'text-emerald-600 hover:text-emerald-800'} bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg whitespace-nowrap">
+                                            ${r.status === 'Ödendi' ? '<i class="fa-solid fa-rotate-left"></i> Geri Al' : '<i class="fa-solid fa-check"></i> Ödendi İşaretle'}
+                                        </button>
+                                        <button onclick="deleteRecord('payments', ${r.id})" class="text-rose-500 hover:text-rose-700 text-xs px-2 py-1.5"><i class="fa-solid fa-trash"></i></button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         async function editSchedule(classId, oldSchedule) {
@@ -619,20 +740,105 @@
             } else alert('Hata oluştu: ' + error.message);
         }
 
-        async function addPayment(e) {
-            e.preventDefault();
-            const student_name = document.getElementById('payStudent').value.trim();
-            const due_date = document.getElementById('payDate').value;
-            const amount = document.getElementById('payAmount').value;
-            const status = document.getElementById('payStatus').value;
+        function toggleManualStudentInput() {
+            const sel = document.getElementById('payStudentSelect');
+            const manual = document.getElementById('payStudentManual');
+            if (sel.value === '__manual__') {
+                manual.classList.remove('hidden');
+                manual.required = true;
+            } else {
+                manual.classList.add('hidden');
+                manual.required = false;
+                manual.value = '';
+            }
+        }
 
-            const { error } = await _supabase.from('payments').insert([{ student_name, due_date, amount, status }]);
+        function updateInstallmentPreview() {
+            const total = parseFloat(document.getElementById('payTotalAmount').value) || 0;
+            const count = parseInt(document.getElementById('payInstallmentCount').value) || 1;
+            const preview = document.getElementById('payInstallmentPreview');
+            if (total > 0 && count > 0) {
+                const perInstallment = total / count;
+                preview.innerHTML = `₺${perInstallment.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span class="text-[11px] font-semibold text-amber-600">× ${count} taksit</span>`;
+            } else {
+                preview.innerText = 'Toplam tutar ve taksit sayısı girin';
+            }
+        }
+
+        function addMonths(dateStr, months) {
+            const d = new Date(dateStr + 'T00:00:00');
+            d.setMonth(d.getMonth() + months);
+            return d.toISOString().split('T')[0];
+        }
+
+        async function addPaymentPlan(e) {
+            e.preventDefault();
+
+            const sel = document.getElementById('payStudentSelect');
+            const manual = document.getElementById('payStudentManual');
+            const student_name = sel.value === '__manual__' ? manual.value.trim() : sel.value;
+
+            if (!student_name) { alert('Lütfen bir öğrenci seçin veya adını yazın.'); return; }
+
+            const payment_method = document.getElementById('payMethod').value;
+            const total_amount = parseFloat(document.getElementById('payTotalAmount').value);
+            const installment_count = parseInt(document.getElementById('payInstallmentCount').value);
+            const firstDate = document.getElementById('payFirstDueDate').value;
+
+            if (!total_amount || total_amount <= 0 || !installment_count || installment_count < 1 || !firstDate) {
+                alert('Lütfen tüm alanları doğru şekilde doldurun.');
+                return;
+            }
+
+            const plan_id = `plan_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+            const baseAmount = Math.floor((total_amount / installment_count) * 100) / 100;
+
+            const installments = [];
+            for (let i = 0; i < installment_count; i++) {
+                const isLast = i === installment_count - 1;
+                const amount = isLast ? +(total_amount - baseAmount * (installment_count - 1)).toFixed(2) : baseAmount;
+                installments.push({
+                    student_name,
+                    payment_method,
+                    total_amount,
+                    installment_count,
+                    installment_no: i + 1,
+                    plan_id,
+                    due_date: addMonths(firstDate, i),
+                    amount,
+                    status: 'Bekliyor'
+                });
+            }
+
+            const { error } = await _supabase.from('payments').insert(installments);
             if (!error) {
-                alert('Ödeme başarıyla eklendi!');
+                alert(`Ödeme planı başarıyla oluşturuldu! ${installment_count} taksit kaydedildi.`);
                 document.getElementById('formAddPayment').reset();
+                document.getElementById('payInstallmentPreview').innerText = 'Toplam tutar ve taksit sayısı girin';
+                toggleManualStudentInput();
                 toggleAdminForm('formAddPayment');
                 loadDataFromSupabase();
-            } else alert('Hata oluştu: ' + error.message);
+            } else {
+                alert('Hata oluştu: ' + error.message + '\n\nNot: "payments" tablosunda payment_method, total_amount, installment_count, installment_no, plan_id sütunlarının bulunduğundan emin olun.');
+            }
+        }
+
+        async function togglePaymentStatus(id, currentStatus) {
+            const newStatus = currentStatus === 'Ödendi' ? 'Bekliyor' : 'Ödendi';
+            const { error } = await _supabase.from('payments').update({ status: newStatus }).eq('id', id);
+            if (!error) loadDataFromSupabase();
+            else alert('Güncelleme hatası: ' + error.message);
+        }
+
+        async function deletePlan(key) {
+            if (!confirm('Bu ödeme planındaki tüm taksitleri silmek istediğinize emin misiniz?')) return;
+            if (key.startsWith('single_')) {
+                const id = key.replace('single_', '');
+                await _supabase.from('payments').delete().eq('id', id);
+            } else {
+                await _supabase.from('payments').delete().eq('plan_id', key);
+            }
+            loadDataFromSupabase();
         }
 
         async function deleteRecord(table, id) {
