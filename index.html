@@ -371,6 +371,19 @@
                         </button>
                     </div>
 
+                    <!-- Sezon Sekmeleri + Arama -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div class="flex items-center gap-2 flex-wrap" id="seasonTabs">
+                            <button onclick="setPaymentSeason('Tümü')" data-season="Tümü" class="season-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-900 text-white">Tümü</button>
+                            <button onclick="setPaymentSeason('2025-2026')" data-season="2025-2026" class="season-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">2025-2026</button>
+                            <button onclick="setPaymentSeason('2026-2027')" data-season="2026-2027" class="season-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">2026-2027</button>
+                        </div>
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+                            <input type="text" id="paymentSearchInput" oninput="filterPayments()" placeholder="Öğrenci adına göre ara..." class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
+                        </div>
+                    </div>
+
                     <!-- Yeni Ödeme Planı Formu -->
                     <form id="formAddPayment" onsubmit="addPaymentPlan(event)" class="hidden bg-slate-100 p-5 sm:p-6 rounded-2xl border border-slate-300/80 shadow-inner space-y-4">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -383,6 +396,14 @@
                                     <option value="__manual__">✏️ Elle Yaz (Listede Yok)</option>
                                 </select>
                                 <input type="text" id="payStudentManual" placeholder="Öğrenci Adı Soyadı" class="hidden mt-2 w-full p-2.5 border rounded-xl text-sm bg-white">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Sezon</label>
+                                <select id="paySeason" class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                                    <option value="2025-2026">2025-2026</option>
+                                    <option value="2026-2027">2026-2027</option>
+                                </select>
                             </div>
 
                             <div>
@@ -432,6 +453,9 @@
     <!-- JavaScript - Supabase İşlemleri & Mantık -->
     <script>
         let currentUser = null;
+        let allPayments = [];
+        let currentPaymentSeason = 'Tümü';
+        let paymentSearchQuery = '';
 
         window.onload = function() {
             const activeUser = JSON.parse(localStorage.getItem('brooklyn_user'));
@@ -589,7 +613,8 @@
             // 4. Ödemeler (taksit planları olarak grupla)
             const { data: payments } = await _supabase.from('payments').select('*');
             if (payments) {
-                renderPaymentsPlans(payments);
+                allPayments = payments;
+                renderPaymentsPlans();
             }
         }
 
@@ -599,17 +624,50 @@
             return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' });
         }
 
-        function renderPaymentsPlans(payments) {
+        function setPaymentSeason(season) {
+            currentPaymentSeason = season;
+            document.querySelectorAll('.season-tab-btn').forEach(btn => {
+                if (btn.dataset.season === season) {
+                    btn.classList.add('bg-slate-900', 'text-white');
+                    btn.classList.remove('bg-slate-100', 'text-slate-600');
+                } else {
+                    btn.classList.remove('bg-slate-900', 'text-white');
+                    btn.classList.add('bg-slate-100', 'text-slate-600');
+                }
+            });
+            renderPaymentsPlans();
+        }
+
+        function filterPayments() {
+            paymentSearchQuery = document.getElementById('paymentSearchInput').value.trim().toLowerCase();
+            renderPaymentsPlans();
+        }
+
+        function togglePlanDetails(safeId) {
+            const details = document.getElementById('details-' + safeId);
+            const chevron = document.getElementById('chevron-' + safeId);
+            if (!details) return;
+            details.classList.toggle('hidden');
+            if (chevron) chevron.classList.toggle('rotate-180');
+        }
+
+        function renderPaymentsPlans() {
             const listEl = document.getElementById('paymentsPlanList');
             if (!listEl) return;
 
-            if (!payments || payments.length === 0) {
+            if (!allPayments || allPayments.length === 0) {
                 listEl.innerHTML = `
                     <div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 text-sm">
                         <i class="fa-solid fa-inbox text-2xl mb-2 block"></i>
                         Henüz kayıtlı ödeme planı yok.
                     </div>`;
                 return;
+            }
+
+            // Sezona göre filtrele
+            let payments = allPayments;
+            if (currentPaymentSeason !== 'Tümü') {
+                payments = payments.filter(p => (p.season || '') === currentPaymentSeason);
             }
 
             // Taksitleri plan_id'ye göre grupla (plan_id yoksa tekil kayıt olarak ele al)
@@ -620,16 +678,31 @@
                 groups[key].push(p);
             });
 
-            const planKeys = Object.keys(groups).sort((a, b) => {
-                const da = groups[a][0].due_date || '';
-                const db = groups[b][0].due_date || '';
-                return db.localeCompare(da);
+            let planKeys = Object.keys(groups).sort((a, b) => {
+                const na = (groups[a][0].student_name || '').toLowerCase();
+                const nb = (groups[b][0].student_name || '').toLowerCase();
+                return na.localeCompare(nb, 'tr');
             });
+
+            // Arama filtresi
+            if (paymentSearchQuery) {
+                planKeys = planKeys.filter(key => (groups[key][0].student_name || '').toLowerCase().includes(paymentSearchQuery));
+            }
+
+            if (planKeys.length === 0) {
+                listEl.innerHTML = `
+                    <div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 text-sm">
+                        <i class="fa-solid fa-magnifying-glass text-2xl mb-2 block"></i>
+                        Aramanızla veya seçili sezonla eşleşen kayıt bulunamadı.
+                    </div>`;
+                return;
+            }
 
             const methodIcons = { 'Nakit': '💵', 'Kredi Kartı': '💳', 'Banka Havalesi': '🏦', 'Çek': '🧾' };
             const isAdmin = currentUser.role === 'admin';
 
-            listEl.innerHTML = `<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">` + planKeys.map(key => {
+            listEl.innerHTML = `<p class="text-[11px] text-slate-400 font-semibold px-1">${planKeys.length} öğrenci listeleniyor</p>` +
+                `<div class="space-y-2.5">` + planKeys.map(key => {
                 const rows = groups[key].slice().sort((a, b) => (a.installment_no || 1) - (b.installment_no || 1));
                 const first = rows[0];
                 const totalAmount = first.total_amount ? Number(first.total_amount) : rows.reduce((s, r) => s + Number(r.amount || 0), 0);
@@ -640,30 +713,48 @@
                 const remaining = totalAmount - paidAmount;
                 const progressPct = totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0;
                 const isFullyPaid = paidCount === totalCount;
+                const hasPaid = paidCount > 0;
+                const safeId = key.replace(/[^a-zA-Z0-9_]/g, '');
 
                 return `
-                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
 
-                    <!-- Öğrenci Başlığı -->
-                    <div class="p-5 pb-4">
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-12 h-12 rounded-2xl ${isFullyPaid ? 'bg-emerald-500' : 'bg-slate-900'} text-white flex items-center justify-center text-lg font-black shrink-0 shadow-sm">
-                                    ${(first.student_name || '?').charAt(0).toUpperCase()}
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="font-black text-slate-900 text-base brand-font truncate">${first.student_name}</h4>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">${methodIcons[first.payment_method] || ''} ${first.payment_method || 'Belirtilmedi'}</p>
-                                </div>
+                    <!-- Kapalı Satır (Öğrenci Özeti) -->
+                    <button onclick="togglePlanDetails('${safeId}')" class="w-full flex items-center justify-between gap-3 p-4 hover:bg-slate-50 transition-all text-left">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl ${isFullyPaid ? 'bg-emerald-500' : 'bg-slate-900'} text-white flex items-center justify-center font-black shrink-0 text-sm">
+                                ${(first.student_name || '?').charAt(0).toUpperCase()}
                             </div>
-                            <div class="flex items-center gap-2 shrink-0">
-                                ${isFullyPaid ? `<span class="bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap"><i class="fa-solid fa-circle-check mr-1"></i>Tamamlandı</span>` : ''}
-                                ${isAdmin ? `<button onclick="deletePlan('${key}')" title="Planı Sil" class="text-rose-400 hover:text-rose-600 hover:bg-rose-50 w-8 h-8 rounded-lg flex items-center justify-center transition-all"><i class="fa-solid fa-trash text-xs"></i></button>` : ''}
+                            <div class="min-w-0">
+                                <p class="font-bold text-slate-800 text-sm truncate">${first.student_name}</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5 truncate">
+                                    ${first.season ? `<span class="font-semibold text-slate-600">${first.season}</span> · ` : ''}
+                                    ${methodIcons[first.payment_method] || ''} ${first.payment_method || 'Belirtilmedi'} · ${paidCount}/${totalCount} Ay
+                                </p>
                             </div>
                         </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            ${isFullyPaid ? `<span class="hidden sm:inline-block bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap"><i class="fa-solid fa-circle-check mr-1"></i>Tamamlandı</span>` : ''}
+                            <div class="hidden sm:block text-right">
+                                <p class="text-xs font-black text-slate-900">₺${totalAmount.toLocaleString('tr-TR')}</p>
+                                <p class="text-[10px] font-bold ${isFullyPaid ? 'text-emerald-600' : 'text-amber-600'}">%${progressPct}</p>
+                            </div>
+                            <i id="chevron-${safeId}" class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform"></i>
+                        </div>
+                    </button>
+
+                    <!-- Açılan Detay -->
+                    <div id="details-${safeId}" class="hidden border-t border-slate-100 p-5">
+
+                        ${isAdmin ? `
+                        <div class="flex justify-end mb-3">
+                            ${hasPaid
+                                ? `<span title="Ödeme alınmış planlar silinemez. Önce ilgili taksitleri 'İptal Et' ile geri alın." class="text-slate-300 text-[11px] font-semibold flex items-center gap-1.5 cursor-not-allowed"><i class="fa-solid fa-lock"></i> Plan Korumalı</span>`
+                                : `<button onclick="deletePlan('${key}')" class="text-rose-500 hover:text-rose-700 text-[11px] font-bold bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg"><i class="fa-solid fa-trash mr-1"></i> Planı Sil</button>`}
+                        </div>` : ''}
 
                         <!-- Özet Kutuları -->
-                        <div class="grid grid-cols-3 gap-2 mt-4">
+                        <div class="grid grid-cols-3 gap-2">
                             <div class="bg-slate-50 rounded-xl p-2.5 text-center border border-slate-100">
                                 <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Toplam</p>
                                 <p class="text-sm font-black text-slate-900 mt-0.5">₺${totalAmount.toLocaleString('tr-TR')}</p>
@@ -688,26 +779,30 @@
                                 <div class="h-full ${isFullyPaid ? 'bg-emerald-500' : 'bg-amber-500'} rounded-full transition-all" style="width:${progressPct}%"></div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Aylık Taksit Takvimi -->
-                    <div class="px-5 pb-5 pt-1 mt-auto">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Aylık Taksit Takvimi</p>
-                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                            ${rows.map(r => {
-                                const paid = r.status === 'Ödendi';
-                                const tag = paid ? 'button' : (isAdmin ? 'button' : 'div');
-                                const clickAttr = isAdmin ? `onclick="togglePaymentStatus(${r.id}, '${r.status}')"` : '';
-                                return `
-                                <${tag} ${clickAttr} class="text-left p-2.5 rounded-xl border transition-all ${paid ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'} ${isAdmin ? 'hover:border-slate-400 cursor-pointer' : ''}">
-                                    <div class="flex items-center justify-between mb-1">
-                                        <span class="text-[9px] font-bold text-slate-400">${r.installment_no || 1}. Ay</span>
-                                        <i class="fa-solid ${paid ? 'fa-circle-check text-emerald-500' : 'fa-clock text-amber-400'} text-[11px]"></i>
-                                    </div>
-                                    <p class="text-[10.5px] font-semibold text-slate-600 leading-tight">${formatTRDate(r.due_date)}</p>
-                                    <p class="text-xs font-black ${paid ? 'text-emerald-700' : 'text-slate-800'} mt-0.5">₺${Number(r.amount || 0).toLocaleString('tr-TR')}</p>
-                                </${tag}>`;
-                            }).join('')}
+                        <!-- Aylık Taksit Takvimi -->
+                        <div class="mt-4">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Aylık Taksit Takvimi</p>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                ${rows.map(r => {
+                                    const paid = r.status === 'Ödendi';
+                                    return `
+                                    <div class="p-2.5 rounded-xl border ${paid ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'}">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-[9px] font-bold text-slate-400">${r.installment_no || 1}. Ay</span>
+                                            <i class="fa-solid ${paid ? 'fa-circle-check text-emerald-500' : 'fa-clock text-amber-400'} text-[11px]"></i>
+                                        </div>
+                                        <p class="text-[10.5px] font-semibold text-slate-600 leading-tight">${formatTRDate(r.due_date)}</p>
+                                        <p class="text-xs font-black ${paid ? 'text-emerald-700' : 'text-slate-800'} mt-0.5">₺${Number(r.amount || 0).toLocaleString('tr-TR')}</p>
+                                        ${paid && r.paid_date ? `<p class="text-[9px] text-emerald-600 font-semibold mt-1">${formatTRDate(r.paid_date)} alındı</p>` : ''}
+                                        ${isAdmin ? (
+                                            paid
+                                                ? `<button onclick="togglePaymentStatus(${r.id}, 'Ödendi')" class="mt-1.5 w-full text-[9px] font-bold text-slate-400 hover:text-slate-600">İptal Et</button>`
+                                                : `<button onclick="markInstallmentPaid(${r.id})" class="mt-1.5 w-full text-[10px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg py-1.5 transition-all"><i class="fa-solid fa-hand-holding-dollar mr-1"></i>Ödeme Al</button>`
+                                        ) : ''}
+                                    </div>`;
+                                }).join('')}
+                            </div>
                         </div>
                     </div>
                 </div>`;
@@ -806,6 +901,7 @@
             if (!student_name) { alert('Lütfen bir öğrenci seçin veya adını yazın.'); return; }
 
             const payment_method = document.getElementById('payMethod').value;
+            const season = document.getElementById('paySeason').value;
             const total_amount = parseFloat(document.getElementById('payTotalAmount').value);
             const installment_count = parseInt(document.getElementById('payInstallmentCount').value);
             const firstDate = document.getElementById('payFirstDueDate').value;
@@ -825,6 +921,7 @@
                 installments.push({
                     student_name,
                     payment_method,
+                    season,
                     total_amount,
                     installment_count,
                     installment_no: i + 1,
@@ -844,8 +941,21 @@
                 toggleAdminForm('formAddPayment');
                 loadDataFromSupabase();
             } else {
-                alert('Hata oluştu: ' + error.message + '\n\nNot: "payments" tablosunda payment_method, total_amount, installment_count, installment_no, plan_id sütunlarının bulunduğundan emin olun.');
+                alert('Hata oluştu: ' + error.message + '\n\nNot: "payments" tablosunda payment_method, season, total_amount, installment_count, installment_no, plan_id sütunlarının bulunduğundan emin olun.');
             }
+        }
+
+        async function markInstallmentPaid(id) {
+            if (!confirm('Bu taksiti bugünün tarihiyle "Ödendi" olarak kaydetmek istediğinize emin misiniz?')) return;
+            const today = new Date().toISOString().split('T')[0];
+            let { error } = await _supabase.from('payments').update({ status: 'Ödendi', paid_date: today }).eq('id', id);
+            if (error && /paid_date/i.test(error.message || '')) {
+                // paid_date sütunu henüz yoksa durumu yine de güncelle
+                const fallback = await _supabase.from('payments').update({ status: 'Ödendi' }).eq('id', id);
+                error = fallback.error;
+            }
+            if (!error) loadDataFromSupabase();
+            else alert('Hata oluştu: ' + error.message);
         }
 
         async function togglePaymentStatus(id, currentStatus) {
@@ -856,6 +966,12 @@
         }
 
         async function deletePlan(key) {
+            // Korumalı sistem: ödeme alınmış (Ödendi) taksiti olan bir plan silinemez
+            const rows = allPayments.filter(p => (p.plan_id || ('single_' + p.id)) === key);
+            if (rows.some(r => r.status === 'Ödendi')) {
+                alert('Bu planda ödendi olarak işaretlenmiş taksitler var. Ödeme alınan kayıtlar silinemez. Önce ilgili taksitleri "İptal Et" ile geri alın, ardından tekrar deneyin.');
+                return;
+            }
             if (!confirm('Bu ödeme planındaki tüm taksitleri silmek istediğinize emin misiniz?')) return;
             if (key.startsWith('single_')) {
                 const id = key.replace('single_', '');
