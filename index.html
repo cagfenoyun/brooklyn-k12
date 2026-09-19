@@ -354,6 +354,10 @@
                             <option value="admin">Yönetici (Admin)</option>
                         </select>
                         <input type="text" id="usrPhone" placeholder="Telefon (5xx...)" class="p-2.5 border rounded-xl text-sm bg-white">
+                        <select id="usrSeason" class="p-2.5 border rounded-xl text-sm bg-white">
+                            <option value="2026-2027" selected>Sezon: 2026-2027</option>
+                            <option value="2025-2026">Sezon: 2025-2026</option>
+                        </select>
                         <button type="submit" class="sm:col-span-3 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow">Kullanıcıyı Kaydet</button>
                     </form>
 
@@ -448,15 +452,15 @@
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Sezon</label>
                                 <select id="paySeason" class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                                    <option value="2026-2027" selected>2026-2027</option>
                                     <option value="2025-2026">2025-2026</option>
-                                    <option value="2026-2027">2026-2027</option>
                                 </select>
                             </div>
 
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Ödeme Yöntemi</label>
                                 <select id="payMethod" class="w-full p-2.5 border rounded-xl text-sm bg-white">
-                                    <option value="Nakit">💵 Nakit</option>
+                                    <option value="Nakit/Elden">💵 Nakit/Elden</option>
                                     <option value="Kredi Kartı">💳 Kredi Kartı</option>
                                     <option value="Banka Havalesi">🏦 Banka Havalesi / EFT</option>
                                     <option value="Çek">🧾 Çek</option>
@@ -494,6 +498,39 @@
                 </section>
 
             </main>
+        </div>
+    </div>
+
+    <!-- ÖDEME ALMA MODALI -->
+    <div id="paymentModal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-slate-900 brand-font flex items-center gap-2">
+                    <i class="fa-solid fa-hand-holding-dollar text-emerald-600"></i> Ödeme Al
+                </h3>
+                <button onclick="closePaymentModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="paymentModalInfo" class="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-xl p-3 leading-relaxed"></div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Alınan Tutar (₺)</label>
+                <input type="number" id="paymentModalAmount" min="0.01" step="0.01" required class="w-full p-2.5 border rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
+                <p class="text-[10px] text-slate-400 mt-1"><i class="fa-solid fa-circle-info mr-1"></i>Peyderpey (elden) ödemelerde sadece o gün alınan tutarı girin.</p>
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Ödeme Tarihi <span class="text-rose-500">*</span></label>
+                <input type="date" id="paymentModalDate" required class="w-full p-2.5 border rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
+                <p class="text-[10px] text-slate-400 mt-1"><i class="fa-solid fa-circle-info mr-1"></i>Bugünün tarihi otomatik dolar, gerekirse elle değiştirebilirsiniz.</p>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closePaymentModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-sm transition-all">Vazgeç</button>
+                <button onclick="confirmPaymentModal()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow">Kaydet</button>
+            </div>
         </div>
     </div>
 
@@ -875,7 +912,7 @@
                 return;
             }
 
-            const methodIcons = { 'Nakit': '💵', 'Kredi Kartı': '💳', 'Banka Havalesi': '🏦', 'Çek': '🧾' };
+            const methodIcons = { 'Nakit/Elden': '💵', 'Nakit': '💵', 'Kredi Kartı': '💳', 'Banka Havalesi': '🏦', 'Çek': '🧾' };
             const isAdmin = currentUser.role === 'admin';
 
             listEl.innerHTML = `<p class="text-[11px] text-slate-400 font-semibold px-1">${planKeys.length} öğrenci listeleniyor</p>` +
@@ -886,10 +923,10 @@
                 const totalCount = first.installment_count || rows.length;
                 const paidRows = rows.filter(r => r.status === 'Ödendi');
                 const paidCount = paidRows.length;
-                const paidAmount = paidRows.reduce((s, r) => s + Number(r.amount || 0), 0);
-                const remaining = totalAmount - paidAmount;
-                const progressPct = totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0;
-                const isFullyPaid = paidCount === totalCount;
+                const paidAmount = rows.reduce((s, r) => s + getReceivedAmount(r), 0);
+                const remaining = +(totalAmount - paidAmount).toFixed(2);
+                const progressPct = totalAmount > 0 ? Math.min(100, Math.round((paidAmount / totalAmount) * 100)) : 0;
+                const isFullyPaid = remaining <= 0.01;
                 const hasPaid = paidCount > 0;
                 const safeId = key.replace(/[^a-zA-Z0-9_]/g, '');
 
@@ -963,19 +1000,31 @@
                             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                                 ${rows.map(r => {
                                     const paid = r.status === 'Ödendi';
+                                    const receivedR = getReceivedAmount(r);
+                                    const dueAmountR = Number(r.amount || 0);
+                                    const remainingR = +(dueAmountR - receivedR).toFixed(2);
+                                    const partial = !paid && receivedR > 0;
+                                    const cardClass = paid ? 'bg-emerald-50 border-emerald-200' : (partial ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200');
+                                    const iconClass = paid ? 'fa-circle-check text-emerald-500' : (partial ? 'fa-circle-half-stroke text-amber-500' : 'fa-clock text-amber-400');
                                     return `
-                                    <div class="p-2.5 rounded-xl border ${paid ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'}">
+                                    <div class="p-2.5 rounded-xl border ${cardClass}">
                                         <div class="flex items-center justify-between mb-1">
                                             <span class="text-[9px] font-bold text-slate-400">${r.installment_no || 1}. Ay</span>
-                                            <i class="fa-solid ${paid ? 'fa-circle-check text-emerald-500' : 'fa-clock text-amber-400'} text-[11px]"></i>
+                                            <i class="fa-solid ${iconClass} text-[11px]"></i>
                                         </div>
                                         <p class="text-[10.5px] font-semibold text-slate-600 leading-tight">${formatTRDate(r.due_date)}</p>
-                                        <p class="text-xs font-black ${paid ? 'text-emerald-700' : 'text-slate-800'} mt-0.5">₺${Number(r.amount || 0).toLocaleString('tr-TR')}</p>
-                                        ${paid && r.paid_date ? `<p class="text-[9px] text-emerald-600 font-semibold mt-1">${formatTRDate(r.paid_date)} alındı</p>` : ''}
+                                        <p class="text-xs font-black ${paid ? 'text-emerald-700' : (partial ? 'text-amber-700' : 'text-slate-800')} mt-0.5">₺${dueAmountR.toLocaleString('tr-TR')}</p>
+                                        ${partial ? `<p class="text-[9px] text-amber-700 font-bold mt-1">₺${receivedR.toLocaleString('tr-TR')} alındı · Kalan ₺${remainingR.toLocaleString('tr-TR')}</p>` : ''}
+                                        ${(paid || partial) && r.paid_date ? `<p class="text-[9px] ${paid ? 'text-emerald-600' : 'text-amber-600'} font-semibold mt-1">Son ödeme: ${formatTRDate(r.paid_date)}</p>` : ''}
                                         ${isAdmin ? (
                                             paid
-                                                ? `<button onclick="togglePaymentStatus(${r.id}, 'Ödendi')" class="mt-1.5 w-full text-[9px] font-bold text-slate-400 hover:text-slate-600">İptal Et</button>`
-                                                : `<button onclick="markInstallmentPaid(${r.id})" class="mt-1.5 w-full text-[10px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg py-1.5 transition-all"><i class="fa-solid fa-hand-holding-dollar mr-1"></i>Ödeme Al</button>`
+                                                ? `<button onclick="cancelInstallmentPayment(${r.id})" class="mt-1.5 w-full text-[9px] font-bold text-slate-400 hover:text-slate-600">İptal Et</button>`
+                                                : partial
+                                                    ? `<div class="mt-1.5 flex gap-1">
+                                                        <button onclick="openPaymentModal(${r.id})" class="flex-1 text-[10px] font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg py-1.5 transition-all"><i class="fa-solid fa-plus mr-1"></i>Ekle</button>
+                                                        <button onclick="cancelInstallmentPayment(${r.id})" class="text-[9px] font-bold text-slate-400 hover:text-slate-600 px-1.5">İptal</button>
+                                                       </div>`
+                                                    : `<button onclick="openPaymentModal(${r.id})" class="mt-1.5 w-full text-[10px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg py-1.5 transition-all"><i class="fa-solid fa-hand-holding-dollar mr-1"></i>Ödeme Al</button>`
                                         ) : ''}
                                     </div>`;
                                 }).join('')}
@@ -1011,14 +1060,21 @@
             const full_name = document.getElementById('usrFullName').value.trim();
             const role = document.getElementById('usrRole').value;
             const phone = document.getElementById('usrPhone').value.trim();
+            const season = document.getElementById('usrSeason').value;
 
-            const { error } = await _supabase.from('users').insert([{ username, password, full_name, role, phone }]);
+            let payload = { username, password, full_name, role, phone, season };
+            let { error } = await _supabase.from('users').insert([payload]);
+            if (error && /season/i.test(error.message || '')) {
+                delete payload.season;
+                const retry = await _supabase.from('users').insert([payload]);
+                error = retry.error;
+            }
             if (!error) {
                 alert('Kullanıcı başarıyla eklendi!');
                 document.getElementById('formAddUser').reset();
                 toggleAdminForm('formAddUser');
                 loadDataFromSupabase();
-            } else alert('Hata oluştu: ' + error.message);
+            } else alert('Hata oluştu: ' + error.message + '\n\nNot: Sezon bilgisini kaydedebilmek için "users" tablosunda "season" (text) sütununun bulunduğundan emin olun.');
         }
 
         async function addClass(e) {
@@ -1122,24 +1178,99 @@
             }
         }
 
-        async function markInstallmentPaid(id) {
-            if (!confirm('Bu taksiti bugünün tarihiyle "Ödendi" olarak kaydetmek istediğinize emin misiniz?')) return;
-            const today = new Date().toISOString().split('T')[0];
-            let { error } = await _supabase.from('payments').update({ status: 'Ödendi', paid_date: today }).eq('id', id);
+        // Bir taksitten şimdiye kadar fiilen alınmış tutarı döner.
+        // "received_amount" sütunu henüz yoksa, eski kayıtlarla uyumlu olması için
+        // "Ödendi" ise taksit tutarının tamamı alınmış kabul edilir.
+        function getReceivedAmount(r) {
+            if (r.received_amount !== undefined && r.received_amount !== null) return Number(r.received_amount);
+            return r.status === 'Ödendi' ? Number(r.amount || 0) : 0;
+        }
+
+        let paymentModalContext = null;
+
+        function openPaymentModal(installmentId) {
+            const row = allPayments.find(p => p.id === installmentId);
+            if (!row) return;
+            paymentModalContext = { installmentId };
+
+            const dueAmount = Number(row.amount || 0);
+            const received = getReceivedAmount(row);
+            const remaining = +(dueAmount - received).toFixed(2);
+
+            document.getElementById('paymentModalInfo').innerHTML =
+                `<b>${row.student_name}</b> · ${row.installment_no || 1}. Taksit<br>` +
+                `Taksit Tutarı: <b>₺${dueAmount.toLocaleString('tr-TR')}</b>` +
+                (received > 0
+                    ? `<br>Şimdiye Kadar Alınan: ₺${received.toLocaleString('tr-TR')} · Kalan: <b>₺${Math.max(remaining, 0).toLocaleString('tr-TR')}</b>`
+                    : '');
+
+            document.getElementById('paymentModalAmount').value = remaining > 0 ? remaining : dueAmount;
+            document.getElementById('paymentModalDate').value = getTodayStr();
+            document.getElementById('paymentModal').classList.remove('hidden');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.add('hidden');
+            paymentModalContext = null;
+        }
+
+        async function confirmPaymentModal() {
+            if (!paymentModalContext) return;
+            const enteredAmount = parseFloat(document.getElementById('paymentModalAmount').value);
+            const enteredDate = document.getElementById('paymentModalDate').value;
+
+            if (!enteredAmount || enteredAmount <= 0) { alert('Lütfen geçerli bir tutar girin.'); return; }
+            if (!enteredDate) { alert('Lütfen ödeme tarihini girin. Bu alan zorunludur.'); return; }
+
+            const row = allPayments.find(p => p.id === paymentModalContext.installmentId);
+            if (!row) { closePaymentModal(); return; }
+
+            const dueAmount = Number(row.amount || 0);
+            const previousReceived = getReceivedAmount(row);
+            const newReceived = +(previousReceived + enteredAmount).toFixed(2);
+            const newStatus = newReceived >= dueAmount - 0.01 ? 'Ödendi' : 'Kısmi Ödendi';
+
+            let payload = { status: newStatus, paid_date: enteredDate, received_amount: newReceived };
+            let { error } = await _supabase.from('payments').update(payload).eq('id', row.id);
+
+            let columnWarning = '';
+            if (error && /received_amount/i.test(error.message || '')) {
+                delete payload.received_amount;
+                const retry = await _supabase.from('payments').update(payload).eq('id', row.id);
+                error = retry.error;
+                columnWarning = '\n\nNot: Kısmi (elden) ödemeleri kalıcı olarak takip edebilmek için Supabase "payments" tablosuna "received_amount" (numeric) sütunu eklemeniz gerekiyor.';
+            }
             if (error && /paid_date/i.test(error.message || '')) {
-                // paid_date sütunu henüz yoksa durumu yine de güncelle
-                const fallback = await _supabase.from('payments').update({ status: 'Ödendi' }).eq('id', id);
-                error = fallback.error;
+                delete payload.paid_date;
+                const retry2 = await _supabase.from('payments').update(payload).eq('id', row.id);
+                error = retry2.error;
+            }
+
+            if (!error) {
+                closePaymentModal();
+                loadDataFromSupabase();
+                if (columnWarning) setTimeout(() => alert(columnWarning.trim()), 300);
+            } else {
+                alert('Hata oluştu: ' + error.message);
+            }
+        }
+
+        async function cancelInstallmentPayment(id) {
+            if (!confirm('Bu taksitin ödeme kaydını sıfırlamak (İptal Et) istediğinize emin misiniz?')) return;
+            let payload = { status: 'Bekliyor', received_amount: 0, paid_date: null };
+            let { error } = await _supabase.from('payments').update(payload).eq('id', id);
+            if (error && /received_amount/i.test(error.message || '')) {
+                delete payload.received_amount;
+                const retry = await _supabase.from('payments').update(payload).eq('id', id);
+                error = retry.error;
+            }
+            if (error && /paid_date/i.test(error.message || '')) {
+                delete payload.paid_date;
+                const retry2 = await _supabase.from('payments').update(payload).eq('id', id);
+                error = retry2.error;
             }
             if (!error) loadDataFromSupabase();
             else alert('Hata oluştu: ' + error.message);
-        }
-
-        async function togglePaymentStatus(id, currentStatus) {
-            const newStatus = currentStatus === 'Ödendi' ? 'Bekliyor' : 'Ödendi';
-            const { error } = await _supabase.from('payments').update({ status: newStatus }).eq('id', id);
-            if (!error) loadDataFromSupabase();
-            else alert('Güncelleme hatası: ' + error.message);
         }
 
         async function deletePlan(key) {
