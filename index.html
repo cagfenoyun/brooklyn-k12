@@ -1753,6 +1753,80 @@
             'tab-payments': 'payments'
         };
 
+        // ---------- "GRUPLANMIŞ" EXCEL DÜZENİ ----------
+        // Düzen: bir başlık satırı (Seviye | Gün(ler) | Saat), altında o grubun öğrencileri (Ad Soyad | Sınıf | Etiket).
+        // Örn:  EU3 | PAZARTESİ - ÇARŞAMBA | 16:00-18:10
+        //       Adem Emre Güner | 5.SINIF
+        const DAY_TOKENS = { pazartesi: 'Pzt', sali: 'Sal', carsamba: 'Çar', persembe: 'Per', cuma: 'Cum', cumartesi: 'Cmt', pazar: 'Paz',
+                             pzt: 'Pzt', sal: 'Sal', car: 'Çar', per: 'Per', cum: 'Cum', cmt: 'Cmt', paz: 'Paz' };
+        const DAY_FULL = { Pzt: 'Pazartesi', Sal: 'Salı', Çar: 'Çarşamba', Per: 'Perşembe', Cum: 'Cuma', Cmt: 'Cumartesi', Paz: 'Pazar' };
+
+        function parseDaysFromText(text) {
+            const toks = foldName(text).split(/[^a-z]+/).filter(Boolean);
+            const days = [];
+            toks.forEach(t => { if (DAY_TOKENS[t] && !days.includes(DAY_TOKENS[t])) days.push(DAY_TOKENS[t]); });
+            return days;
+        }
+
+        function parseTimeFromText(text) {
+            const m = String(text || '').match(/(\d{1,2})[:.](\d{2})(?:\s*[-–—]\s*(\d{1,2})[:.](\d{2}))?/);
+            if (!m) return null;
+            const pad = n => String(n).padStart(2, '0');
+            const start = `${pad(m[1])}:${m[2]}`;
+            const end = m[3] !== undefined ? `${pad(m[3])}:${m[4]}` : '';
+            return { start, range: end ? `${start}-${end}` : start };
+        }
+
+        function parseGroupedLayout(ws) {
+            const grid = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false, blankrows: true });
+            const cellStr = (r, c) => String((grid[r] && grid[r][c] != null) ? grid[r][c] : '').trim();
+
+            // 1. Grup başlıklarını bul: bir hücre + sağındaki 3 hücre içinde gün ve saat bilgisi
+            const anchors = [];
+            for (let r = 0; r < grid.length; r++) {
+                const width = (grid[r] || []).length;
+                for (let c = 0; c < width; c++) {
+                    const lvl = cellStr(r, c);
+                    if (!lvl) continue;
+                    if (parseDaysFromText(lvl).length || parseTimeFromText(lvl)) continue;
+                    let days = [], time = null;
+                    for (let k = 1; k <= 3; k++) {
+                        const t = cellStr(r, c + k);
+                        if (!t) continue;
+                        if (!days.length) days = parseDaysFromText(t);
+                        if (!time) time = parseTimeFromText(t);
+                    }
+                    if (days.length && time) anchors.push({ r, c, level: lvl, days, time });
+                }
+            }
+            if (!anchors.length) return [];
+
+            // 2. Her başlığın altındaki öğrencileri (aynı sütunda, sonraki başlığa kadar) topla
+            return anchors.map(a => {
+                const next = anchors.find(b => b.c === a.c && b.r > a.r);
+                const endRow = next ? next.r : grid.length;
+                const students = [];
+                const seen = new Set();
+                for (let rr = a.r + 1; rr < endRow; rr++) {
+                    let off = 0;
+                    let name = cellStr(rr, a.c);
+                    if (/^\d+[.)]?$/.test(name)) { off = 1; name = cellStr(rr, a.c + 1); } // baştaki sıra numarasını atla
+                    if (!name) continue;
+                    const key = foldName(name);
+                    if (seen.has(key)) continue;
+                    seen.add(key);
+                    students.push({ name, grade: cellStr(rr, a.c + 1 + off), tag: cellStr(rr, a.c + 2 + off) });
+                }
+                return {
+                    class_name: `${a.level} (${a.days.join('-')} ${a.time.start})`,
+                    level: a.level,
+                    teacher_name: 'Atanmadı',
+                    schedule: `${a.days.map(d => DAY_FULL[d]).join(' - ')} ${a.time.range}`,
+                    students
+                };
+            });
+        }
+
         function getActiveImportTable() {
             const active = document.querySelector('.tab-content:not(.hidden)');
             return active ? (IMPORT_TAB_TO_TABLE[active.id] || null) : null;
