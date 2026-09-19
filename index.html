@@ -14,6 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Supabase JS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- SheetJS (Excel İçe/Dışa Aktarma) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -323,7 +325,13 @@
                     <form id="formAddClass" onsubmit="addClass(event)" class="hidden bg-slate-100 p-5 rounded-2xl border border-slate-300/80 grid grid-cols-1 sm:grid-cols-2 gap-3 shadow-inner">
                         <input type="text" id="clsName" placeholder="Sınıf Adı (Örn: B1 Hafta Sonu)" required class="p-2.5 border rounded-xl text-sm bg-white">
                         <input type="text" id="clsLevel" placeholder="Seviye (Örn: B1 - Intermediate)" required class="p-2.5 border rounded-xl text-sm bg-white">
-                        <input type="text" id="clsTeacher" placeholder="Eğitmen Adı" required class="p-2.5 border rounded-xl text-sm bg-white">
+                        <div>
+                            <select id="clsTeacherSelect" onchange="toggleManualTeacherInput()" required class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                                <option value="">-- Öğretmen Seçin --</option>
+                                <option value="__manual__">✏️ Elle Yaz (Listede Yok)</option>
+                            </select>
+                            <input type="text" id="clsTeacherManual" placeholder="Öğretmen Adı Soyadı" class="hidden mt-2 w-full p-2.5 border rounded-xl text-sm bg-white">
+                        </div>
                         <input type="text" id="clsSchedule" placeholder="Ders Programı (Örn: Cmt-Pzr 10:00-13:00)" required class="p-2.5 border rounded-xl text-sm bg-white">
                         <button type="submit" class="sm:col-span-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow">Sınıf ve Programı Kaydet</button>
                     </form>
@@ -341,6 +349,31 @@
                         <button onclick="toggleAdminForm('formAddUser')" class="role-admin bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md w-fit">
                             <i class="fa-solid fa-user-plus"></i> Yeni Kullanıcı Ekle
                         </button>
+                    </div>
+
+                    <!-- Excel İçe/Dışa Aktarma (Admin) -->
+                    <div class="role-admin bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-file-excel text-emerald-600"></i>
+                            <h4 class="text-sm font-bold text-slate-900 brand-font">Excel ile Veri Yedekleme</h4>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Eski verilerinizi (Kullanıcılar, Sınıflar, Yoklama, Ödemeler) tek bir Excel dosyasından içeri aktarabilir,
+                            ya da mevcut sistem verisini yedeklemek için dışarı aktarabilirsiniz. İçe aktarırken dosyanızda
+                            <b>Kullanicilar</b>, <b>Siniflar</b>, <b>Yoklama</b>, <b>Odemeler</b> adlı sayfalar (bulunanlar işlenir) ve
+                            ilgili başlık satırları (örn. username, password, full_name, role, phone, season / class_name, level, teacher_name, schedule /
+                            student_name, class_name, date, status / student_name, payment_method, season, total_amount, installment_count, installment_no,
+                            plan_id, due_date, amount, status) olmalıdır.
+                        </p>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
+                                <i class="fa-solid fa-file-arrow-down"></i> Excel'e Aktar (Yedekle)
+                            </button>
+                            <button onclick="document.getElementById('excelImportInput').click()" class="bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
+                                <i class="fa-solid fa-file-arrow-up"></i> Excel'den İçe Aktar
+                            </button>
+                            <input type="file" id="excelImportInput" accept=".xlsx,.xls" class="hidden" onchange="importFromExcel(event)">
+                        </div>
                     </div>
 
                     <form id="formAddUser" onsubmit="addUser(event)" class="hidden bg-slate-100 p-5 rounded-2xl border border-slate-300/80 grid grid-cols-1 sm:grid-cols-3 gap-3 shadow-inner">
@@ -383,14 +416,31 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
                         <div>
                             <h3 class="text-lg font-bold text-slate-900 brand-font">Yoklama & Devam Takip Modülü</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Öğrencilerin derse katılım kayıtları.</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Öğrencilerin derse katılım kayıtları ve öğretmen geri dönütleri.</p>
                         </div>
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                            <button onclick="toggleAttendanceForm()" class="role-admin role-teacher bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md w-fit">
+                                <i class="fa-solid fa-plus"></i> Yoklama Ekle
+                            </button>
                             <select id="attendanceClassFilterSelect" onchange="setAttendanceFilter(this.value)" class="w-full sm:w-56 p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
                                 <option value="">Tüm Sınıflar</option>
                             </select>
                         </div>
                     </div>
+
+                    <form id="formAddAttendance" onsubmit="addAttendance(event)" class="role-admin role-teacher hidden bg-slate-100 p-5 rounded-2xl border border-slate-300/80 grid grid-cols-1 sm:grid-cols-2 gap-3 shadow-inner">
+                        <input type="text" id="attStudentName" placeholder="Öğrenci Adı Soyadı" required class="p-2.5 border rounded-xl text-sm bg-white">
+                        <select id="attClassSelect" required class="p-2.5 border rounded-xl text-sm bg-white">
+                            <option value="">-- Sınıf Seçin --</option>
+                        </select>
+                        <input type="date" id="attDate" required class="p-2.5 border rounded-xl text-sm bg-white">
+                        <select id="attStatus" class="p-2.5 border rounded-xl text-sm bg-white">
+                            <option value="Geldi">✅ Geldi</option>
+                            <option value="Gelmedi">❌ Gelmedi</option>
+                        </select>
+                        <textarea id="attTeacherNote" placeholder="Öğretmen Notu / Geri Dönüt (opsiyonel — örn: derse geç kaldı, çok iyi katıldı vb.)" class="sm:col-span-2 p-2.5 border rounded-xl text-sm bg-white" rows="2"></textarea>
+                        <button type="submit" class="sm:col-span-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow">Yoklamayı Kaydet</button>
+                    </form>
 
                     <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
                         <div class="overflow-x-auto">
@@ -401,6 +451,7 @@
                                         <th class="p-4">Sınıf</th>
                                         <th class="p-4">Tarih</th>
                                         <th class="p-4">Durum</th>
+                                        <th class="p-4 role-admin role-teacher">Öğretmen Notu</th>
                                         <th class="p-4 role-admin">İşlem</th>
                                     </tr>
                                 </thead>
@@ -534,6 +585,37 @@
         </div>
     </div>
 
+    <!-- ŞİFRE DEĞİŞTİRME MODALI -->
+    <div id="passwordModal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-slate-900 brand-font flex items-center gap-2">
+                    <i class="fa-solid fa-key text-amber-500"></i> Şifre Değiştir
+                </h3>
+                <button onclick="closePasswordModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <p id="passwordModalInfo" class="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-xl p-3"></p>
+
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Yeni Şifre</label>
+                <div class="relative">
+                    <input type="password" id="passwordModalNewPass" required minlength="4" class="w-full p-2.5 pr-10 border rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
+                    <button type="button" onclick="togglePasswordModalVisibility()" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition-colors">
+                        <i id="passwordModalToggleIcon" class="fa-solid fa-eye text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closePasswordModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-sm transition-all">Vazgeç</button>
+                <button onclick="confirmPasswordModal()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-xl text-sm transition-all shadow">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript - Supabase İşlemleri & Mantık -->
     <script>
         let currentUser = null;
@@ -543,6 +625,7 @@
         let allClasses = [];
         let allAttendance = [];
         let attendanceClassFilter = '';
+        let allUsers = [];
 
         window.onload = function() {
             const activeUser = JSON.parse(localStorage.getItem('brooklyn_user'));
@@ -634,6 +717,7 @@
             // 2. Kullanıcılar
             const { data: users } = await _supabase.from('users').select('*');
             if (users) {
+                allUsers = users;
                 document.getElementById('statUsers').innerText = users.length;
 
                 // Ödeme formundaki "Öğrenci Seçin" listesini doldur
@@ -647,20 +731,8 @@
                     if (currentSelection) studentSelect.value = currentSelection;
                 }
 
-                document.getElementById('usersTableBody').innerHTML = users.map(u => `
-                    <tr class="hover:bg-slate-50/80 transition-all">
-                        <td class="p-4 font-semibold text-slate-800">${u.full_name}</td>
-                        <td class="p-4"><span class="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-lg text-[10px] uppercase font-bold tracking-wider">${u.role}</span></td>
-                        <td class="p-4">
-                            <a href="https://wa.me/90${u.phone}" target="_blank" class="inline-flex items-center gap-1.5 text-emerald-600 font-semibold hover:underline text-xs bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
-                                <i class="fa-brands fa-whatsapp text-sm"></i> ${u.phone || 'Yok'}
-                            </a>
-                        </td>
-                        <td class="p-4 role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
-                            <button onclick="deleteRecord('users', ${u.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash mr-1"></i> Sil</button>
-                        </td>
-                    </tr>
-                `).join('');
+                populateClassTeacherSelect();
+                renderUsersTable();
             }
 
             // 3. Yoklama
@@ -693,7 +765,8 @@
             listEl.innerHTML = allClasses.map(c => `
                 <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3 relative hover:shadow-md transition-all">
                     ${currentUser.role === 'admin' ? `
-                        <div class="absolute top-4 right-4 flex items-center gap-2">
+                        <div class="absolute top-4 right-4 flex flex-wrap justify-end gap-2 max-w-[70%]">
+                            <button onclick="editTeacher(${c.id}, '${(c.teacher_name || '').replace(/'/g, "\\'")}')" class="text-sky-600 hover:text-sky-800 text-xs font-bold bg-sky-50 px-2 py-1 rounded-lg border border-sky-200"><i class="fa-solid fa-user-pen"></i> Öğretmen</button>
                             <button onclick="editSchedule(${c.id}, '${c.schedule}')" class="text-amber-600 hover:text-amber-800 text-xs font-bold bg-amber-50 px-2 py-1 rounded-lg border border-amber-200"><i class="fa-solid fa-pen"></i> Düzenle</button>
                             <button onclick="deleteRecord('classes', ${c.id})" class="text-rose-600 hover:text-rose-800 text-xs font-bold bg-rose-50 px-2 py-1 rounded-lg border border-rose-200"><i class="fa-solid fa-trash"></i> Sil</button>
                         </div>
@@ -728,13 +801,15 @@
             if (rows.length === 0) {
                 bodyEl.innerHTML = `
                     <tr>
-                        <td colspan="5" class="p-8 text-center text-slate-400 text-sm">
+                        <td colspan="6" class="p-8 text-center text-slate-400 text-sm">
                             <i class="fa-solid fa-inbox text-xl mb-2 block"></i>
                             Kayıt bulunamadı.
                         </td>
                     </tr>`;
                 return;
             }
+
+            const canEditNote = currentUser.role === 'admin' || currentUser.role === 'teacher';
 
             bodyEl.innerHTML = rows.map(a => `
                 <tr class="hover:bg-slate-50/80 transition-all">
@@ -743,6 +818,12 @@
                     <td class="p-4 text-slate-500 text-xs">${a.date}</td>
                     <td class="p-4">
                         <span class="${a.status === 'Geldi' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-rose-100 text-rose-800 border-rose-200'} text-[11px] font-bold px-2.5 py-1 rounded-full border">${a.status}</span>
+                    </td>
+                    <td class="p-4 role-admin role-teacher ${canEditNote ? '' : 'hidden'} max-w-[220px]">
+                        <div class="flex items-start gap-2">
+                            <span class="text-xs text-slate-600 leading-snug">${a.teacher_note ? a.teacher_note : '<span class="text-slate-300 italic">Not yok</span>'}</span>
+                            ${canEditNote ? `<button onclick="editAttendanceNote(${a.id}, '${(a.teacher_note || '').replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-slate-700 shrink-0"><i class="fa-solid fa-pen text-[11px]"></i></button>` : ''}
+                        </div>
                     </td>
                     <td class="p-4 role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
                         <button onclick="deleteRecord('attendance', ${a.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash mr-1"></i> Sil</button>
@@ -753,15 +834,75 @@
 
         function populateAttendanceClassFilterOptions() {
             const sel = document.getElementById('attendanceClassFilterSelect');
-            if (!sel) return;
-            const currentSelection = sel.value;
+            const addSel = document.getElementById('attClassSelect');
             const classNames = (allClasses || []).map(c => c.class_name);
-            sel.innerHTML = '<option value="">Tüm Sınıflar</option>' +
-                classNames.map(name => `<option value="${name}">${name}</option>`).join('');
-            if (currentSelection && classNames.includes(currentSelection)) {
-                sel.value = currentSelection;
-            } else if (attendanceClassFilter && classNames.includes(attendanceClassFilter)) {
-                sel.value = attendanceClassFilter;
+
+            if (sel) {
+                const currentSelection = sel.value;
+                sel.innerHTML = '<option value="">Tüm Sınıflar</option>' +
+                    classNames.map(name => `<option value="${name}">${name}</option>`).join('');
+                if (currentSelection && classNames.includes(currentSelection)) {
+                    sel.value = currentSelection;
+                } else if (attendanceClassFilter && classNames.includes(attendanceClassFilter)) {
+                    sel.value = attendanceClassFilter;
+                }
+            }
+
+            if (addSel) {
+                const currentAddSelection = addSel.value;
+                addSel.innerHTML = '<option value="">-- Sınıf Seçin --</option>' +
+                    classNames.map(name => `<option value="${name}">${name}</option>`).join('');
+                if (currentAddSelection && classNames.includes(currentAddSelection)) {
+                    addSel.value = currentAddSelection;
+                }
+            }
+        }
+
+        function toggleAttendanceForm() {
+            const form = document.getElementById('formAddAttendance');
+            form.classList.toggle('hidden');
+            if (!form.classList.contains('hidden')) {
+                const dateInput = document.getElementById('attDate');
+                if (dateInput && !dateInput.value) dateInput.value = getTodayStr();
+            }
+        }
+
+        async function addAttendance(e) {
+            e.preventDefault();
+            const student_name = document.getElementById('attStudentName').value.trim();
+            const class_name = document.getElementById('attClassSelect').value;
+            const date = document.getElementById('attDate').value;
+            const status = document.getElementById('attStatus').value;
+            const teacher_note = document.getElementById('attTeacherNote').value.trim();
+
+            if (!student_name || !class_name || !date) { alert('Lütfen öğrenci, sınıf ve tarih alanlarını doldurun.'); return; }
+
+            let payload = { student_name, class_name, date, status, teacher_note: teacher_note || null };
+            let { error } = await _supabase.from('attendance').insert([payload]);
+            if (error && /teacher_note/i.test(error.message || '')) {
+                delete payload.teacher_note;
+                const retry = await _supabase.from('attendance').insert([payload]);
+                error = retry.error;
+            }
+
+            if (!error) {
+                alert('Yoklama kaydı başarıyla eklendi!');
+                document.getElementById('formAddAttendance').reset();
+                toggleAttendanceForm();
+                loadDataFromSupabase();
+            } else {
+                alert('Hata oluştu: ' + error.message + '\n\nNot: Öğretmen notunu kaydedebilmek için "attendance" tablosunda "teacher_note" (text) sütununun bulunduğundan emin olun.');
+            }
+        }
+
+        async function editAttendanceNote(id, oldNote) {
+            const newNote = prompt('Öğretmen Notu / Geri Dönüt:', oldNote || '');
+            if (newNote === null) return;
+            const { error } = await _supabase.from('attendance').update({ teacher_note: newNote.trim() || null }).eq('id', id);
+            if (!error) {
+                loadDataFromSupabase();
+            } else {
+                alert('Hata oluştu: ' + error.message + '\n\nNot: "attendance" tablosunda "teacher_note" (text) sütununun bulunduğundan emin olun.');
             }
         }
 
@@ -830,6 +971,311 @@
                     </button>
                 </div>`;
             }).join('');
+        }
+
+        function renderUsersTable() {
+            const bodyEl = document.getElementById('usersTableBody');
+            if (!bodyEl) return;
+            const isAdmin = currentUser.role === 'admin';
+            bodyEl.innerHTML = (allUsers || []).map(u => `
+                <tr class="hover:bg-slate-50/80 transition-all">
+                    <td class="p-4 font-semibold text-slate-800">${u.full_name}</td>
+                    <td class="p-4"><span class="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-lg text-[10px] uppercase font-bold tracking-wider">${u.role}</span></td>
+                    <td class="p-4">
+                        <a href="https://wa.me/90${u.phone}" target="_blank" class="inline-flex items-center gap-1.5 text-emerald-600 font-semibold hover:underline text-xs bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> ${u.phone || 'Yok'}
+                        </a>
+                    </td>
+                    <td class="p-4 role-admin ${isAdmin ? '' : 'hidden'}">
+                        <div class="flex items-center gap-3">
+                            <button onclick="openPasswordModal(${u.id}, '${(u.full_name || '').replace(/'/g, "\\'")}')" class="text-amber-600 hover:text-amber-800 font-bold text-xs"><i class="fa-solid fa-key mr-1"></i> Şifre Değiştir</button>
+                            <button onclick="deleteRecord('users', ${u.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash mr-1"></i> Sil</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        let passwordModalContext = null;
+
+        function openPasswordModal(userId, fullName) {
+            passwordModalContext = { userId };
+            document.getElementById('passwordModalInfo').innerHTML = `<b>${fullName}</b> kullanıcısı için yeni bir şifre belirleyin.`;
+            document.getElementById('passwordModalNewPass').value = '';
+            document.getElementById('passwordModal').classList.remove('hidden');
+        }
+
+        function closePasswordModal() {
+            document.getElementById('passwordModal').classList.add('hidden');
+            passwordModalContext = null;
+        }
+
+        function togglePasswordModalVisibility() {
+            const input = document.getElementById('passwordModalNewPass');
+            const icon = document.getElementById('passwordModalToggleIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye');
+            }
+        }
+
+        async function confirmPasswordModal() {
+            if (!passwordModalContext) return;
+            const newPass = document.getElementById('passwordModalNewPass').value.trim();
+            if (!newPass || newPass.length < 4) { alert('Lütfen en az 4 karakterli bir şifre girin.'); return; }
+
+            const { error } = await _supabase.from('users').update({ password: newPass }).eq('id', passwordModalContext.userId);
+            if (!error) {
+                alert('Şifre başarıyla güncellendi!');
+                closePasswordModal();
+            } else {
+                alert('Hata oluştu: ' + error.message);
+            }
+        }
+
+        function populateClassTeacherSelect() {
+            const sel = document.getElementById('clsTeacherSelect');
+            if (!sel) return;
+            const currentSelection = sel.value;
+            const teachers = (allUsers || []).filter(u => u.role === 'teacher');
+            sel.innerHTML = '<option value="">-- Öğretmen Seçin --</option>' +
+                teachers.map(t => `<option value="${t.full_name}">${t.full_name}</option>`).join('') +
+                '<option value="__manual__">✏️ Elle Yaz (Listede Yok)</option>';
+            if (currentSelection) sel.value = currentSelection;
+        }
+
+        function toggleManualTeacherInput() {
+            const sel = document.getElementById('clsTeacherSelect');
+            const manual = document.getElementById('clsTeacherManual');
+            if (sel.value === '__manual__') {
+                manual.classList.remove('hidden');
+                manual.required = true;
+            } else {
+                manual.classList.add('hidden');
+                manual.required = false;
+                manual.value = '';
+            }
+        }
+
+        async function editTeacher(classId, oldTeacher) {
+            const teachers = (allUsers || []).filter(u => u.role === 'teacher').map(t => t.full_name);
+            const hint = teachers.length ? `\n\nKayıtlı öğretmenler: ${teachers.join(', ')}` : '';
+            const newTeacher = prompt('Yeni Öğretmeni Girin:' + hint, oldTeacher);
+            if (newTeacher !== null && newTeacher.trim() !== '') {
+                const { error } = await _supabase.from('classes').update({ teacher_name: newTeacher.trim() }).eq('id', classId);
+                if (!error) {
+                    alert('Öğretmen ataması güncellendi!');
+                    loadDataFromSupabase();
+                } else {
+                    alert('Güncelleme hatası: ' + error.message);
+                }
+            }
+        }
+
+        // ---------- EXCEL İÇE/DIŞA AKTARMA ----------
+
+        function normalizeKey(k) {
+            return String(k).toLowerCase().trim()
+                .replace(/ı/g, 'i').replace(/İ/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+                .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
+                .replace(/\s+/g, '_');
+        }
+
+        function normalizeRowKeys(row) {
+            const out = {};
+            Object.keys(row).forEach(k => { out[normalizeKey(k)] = row[k]; });
+            return out;
+        }
+
+        function pick(normRow, aliases) {
+            for (const a of aliases) {
+                if (normRow[a] !== undefined && normRow[a] !== '') return normRow[a];
+            }
+            return '';
+        }
+
+        function toDateStr(v) {
+            if (v === null || v === undefined || v === '') return null;
+            if (v instanceof Date) return v.toISOString().slice(0, 10);
+            if (typeof v === 'number') {
+                const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+                return d.toISOString().slice(0, 10);
+            }
+            const s = String(v).trim();
+            let m = s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
+            if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+            m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+            if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+            return s;
+        }
+
+        function chunkArray(arr, size) {
+            const out = [];
+            for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+            return out;
+        }
+
+        async function bulkInsert(table, rows, optionalColumns) {
+            if (!rows || rows.length === 0) return `${table}: içe aktarılacak geçerli satır bulunamadı.`;
+            const chunks = chunkArray(rows, 200);
+            let inserted = 0;
+            let lastError = null;
+            for (const chunk of chunks) {
+                let payload = chunk;
+                let { error } = await _supabase.from(table).insert(payload);
+                let guard = 0;
+                while (error && guard < optionalColumns.length + 1) {
+                    const missingCol = optionalColumns.find(col => new RegExp(col, 'i').test(error.message || ''));
+                    if (!missingCol) break;
+                    payload = payload.map(r => { const clone = { ...r }; delete clone[missingCol]; return clone; });
+                    const retry = await _supabase.from(table).insert(payload);
+                    error = retry.error;
+                    guard++;
+                }
+                if (!error) inserted += chunk.length;
+                else lastError = error;
+            }
+            return `${table}: ${inserted}/${rows.length} satır eklendi.` + (lastError ? ` (Son hata: ${lastError.message})` : '');
+        }
+
+        function exportToExcel() {
+            if (typeof XLSX === 'undefined') { alert('Excel kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.'); return; }
+            const wb = XLSX.utils.book_new();
+
+            const usersSheet = XLSX.utils.json_to_sheet((allUsers || []).map(u => ({
+                id: u.id, username: u.username, password: u.password, full_name: u.full_name,
+                role: u.role, phone: u.phone, season: u.season || ''
+            })));
+            XLSX.utils.book_append_sheet(wb, usersSheet, 'Kullanicilar');
+
+            const classesSheet = XLSX.utils.json_to_sheet((allClasses || []).map(c => ({
+                id: c.id, class_name: c.class_name, level: c.level, teacher_name: c.teacher_name, schedule: c.schedule
+            })));
+            XLSX.utils.book_append_sheet(wb, classesSheet, 'Siniflar');
+
+            const attendanceSheet = XLSX.utils.json_to_sheet((allAttendance || []).map(a => ({
+                id: a.id, student_name: a.student_name, class_name: a.class_name, date: a.date, status: a.status,
+                teacher_note: a.teacher_note || ''
+            })));
+            XLSX.utils.book_append_sheet(wb, attendanceSheet, 'Yoklama');
+
+            const paymentsSheet = XLSX.utils.json_to_sheet((allPayments || []).map(p => ({
+                id: p.id, student_name: p.student_name, payment_method: p.payment_method, season: p.season,
+                total_amount: p.total_amount, installment_count: p.installment_count, installment_no: p.installment_no,
+                plan_id: p.plan_id, due_date: p.due_date, amount: p.amount, status: p.status,
+                paid_date: p.paid_date || '', received_amount: getReceivedAmount(p)
+            })));
+            XLSX.utils.book_append_sheet(wb, paymentsSheet, 'Odemeler');
+
+            XLSX.writeFile(wb, `brooklyn_academy_yedek_${getTodayStr()}.xlsx`);
+        }
+
+        async function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!confirm('Excel dosyasındaki veriler mevcut Supabase tablolarına EKLENECEKTİR (mevcut kayıtların üzerine yazılmaz, yeni satır olarak eklenir). Devam etmek istiyor musunuz?')) {
+                event.target.value = '';
+                return;
+            }
+
+            try {
+                const data = await file.arrayBuffer();
+                const wb = XLSX.read(data, { type: 'array', cellDates: true });
+
+                const findSheet = (aliases) => wb.SheetNames.find(n => aliases.includes(normalizeKey(n)));
+                const sheetMap = {
+                    users: findSheet(['kullanicilar', 'users', 'kullanici']),
+                    classes: findSheet(['siniflar', 'classes', 'sinif']),
+                    attendance: findSheet(['yoklama', 'attendance', 'devam']),
+                    payments: findSheet(['odemeler', 'payments', 'odeme'])
+                };
+
+                const summary = [];
+
+                if (sheetMap.users) {
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetMap.users], { defval: '' });
+                    const payload = rows.map(r => {
+                        const n = normalizeRowKeys(r);
+                        return {
+                            username: pick(n, ['username', 'kullanici_adi']),
+                            password: String(pick(n, ['password', 'sifre']) || ''),
+                            full_name: pick(n, ['full_name', 'fullname', 'ad_soyad']),
+                            role: (pick(n, ['role', 'rol']) || 'student').toString().toLowerCase(),
+                            phone: String(pick(n, ['phone', 'telefon']) || ''),
+                            season: pick(n, ['season', 'sezon']) || '2026-2027'
+                        };
+                    }).filter(u => u.username && u.full_name);
+                    summary.push(await bulkInsert('users', payload, ['season']));
+                }
+
+                if (sheetMap.classes) {
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetMap.classes], { defval: '' });
+                    const payload = rows.map(r => {
+                        const n = normalizeRowKeys(r);
+                        return {
+                            class_name: pick(n, ['class_name', 'sinif_adi']),
+                            level: pick(n, ['level', 'seviye']),
+                            teacher_name: pick(n, ['teacher_name', 'ogretmen', 'ogretmen_adi']),
+                            schedule: pick(n, ['schedule', 'ders_programi', 'program'])
+                        };
+                    }).filter(c => c.class_name);
+                    summary.push(await bulkInsert('classes', payload, []));
+                }
+
+                if (sheetMap.attendance) {
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetMap.attendance], { defval: '' });
+                    const payload = rows.map(r => {
+                        const n = normalizeRowKeys(r);
+                        return {
+                            student_name: pick(n, ['student_name', 'ogrenci_adi']),
+                            class_name: pick(n, ['class_name', 'sinif_adi', 'sinif']),
+                            date: toDateStr(pick(n, ['date', 'tarih'])),
+                            status: pick(n, ['status', 'durum']) || 'Geldi',
+                            teacher_note: pick(n, ['teacher_note', 'not', 'ogretmen_notu']) || null
+                        };
+                    }).filter(a => a.student_name && a.date);
+                    summary.push(await bulkInsert('attendance', payload, ['teacher_note']));
+                }
+
+                if (sheetMap.payments) {
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetMap.payments], { defval: '' });
+                    const payload = rows.map(r => {
+                        const n = normalizeRowKeys(r);
+                        return {
+                            student_name: pick(n, ['student_name', 'ogrenci_adi']),
+                            payment_method: pick(n, ['payment_method', 'odeme_yontemi']) || 'Nakit/Elden',
+                            season: pick(n, ['season', 'sezon']) || '2026-2027',
+                            total_amount: Number(pick(n, ['total_amount', 'toplam_tutar']) || 0),
+                            installment_count: Number(pick(n, ['installment_count', 'taksit_sayisi']) || 1),
+                            installment_no: Number(pick(n, ['installment_no', 'taksit_no']) || 1),
+                            plan_id: pick(n, ['plan_id']) || `import_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                            due_date: toDateStr(pick(n, ['due_date', 'vade_tarihi'])),
+                            amount: Number(pick(n, ['amount', 'tutar']) || 0),
+                            status: pick(n, ['status', 'durum']) || 'Bekliyor',
+                            paid_date: toDateStr(pick(n, ['paid_date', 'odeme_tarihi'])),
+                            received_amount: Number(pick(n, ['received_amount', 'alinan_tutar']) || 0)
+                        };
+                    }).filter(p => p.student_name && p.amount);
+                    summary.push(await bulkInsert('payments', payload, ['paid_date', 'received_amount']));
+                }
+
+                event.target.value = '';
+
+                if (summary.length === 0) {
+                    alert('Dosyada tanınan bir sayfa bulunamadı. Sayfa adlarının "Kullanicilar", "Siniflar", "Yoklama" veya "Odemeler" olduğundan emin olun.');
+                    return;
+                }
+
+                alert('İçe aktarma tamamlandı:\n\n' + summary.join('\n'));
+                loadDataFromSupabase();
+            } catch (err) {
+                alert('Excel dosyası okunurken hata oluştu: ' + err.message);
+                event.target.value = '';
+            }
         }
 
         function formatTRDate(dateStr) {
@@ -1081,13 +1527,18 @@
             e.preventDefault();
             const class_name = document.getElementById('clsName').value.trim();
             const level = document.getElementById('clsLevel').value.trim();
-            const teacher_name = document.getElementById('clsTeacher').value.trim();
+            const teacherSel = document.getElementById('clsTeacherSelect');
+            const teacherManual = document.getElementById('clsTeacherManual');
+            const teacher_name = teacherSel.value === '__manual__' ? teacherManual.value.trim() : teacherSel.value;
             const schedule = document.getElementById('clsSchedule').value.trim();
+
+            if (!teacher_name) { alert('Lütfen bir öğretmen seçin veya adını yazın.'); return; }
 
             const { error } = await _supabase.from('classes').insert([{ class_name, level, teacher_name, schedule }]);
             if (!error) {
                 alert('Sınıf ve ders programı başarıyla eklendi!');
                 document.getElementById('formAddClass').reset();
+                toggleManualTeacherInput();
                 toggleAdminForm('formAddClass');
                 loadDataFromSupabase();
             } else alert('Hata oluştu: ' + error.message);
