@@ -234,6 +234,9 @@
                         </div>
                     </div>
 
+                    <!-- Veritabanı durum / hata bildirimi -->
+                    <div id="dbStatusBanner" class="hidden"></div>
+
                     <!-- Günün Özeti -->
                     <div>
                         <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-2 px-1" id="todaySummaryLabel">Günün Özeti</p>
@@ -872,7 +875,9 @@
 
         async function loadDataFromSupabase() {
             // 1. Sınıflar & Ders Programları
-            const { data: classes } = await _supabase.from('classes').select('*');
+            const dbErrors = [];
+            const { data: classes, error: clsErr } = await _supabase.from('classes').select('*');
+            if (clsErr) { console.error('classes', clsErr); dbErrors.push('classes: ' + clsErr.message); }
             if (classes) {
                 allClasses = classes;
                 document.getElementById('statClasses').innerText = classes.length;
@@ -883,7 +888,8 @@
             }
 
             // 2. Kullanıcılar
-            const { data: users } = await _supabase.from('users').select('*');
+            const { data: users, error: usrErr } = await _supabase.from('users').select('*');
+            if (usrErr) { console.error('users', usrErr); dbErrors.push('users: ' + usrErr.message); }
             if (users) {
                 allUsers = users;
                 document.getElementById('statUsers').innerText = users.length;
@@ -922,6 +928,29 @@
                 allPayments = payments;
                 renderPaymentsPlans();
             }
+            showDbStatus(dbErrors);
+        }
+
+        function showDbStatus(errors) {
+            const el = document.getElementById('dbStatusBanner');
+            if (!el) return;
+            if (errors && errors.length) {
+                el.className = 'bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl p-4 text-xs leading-relaxed';
+                el.innerHTML = `<b><i class="fa-solid fa-triangle-exclamation mr-1"></i> Veritabanından veri okunamadı.</b><br>` +
+                    errors.map(esc).join('<br>') +
+                    `<br><br><b>Olası nedenler:</b> (1) Dosyanın başındaki <code>SUPABASE_KEY</code> değeri orijinal anahtarınızla birebir aynı değil — kendi eski dosyanızdaki anahtarı buraya yapıştırın. ` +
+                    `(2) Supabase'de tablolar için RLS açık ve okuma politikası yok.`;
+                return;
+            }
+            const missing = GROUP_SEED.filter(g => !(allClasses || []).some(c => c.class_name === g.class_name)).length;
+            if (currentUser && currentUser.role === 'admin' && missing > 0) {
+                el.className = 'bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-4 text-xs leading-relaxed flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+                el.innerHTML = `<span><b><i class="fa-solid fa-circle-info mr-1"></i> Excel'deki ${missing} grup henüz sisteme yüklenmemiş.</b> Yüklemek için butona basın.</span>` +
+                    `<button onclick="seedGroupsFromExcel()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-4 py-2 rounded-xl w-fit"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Grup ve Öğrenci Listesini Yükle</button>`;
+                return;
+            }
+            el.className = 'hidden';
+            el.innerHTML = '';
         }
 
         function renderClassesList() {
