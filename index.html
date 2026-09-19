@@ -398,10 +398,11 @@
                         <p class="text-xs text-slate-500 leading-relaxed">
                             Eski verilerinizi (Kullanıcılar, Sınıflar, Yoklama, Ödemeler) tek bir Excel dosyasından içeri aktarabilir,
                             ya da mevcut sistem verisini yedeklemek için dışarı aktarabilirsiniz. İçe aktarırken dosyanızda
-                            <b>Kullanicilar</b>, <b>Siniflar</b>, <b>Yoklama</b>, <b>Odemeler</b> adlı sayfalar (bulunanlar işlenir) ve
+                            <b>Kullanicilar</b>, <b>Siniflar</b>, <b>Yoklama</b>, <b>Odemeler</b> adlı sayfalar (bulunanlar işlenir; büyük/küçük harf ve Türkçe karakter fark etmez) ve
                             ilgili başlık satırları (örn. username, password, full_name, role, phone, season / class_name, level, teacher_name, schedule /
                             student_name, class_name, date, status / student_name, payment_method, season, total_amount, installment_count, installment_no,
-                            plan_id, due_date, amount, status) olmalıdır. Birden fazla gruba giden öğrencilerde class_name hücresine grupları <b>;</b> ile ayırarak yazın.
+                            plan_id, due_date, amount, status) olmalıdır. Dosyada tek sayfa varsa ve adı tanınmazsa, sütun başlıklarına bakılarak ilk sayfa okunur.
+                            Birden fazla gruba giden öğrencilerde class_name hücresine grupları <b>;</b> ile ayırarak yazın.
                         </p>
                         <div class="flex flex-wrap items-center gap-2">
                             <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
@@ -1558,11 +1559,23 @@
 
         // ---------- EXCEL İÇE/DIŞA AKTARMA ----------
 
+        // Sütun başlıklarını normalize eder: büyük/küçük harf ve Türkçe karakter (İ, ı, ğ, ü, ş, ö, ç) duyarsız
         function normalizeKey(k) {
-            return String(k).toLowerCase().trim()
-                .replace(/ı/g, 'i').replace(/İ/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
-                .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
-                .replace(/\s+/g, '_');
+            return String(k == null ? '' : k)
+                .replace(/İ/g, 'i').replace(/ı/g, 'i')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase().trim()
+                .replace(/[\s-]+/g, '_');
+        }
+
+        // Sayfa (sheet) adlarını normalize eder: harf büyüklüğü, Türkçe karakterler, boşluk/altçizgi/tire fark etmez
+        // Örn: "Kullanıcılar", "KULLANICILAR", "kullanicilar", "Kullanıcı Listesi" -> "kullanicilar" / "kullanicilistesi"
+        function normalizeSheetName(s) {
+            return String(s == null ? '' : s)
+                .replace(/İ/g, 'i').replace(/ı/g, 'i')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '');
         }
 
         function normalizeRowKeys(row) {
@@ -1654,6 +1667,136 @@
             XLSX.writeFile(wb, `brooklyn_academy_yedek_${getTodayStr()}.xlsx`);
         }
 
+        // --- Excel içe aktarma: tablo tanımları (sayfa adı takma adları, sütun ipuçları, satır dönüştürücüler) ---
+        // aliases: normalizeSheetName() ile karşılaştırılır (harf/Türkçe karakter/boşluk duyarsız)
+        // hints: sayfa adı tanınmazsa sütun başlıklarından tabloyu anlamak için kullanılır (normalizeKey biçiminde)
+        const IMPORT_TABLES = {
+            users: {
+                label: 'Kullanicilar',
+                aliases: ['kullanicilar', 'kullanici', 'kullanicilistesi', 'users', 'user', 'uyeler'],
+                hints: ['username', 'kullanici_adi', 'password', 'sifre', 'full_name', 'fullname', 'ad_soyad', 'role', 'rol'],
+                optional: ['season', 'class_name'],
+                build: rows => rows.map(r => {
+                    const n = normalizeRowKeys(r);
+                    return {
+                        username: pick(n, ['username', 'kullanici_adi']),
+                        password: String(pick(n, ['password', 'sifre']) || ''),
+                        full_name: pick(n, ['full_name', 'fullname', 'ad_soyad']),
+                        role: (pick(n, ['role', 'rol']) || 'student').toString().toLowerCase(),
+                        phone: String(pick(n, ['phone', 'telefon']) || ''),
+                        season: pick(n, ['season', 'sezon']) || '2026-2027',
+                        class_name: pick(n, ['class_name', 'sinif_grubu', 'sinif']) || null
+                    };
+                }).filter(u => u.username && u.full_name)
+            },
+            classes: {
+                label: 'Siniflar',
+                aliases: ['siniflar', 'sinif', 'siniflistesi', 'gruplar', 'classes', 'class'],
+                hints: ['level', 'seviye', 'teacher_name', 'ogretmen', 'ogretmen_adi', 'schedule', 'ders_programi', 'program'],
+                optional: [],
+                build: rows => rows.map(r => {
+                    const n = normalizeRowKeys(r);
+                    return {
+                        class_name: pick(n, ['class_name', 'sinif_adi']),
+                        level: pick(n, ['level', 'seviye']),
+                        teacher_name: pick(n, ['teacher_name', 'ogretmen', 'ogretmen_adi']),
+                        schedule: pick(n, ['schedule', 'ders_programi', 'program'])
+                    };
+                }).filter(c => c.class_name)
+            },
+            attendance: {
+                label: 'Yoklama',
+                aliases: ['yoklama', 'yoklamalar', 'devam', 'devamsizlik', 'attendance'],
+                hints: ['date', 'tarih', 'teacher_note', 'ogretmen_notu', 'not'],
+                optional: ['teacher_note'],
+                build: rows => rows.map(r => {
+                    const n = normalizeRowKeys(r);
+                    return {
+                        student_name: pick(n, ['student_name', 'ogrenci_adi']),
+                        class_name: pick(n, ['class_name', 'sinif_adi', 'sinif']),
+                        date: toDateStr(pick(n, ['date', 'tarih'])),
+                        status: pick(n, ['status', 'durum']) || 'Geldi',
+                        teacher_note: pick(n, ['teacher_note', 'not', 'ogretmen_notu']) || null
+                    };
+                }).filter(a => a.student_name && a.date)
+            },
+            payments: {
+                label: 'Odemeler',
+                aliases: ['odemeler', 'odeme', 'odemeplani', 'taksitler', 'payments', 'payment'],
+                hints: ['amount', 'tutar', 'total_amount', 'toplam_tutar', 'installment_no', 'installment_count', 'taksit_no', 'taksit_sayisi', 'plan_id', 'due_date', 'vade_tarihi', 'payment_method', 'odeme_yontemi'],
+                optional: ['paid_date', 'received_amount'],
+                build: rows => rows.map(r => {
+                    const n = normalizeRowKeys(r);
+                    return {
+                        student_name: pick(n, ['student_name', 'ogrenci_adi']),
+                        payment_method: pick(n, ['payment_method', 'odeme_yontemi']) || 'Nakit/Elden',
+                        season: pick(n, ['season', 'sezon']) || '2026-2027',
+                        total_amount: Number(pick(n, ['total_amount', 'toplam_tutar']) || 0),
+                        installment_count: Number(pick(n, ['installment_count', 'taksit_sayisi']) || 1),
+                        installment_no: Number(pick(n, ['installment_no', 'taksit_no']) || 1),
+                        plan_id: pick(n, ['plan_id']) || `import_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                        due_date: toDateStr(pick(n, ['due_date', 'vade_tarihi'])),
+                        amount: Number(pick(n, ['amount', 'tutar']) || 0),
+                        status: pick(n, ['status', 'durum']) || 'Bekliyor',
+                        paid_date: toDateStr(pick(n, ['paid_date', 'odeme_tarihi'])),
+                        received_amount: Number(pick(n, ['received_amount', 'alinan_tutar']) || 0)
+                    };
+                }).filter(p => p.student_name && p.amount)
+            }
+        };
+
+        // Aktif sekmeye göre varsayılan tablo (tek sayfalı dosyada başlıklardan tablo anlaşılamazsa kullanılır)
+        const IMPORT_TAB_TO_TABLE = {
+            'tab-students': 'users',
+            'tab-classes': 'classes',
+            'tab-attendance': 'attendance',
+            'tab-payments': 'payments'
+        };
+
+        function getActiveImportTable() {
+            const active = document.querySelector('.tab-content:not(.hidden)');
+            return active ? (IMPORT_TAB_TO_TABLE[active.id] || null) : null;
+        }
+
+        // Sayfa adına göre tablo bul: önce birebir eşleşme, sonra "içeriyor" eşleşmesi
+        function assignSheetsByName(sheetNames) {
+            const assigned = {};
+            const used = new Set();
+            const tables = Object.keys(IMPORT_TABLES);
+
+            // 1. geçiş: normalize edilmiş birebir eşleşme
+            tables.forEach(t => {
+                const aliases = IMPORT_TABLES[t].aliases;
+                const found = sheetNames.find(n => !used.has(n) && aliases.includes(normalizeSheetName(n)));
+                if (found) { assigned[t] = found; used.add(found); }
+            });
+            // 2. geçiş: takma ad sayfa adının içinde geçiyor mu (örn. "2026 Kullanıcılar")
+            tables.forEach(t => {
+                if (assigned[t]) return;
+                const aliases = IMPORT_TABLES[t].aliases.filter(a => a.length >= 4);
+                const found = sheetNames.find(n => {
+                    if (used.has(n)) return false;
+                    const norm = normalizeSheetName(n);
+                    return aliases.some(a => norm.includes(a));
+                });
+                if (found) { assigned[t] = found; used.add(found); }
+            });
+            return { assigned, used };
+        }
+
+        // Sütun başlıklarına bakarak sayfanın hangi tabloya ait olduğunu tahmin et
+        function detectTableByHeaders(ws) {
+            const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+            if (!rows.length) return { table: null, score: 0 };
+            const keys = new Set(Object.keys(rows[0]).map(normalizeKey));
+            let best = null, bestScore = 0;
+            Object.keys(IMPORT_TABLES).forEach(t => {
+                const score = IMPORT_TABLES[t].hints.filter(h => keys.has(h)).length;
+                if (score > bestScore) { best = t; bestScore = score; }
+            });
+            return { table: best, score: bestScore };
+        }
+
         async function importFromExcel(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1666,93 +1809,62 @@
             try {
                 const data = await file.arrayBuffer();
                 const wb = XLSX.read(data, { type: 'array', cellDates: true });
+                const sheetNames = wb.SheetNames || [];
+                const notes = [];
 
-                const findSheet = (aliases) => wb.SheetNames.find(n => aliases.includes(normalizeKey(n)));
-                const sheetMap = {
-                    users: findSheet(['kullanicilar', 'users', 'kullanici']),
-                    classes: findSheet(['siniflar', 'classes', 'sinif']),
-                    attendance: findSheet(['yoklama', 'attendance', 'devam']),
-                    payments: findSheet(['odemeler', 'payments', 'odeme'])
-                };
+                // 1. Sayfa adlarına göre eşleştir (büyük/küçük harf ve Türkçe karakter duyarsız)
+                const { assigned, used } = assignSheetsByName(sheetNames);
 
-                const summary = [];
+                // 2. Adı tanınmayan sayfaları sütun başlıklarından tanı
+                sheetNames.filter(n => !used.has(n)).forEach(n => {
+                    const { table, score } = detectTableByHeaders(wb.Sheets[n]);
+                    if (table && score >= 2 && !assigned[table]) {
+                        assigned[table] = n;
+                        used.add(n);
+                        notes.push(`"${n}" sayfasının adı tanınmadı; sütun başlıklarına göre "${IMPORT_TABLES[table].label}" olarak okundu.`);
+                    }
+                });
 
-                if (sheetMap.users) {
-                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetMap.users], { defval: '' });
-                    const payload = rows.map(r => {
-                        const n = normalizeRowKeys(r);
-                        return {
-                            username: pick(n, ['username', 'kullanici_adi']),
-                            password: String(pick(n, ['password', 'sifre']) || ''),
-                            full_name: pick(n, ['full_name', 'fullname', 'ad_soyad']),
-                            role: (pick(n, ['role', 'rol']) || 'student').toString().toLowerCase(),
-                            phone: String(pick(n, ['phone', 'telefon']) || ''),
-                            season: pick(n, ['season', 'sezon']) || '2026-2027',
-                            class_name: pick(n, ['class_name', 'sinif_grubu', 'sinif']) || null
-                        };
-                    }).filter(u => u.username && u.full_name);
-                    summary.push(await bulkInsert('users', payload, ['season', 'class_name']));
+                // 3. Hâlâ eşleşme yoksa ve dosyada tek sayfa varsa: ilk sayfayı varsayılan olarak oku
+                if (Object.keys(assigned).length === 0 && sheetNames.length === 1) {
+                    const onlySheet = sheetNames[0];
+                    let table = detectTableByHeaders(wb.Sheets[onlySheet]).table;
+                    let how = 'sütun başlıklarına göre';
+                    if (!table) {
+                        table = getActiveImportTable() || 'users';
+                        how = 'bulunduğunuz sekmeye göre';
+                    }
+                    assigned[table] = onlySheet;
+                    notes.push(`Dosyada tek sayfa var ("${onlySheet}"); adı tanınmadığı için ${how} "${IMPORT_TABLES[table].label}" olarak okundu.`);
                 }
 
-                if (sheetMap.classes) {
-                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetMap.classes], { defval: '' });
-                    const payload = rows.map(r => {
-                        const n = normalizeRowKeys(r);
-                        return {
-                            class_name: pick(n, ['class_name', 'sinif_adi']),
-                            level: pick(n, ['level', 'seviye']),
-                            teacher_name: pick(n, ['teacher_name', 'ogretmen', 'ogretmen_adi']),
-                            schedule: pick(n, ['schedule', 'ders_programi', 'program'])
-                        };
-                    }).filter(c => c.class_name);
-                    summary.push(await bulkInsert('classes', payload, []));
-                }
-
-                if (sheetMap.attendance) {
-                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetMap.attendance], { defval: '' });
-                    const payload = rows.map(r => {
-                        const n = normalizeRowKeys(r);
-                        return {
-                            student_name: pick(n, ['student_name', 'ogrenci_adi']),
-                            class_name: pick(n, ['class_name', 'sinif_adi', 'sinif']),
-                            date: toDateStr(pick(n, ['date', 'tarih'])),
-                            status: pick(n, ['status', 'durum']) || 'Geldi',
-                            teacher_note: pick(n, ['teacher_note', 'not', 'ogretmen_notu']) || null
-                        };
-                    }).filter(a => a.student_name && a.date);
-                    summary.push(await bulkInsert('attendance', payload, ['teacher_note']));
-                }
-
-                if (sheetMap.payments) {
-                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetMap.payments], { defval: '' });
-                    const payload = rows.map(r => {
-                        const n = normalizeRowKeys(r);
-                        return {
-                            student_name: pick(n, ['student_name', 'ogrenci_adi']),
-                            payment_method: pick(n, ['payment_method', 'odeme_yontemi']) || 'Nakit/Elden',
-                            season: pick(n, ['season', 'sezon']) || '2026-2027',
-                            total_amount: Number(pick(n, ['total_amount', 'toplam_tutar']) || 0),
-                            installment_count: Number(pick(n, ['installment_count', 'taksit_sayisi']) || 1),
-                            installment_no: Number(pick(n, ['installment_no', 'taksit_no']) || 1),
-                            plan_id: pick(n, ['plan_id']) || `import_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-                            due_date: toDateStr(pick(n, ['due_date', 'vade_tarihi'])),
-                            amount: Number(pick(n, ['amount', 'tutar']) || 0),
-                            status: pick(n, ['status', 'durum']) || 'Bekliyor',
-                            paid_date: toDateStr(pick(n, ['paid_date', 'odeme_tarihi'])),
-                            received_amount: Number(pick(n, ['received_amount', 'alinan_tutar']) || 0)
-                        };
-                    }).filter(p => p.student_name && p.amount);
-                    summary.push(await bulkInsert('payments', payload, ['paid_date', 'received_amount']));
-                }
-
-                event.target.value = '';
-
-                if (summary.length === 0) {
-                    alert('Dosyada tanınan bir sayfa bulunamadı. Sayfa adlarının "Kullanicilar", "Siniflar", "Yoklama" veya "Odemeler" olduğundan emin olun.');
+                // 4. Yine de eşleşme sağlanamadıysa esnek bir hata mesajı göster
+                if (Object.keys(assigned).length === 0) {
+                    const expected = Object.values(IMPORT_TABLES).map(t => `• ${t.label}  (kabul edilen: ${t.aliases.slice(0, 3).join(', ')} ...)`).join('\n');
+                    alert(
+                        'Dosyada tanınan bir sayfa bulunamadı.\n\n' +
+                        `Dosyanızdaki sayfalar: ${sheetNames.length ? sheetNames.map(n => `"${n}"`).join(', ') : '(hiç sayfa yok)'}\n\n` +
+                        'Beklenen sayfa adlarından en az biri gerekli (büyük/küçük harf ve Türkçe karakter fark etmez):\n' +
+                        expected +
+                        '\n\nİpucu: Sayfa adını yukarıdakilerden biriyle değiştirin ya da sayfadaki sütun başlıklarını (örn. username, full_name / class_name, level / student_name, date / amount, plan_id) kontrol edin.'
+                    );
+                    event.target.value = '';
                     return;
                 }
 
-                alert('İçe aktarma tamamlandı:\n\n' + summary.join('\n'));
+                // 5. Eşleşen sayfaları ilgili tablolara aktar
+                const summary = [];
+                for (const table of Object.keys(IMPORT_TABLES)) {
+                    const sheetName = assigned[table];
+                    if (!sheetName) continue;
+                    const cfg = IMPORT_TABLES[table];
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: '' });
+                    const payload = cfg.build(rows);
+                    summary.push(`[${sheetName}] ` + await bulkInsert(table, payload, cfg.optional));
+                }
+
+                event.target.value = '';
+                alert('İçe aktarma tamamlandı:\n\n' + summary.join('\n') + (notes.length ? '\n\nBilgi:\n' + notes.join('\n') : ''));
                 loadDataFromSupabase();
             } catch (err) {
                 alert('Excel dosyası okunurken hata oluştu: ' + err.message);
