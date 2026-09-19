@@ -183,7 +183,7 @@
                     
                     <nav class="space-y-1" id="sidebarMenu">
                         <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all bg-slate-900 text-white shadow-md">
-                            <i class="fa-solid fa-chart-pie w-5 text-center text-amber-400"></i> Genel Bakış
+                            <i class="fa-solid fa-house w-5 text-center text-amber-400"></i> Ana Sayfa
                         </button>
                         <button onclick="switchTab('classes')" id="btn-classes" class="tab-btn role-admin role-teacher role-student w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
                             <i class="fa-solid fa-chalkboard-user w-5 text-center text-slate-400"></i> Sınıflar & Program
@@ -232,6 +232,32 @@
                         </div>
                     </div>
 
+                    <!-- Günün Özeti -->
+                    <div>
+                        <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-2 px-1" id="todaySummaryLabel">Günün Özeti</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-user-xmark"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Bugün Devamsız Öğrenci</p>
+                                    <p class="text-2xl font-black text-slate-800 brand-font" id="statTodayAbsent">--</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-chalkboard-user"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Aktif Sınıf Sayısı</p>
+                                    <p class="text-2xl font-black text-slate-800 brand-font" id="statClassesToday">--</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- İstatistik Kartları -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
@@ -263,6 +289,20 @@
                                 <p class="text-xs font-bold text-emerald-600 flex items-center gap-1.5 mt-1">
                                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> Supabase Bağlı
                                 </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sınıf Kartları Grid -->
+                    <div>
+                        <div class="flex items-center justify-between mb-3 px-1">
+                            <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Sınıflar</p>
+                            <span class="text-[10px] text-slate-400 font-semibold hidden sm:inline">Detay için bir sınıfa tıklayın</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="dashboardClassGrid">
+                            <div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 text-sm sm:col-span-2 lg:col-span-3">
+                                <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 block"></i>
+                                Sınıflar yükleniyor...
                             </div>
                         </div>
                     </div>
@@ -336,9 +376,16 @@
 
                 <!-- 4. YOKLAMA TAB -->
                 <section id="tab-attendance" class="tab-content hidden space-y-5">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                        <h3 class="text-lg font-bold text-slate-900 brand-font">Yoklama & Devam Takip Modülü</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Öğrencilerin derse katılım kayıtları.</p>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900 brand-font">Yoklama & Devam Takip Modülü</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Öğrencilerin derse katılım kayıtları.</p>
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <select id="attendanceClassFilterSelect" onchange="setAttendanceFilter(this.value)" class="w-full sm:w-56 p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
+                                <option value="">Tüm Sınıflar</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
@@ -456,6 +503,9 @@
         let allPayments = [];
         let currentPaymentSeason = 'Tümü';
         let paymentSearchQuery = '';
+        let allClasses = [];
+        let allAttendance = [];
+        let attendanceClassFilter = '';
 
         window.onload = function() {
             const activeUser = JSON.parse(localStorage.getItem('brooklyn_user'));
@@ -537,27 +587,11 @@
             // 1. Sınıflar & Ders Programları
             const { data: classes } = await _supabase.from('classes').select('*');
             if (classes) {
+                allClasses = classes;
                 document.getElementById('statClasses').innerText = classes.length;
-                document.getElementById('classesList').innerHTML = classes.map(c => `
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3 relative hover:shadow-md transition-all">
-                        ${currentUser.role === 'admin' ? `
-                            <div class="absolute top-4 right-4 flex items-center gap-2">
-                                <button onclick="editSchedule(${c.id}, '${c.schedule}')" class="text-amber-600 hover:text-amber-800 text-xs font-bold bg-amber-50 px-2 py-1 rounded-lg border border-amber-200"><i class="fa-solid fa-pen"></i> Düzenle</button>
-                                <button onclick="deleteRecord('classes', ${c.id})" class="text-rose-600 hover:text-rose-800 text-xs font-bold bg-rose-50 px-2 py-1 rounded-lg border border-rose-200"><i class="fa-solid fa-trash"></i> Sil</button>
-                            </div>
-                        ` : ''}
-                        <span class="bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md inline-block uppercase tracking-wider">${c.level}</span>
-                        <h4 class="text-lg font-extrabold text-slate-800 brand-font">${c.class_name}</h4>
-                        <p class="text-xs text-slate-500 font-medium"><i class="fa-solid fa-user-chalkboard mr-1.5 text-slate-400"></i> Eğitmen: <b>${c.teacher_name}</b></p>
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 text-xs text-slate-700 font-semibold flex items-center gap-2">
-                            <i class="fa-regular fa-clock text-amber-500 text-sm"></i>
-                            <div>
-                                <span class="text-[10px] text-slate-400 uppercase font-bold block">Ders Programı</span>
-                                <span id="sched-text-${c.id}">${c.schedule}</span>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
+                renderClassesList();
+                populateAttendanceClassFilterOptions();
+                renderDashboard();
             }
 
             // 2. Kullanıcılar
@@ -595,19 +629,9 @@
             // 3. Yoklama
             const { data: attendance } = await _supabase.from('attendance').select('*');
             if (attendance) {
-                document.getElementById('attendanceTableBody').innerHTML = attendance.map(a => `
-                    <tr class="hover:bg-slate-50/80 transition-all">
-                        <td class="p-4 font-semibold text-slate-800">${a.student_name}</td>
-                        <td class="p-4 text-slate-600">${a.class_name}</td>
-                        <td class="p-4 text-slate-500 text-xs">${a.date}</td>
-                        <td class="p-4">
-                            <span class="${a.status === 'Geldi' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-rose-100 text-rose-800 border-rose-200'} text-[11px] font-bold px-2.5 py-1 rounded-full border">${a.status}</span>
-                        </td>
-                        <td class="p-4 role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
-                            <button onclick="deleteRecord('attendance', ${a.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash mr-1"></i> Sil</button>
-                        </td>
-                    </tr>
-                `).join('');
+                allAttendance = attendance;
+                renderAttendanceTable();
+                renderDashboard();
             }
 
             // 4. Ödemeler (taksit planları olarak grupla)
@@ -616,6 +640,159 @@
                 allPayments = payments;
                 renderPaymentsPlans();
             }
+        }
+
+        function renderClassesList() {
+            const listEl = document.getElementById('classesList');
+            if (!listEl) return;
+            if (!allClasses || allClasses.length === 0) {
+                listEl.innerHTML = `
+                    <div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 text-sm sm:col-span-2">
+                        <i class="fa-solid fa-chalkboard text-2xl mb-2 block"></i>
+                        Henüz kayıtlı sınıf yok.
+                    </div>`;
+                return;
+            }
+            listEl.innerHTML = allClasses.map(c => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3 relative hover:shadow-md transition-all">
+                    ${currentUser.role === 'admin' ? `
+                        <div class="absolute top-4 right-4 flex items-center gap-2">
+                            <button onclick="editSchedule(${c.id}, '${c.schedule}')" class="text-amber-600 hover:text-amber-800 text-xs font-bold bg-amber-50 px-2 py-1 rounded-lg border border-amber-200"><i class="fa-solid fa-pen"></i> Düzenle</button>
+                            <button onclick="deleteRecord('classes', ${c.id})" class="text-rose-600 hover:text-rose-800 text-xs font-bold bg-rose-50 px-2 py-1 rounded-lg border border-rose-200"><i class="fa-solid fa-trash"></i> Sil</button>
+                        </div>
+                    ` : ''}
+                    <span class="bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md inline-block uppercase tracking-wider">${c.level}</span>
+                    <h4 class="text-lg font-extrabold text-slate-800 brand-font">${c.class_name}</h4>
+                    <p class="text-xs text-slate-500 font-medium"><i class="fa-solid fa-user-chalkboard mr-1.5 text-slate-400"></i> Eğitmen: <b>${c.teacher_name}</b></p>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 text-xs text-slate-700 font-semibold flex items-center gap-2">
+                        <i class="fa-regular fa-clock text-amber-500 text-sm"></i>
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase font-bold block">Ders Programı</span>
+                            <span id="sched-text-${c.id}">${c.schedule}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getTodayStr() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function renderAttendanceTable() {
+            const bodyEl = document.getElementById('attendanceTableBody');
+            if (!bodyEl) return;
+
+            let rows = allAttendance || [];
+            if (attendanceClassFilter) {
+                rows = rows.filter(a => a.class_name === attendanceClassFilter);
+            }
+
+            if (rows.length === 0) {
+                bodyEl.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="p-8 text-center text-slate-400 text-sm">
+                            <i class="fa-solid fa-inbox text-xl mb-2 block"></i>
+                            Kayıt bulunamadı.
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            bodyEl.innerHTML = rows.map(a => `
+                <tr class="hover:bg-slate-50/80 transition-all">
+                    <td class="p-4 font-semibold text-slate-800">${a.student_name}</td>
+                    <td class="p-4 text-slate-600">${a.class_name}</td>
+                    <td class="p-4 text-slate-500 text-xs">${a.date}</td>
+                    <td class="p-4">
+                        <span class="${a.status === 'Geldi' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-rose-100 text-rose-800 border-rose-200'} text-[11px] font-bold px-2.5 py-1 rounded-full border">${a.status}</span>
+                    </td>
+                    <td class="p-4 role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
+                        <button onclick="deleteRecord('attendance', ${a.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash mr-1"></i> Sil</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function populateAttendanceClassFilterOptions() {
+            const sel = document.getElementById('attendanceClassFilterSelect');
+            if (!sel) return;
+            const currentSelection = sel.value;
+            const classNames = (allClasses || []).map(c => c.class_name);
+            sel.innerHTML = '<option value="">Tüm Sınıflar</option>' +
+                classNames.map(name => `<option value="${name}">${name}</option>`).join('');
+            if (currentSelection && classNames.includes(currentSelection)) {
+                sel.value = currentSelection;
+            } else if (attendanceClassFilter && classNames.includes(attendanceClassFilter)) {
+                sel.value = attendanceClassFilter;
+            }
+        }
+
+        function setAttendanceFilter(className) {
+            attendanceClassFilter = className;
+            renderAttendanceTable();
+        }
+
+        function goToClassAttendance(className) {
+            attendanceClassFilter = className;
+            switchTab('attendance');
+            const sel = document.getElementById('attendanceClassFilterSelect');
+            if (sel) sel.value = className;
+            renderAttendanceTable();
+        }
+
+        function renderDashboard() {
+            const gridEl = document.getElementById('dashboardClassGrid');
+            const statAbsentEl = document.getElementById('statTodayAbsent');
+            const statClassesTodayEl = document.getElementById('statClassesToday');
+            if (!gridEl) return;
+
+            const classes = allClasses || [];
+            const attendance = allAttendance || [];
+            const todayStr = getTodayStr();
+
+            // Bugünkü devamsızlık (Geldi dışındaki durumlar devamsız sayılır)
+            const todaysAbsentRows = attendance.filter(a => a.date === todayStr && a.status !== 'Geldi');
+            if (statAbsentEl) statAbsentEl.innerText = todaysAbsentRows.length;
+            if (statClassesTodayEl) statClassesTodayEl.innerText = classes.length;
+
+            if (classes.length === 0) {
+                gridEl.innerHTML = `
+                    <div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 text-sm sm:col-span-2 lg:col-span-3">
+                        <i class="fa-solid fa-chalkboard text-2xl mb-2 block"></i>
+                        Henüz kayıtlı sınıf yok.
+                    </div>`;
+                return;
+            }
+
+            gridEl.innerHTML = classes.map(c => {
+                const absentToday = attendance.filter(a => a.class_name === c.class_name && a.date === todayStr && a.status !== 'Geldi').length;
+                const badgeClass = absentToday > 0 ? 'bg-rose-100 text-rose-700 border-rose-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                const badgeText = absentToday > 0 ? `Bugün ${absentToday} Öğrenci Yok` : 'Bugün Tam Katılım';
+                const badgeIcon = absentToday > 0 ? 'fa-user-xmark' : 'fa-circle-check';
+
+                return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3 hover:shadow-md hover:border-slate-300 transition-all cursor-pointer" onclick="goToClassAttendance('${c.class_name}')">
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <span class="bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md inline-block uppercase tracking-wider mb-2">${c.level || ''}</span>
+                            <h4 class="text-lg font-extrabold text-slate-800 brand-font leading-tight">${c.class_name}</h4>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 font-medium"><i class="fa-solid fa-user-chalkboard mr-1.5 text-slate-400"></i> Öğretmen: <b>${c.teacher_name}</b></p>
+                    <div class="flex items-center gap-2">
+                        <span class="${badgeClass} text-[11px] font-bold px-2.5 py-1 rounded-full border inline-flex items-center gap-1.5">
+                            <i class="fa-solid ${badgeIcon}"></i> ${badgeText}
+                        </span>
+                    </div>
+                    <button onclick="event.stopPropagation(); goToClassAttendance('${c.class_name}')" class="w-full mt-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-clipboard-user"></i> Detay / Yoklama
+                    </button>
+                </div>`;
+            }).join('');
         }
 
         function formatTRDate(dateStr) {
