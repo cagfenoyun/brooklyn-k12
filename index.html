@@ -1860,7 +1860,20 @@
                     const cfg = IMPORT_TABLES[table];
                     const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: '' });
                     const payload = cfg.build(rows);
-                    summary.push(`[${sheetName}] ` + await bulkInsert(table, payload, cfg.optional));
+                    let line = `[${sheetName}] ` + await bulkInsert(table, payload, cfg.optional);
+                    if (payload.length === 0) {
+                        const expectedCols = {
+                            users: 'username (kullanici_adi), full_name (ad_soyad)  | opsiyonel: password, role, phone, season, class_name',
+                            classes: 'class_name (sinif_adi)  | opsiyonel: level, teacher_name, schedule',
+                            attendance: 'student_name (ogrenci_adi), date (tarih)  | opsiyonel: class_name, status, teacher_note',
+                            payments: 'student_name (ogrenci_adi), amount (tutar)  | opsiyonel: total_amount, installment_no, plan_id, due_date, status'
+                        }[table];
+                        const foundCols = rows.length ? Object.keys(rows[0]).filter(k => !/^__EMPTY/.test(k)) : [];
+                        line += `\n   ↳ Sayfada ${rows.length} veri satırı okundu.` +
+                            `\n   ↳ Okunan sütun başlıkları: ${foundCols.length ? foundCols.join(', ') : '(başlık bulunamadı - ilk satır boş ya da başlık olmayabilir)'}` +
+                            `\n   ↳ Gerekli sütunlar: ${expectedCols}`;
+                    }
+                    summary.push(line);
                 }
 
                 event.target.value = '';
