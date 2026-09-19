@@ -2,300 +2,2444 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brooklyn Academy - K12 Yönetim Portalı</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome İkonlar -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Montserrat & Plus Jakarta Sans) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- SheetJS (Excel İçe/Dışa Aktarma) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        
-        /* Header Styles */
-        .header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; }
-        .header-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; }
-        .logo { font-size: 24px; font-weight: 800; color: #ef4444; }
-        .user-info { display: flex; align-items: center; gap: 12px; }
-        .user-avatar { width: 38px; height: 38px; border-radius: 50%; background: #3b82f6; }
-        .user-name { font-weight: 600; color: #fff; }
-        .user-role { font-size: 12px; color: #94a3b8; }
-        
-        /* Tab Panel Styles */
-        .tab-container { display: none; }
-        .tab-content { display: none; animation: fadeIn 0.3s ease; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Card Styles */
-        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 15px; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .card-title { font-size: 14px; font-weight: 600; color: #1e293b; }
-        .card-actions { display: flex; gap: 8px; }
-        
-        /* Table Styles */
-        .table-body { width: 100%; border-collapse: collapse; }
-        .table-cell { padding: 12px; border: 1px solid #e2e8f0; }
-        .table-header { background: #1e293b; color: white; font-weight: 600; }
-        .table-row:hover { background: #f1f5f9; }
-        
-        /* Status Badges */
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-        .status-ok { background: #22c55e; color: white; }
-        .status-warn { background: #eab308; color: black; }
-        .status-error { background: #ef4444; color: white; }
-        
-        /* Input Styles */
-        input, select { width: 100%; padding: 10px 12px; background: #1e293b; border: 1px solid #334155; color: #f1f5f9; font-size: 14px; outline: none; }
-        input:focus, select:focus { border-color: #3b82f6; }
-        
-        /* Button Styles */
-        button { cursor: pointer; transition: all 0.2s; }
-        button:hover { opacity: 0.9; }
-        .btn-primary { background: #3b82f6; color: white; border: none; padding: 10px 20px; font-size: 14px; }
-        .btn-primary:hover { background: #2563eb; }
-        .btn-secondary { background: #64748b; color: white; border: none; padding: 10px 20px; font-size: 14px; }
-        .btn-secondary:hover { background: #475569; }
-        
-        /* Modal Styles */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; }
-        .modal-content { background: white; border-radius: 16px; padding: 25px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; }
-        .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
-        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-        
-        /* Payment Section */
-        .payment-section { background: #f8fafc; border-radius: 12px; padding: 20px; margin-top: 20px; }
-        .payment-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0; }
-        .payment-item:last-child { border-bottom: none; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .brand-font { font-family: 'Montserrat', sans-serif; letter-spacing: 0.05em; }
+        .bg-pattern {
+            background-color: #0c0f17;
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <!-- Login Screen -->
-        <div id="loginScreen" class="header">
-            <div class="header-inner">
-                <div class="logo">BROOKLYN</div>
-                <div class="user-info">
-                    <div class="user-avatar">BK</div>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased selection:bg-amber-500 selection:text-slate-900">
+
+    <!-- Supabase Bağlantısı -->
+    <script>
+        const SUPABASE_URL = "https://uywoqcoutebyszemfulx.supabase.co"; 
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5d29xY291dGVieXN6ZW1mdWx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTY3NjgsImV4cCI6MjEwNDg3Mjc2OH0.PPpm0UgFlHzvG3tATsWsH6cZDPCf1MPVJzvMPlw0JRaY";
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    </script>
+
+    <!-- 1. KURUMSAL GİRİŞ EKRANI -->
+    <div id="loginScreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4 bg-pattern overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 border border-slate-800/40 my-auto">
+            
+            <!-- Sol Görsel / Kurumsal Logo Paneli -->
+            <div class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-8 sm:p-12 text-white flex flex-col justify-between relative overflow-hidden border-r border-slate-800/50">
+                <div class="absolute -right-12 -top-12 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl"></div>
+                <div class="absolute -left-12 -bottom-12 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl"></div>
+
+                <div class="relative z-10 space-y-6 text-center md:text-left">
+                    <div class="inline-flex flex-col items-center md:items-start space-y-2">
+                        <svg class="w-28 h-16" viewBox="0 0 200 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Kemerler -->
+                            <path d="M 30 70 A 35 35 0 0 1 100 70" stroke="#d4a373" stroke-width="4" fill="none"/>
+                            <path d="M 100 70 A 35 35 0 0 1 170 70" stroke="#d4a373" stroke-width="4" fill="none"/>
+                            <path d="M 75 70 A 20 20 0 0 1 125 70" stroke="#d4a373" stroke-width="3" fill="none"/>
+                            <!-- Dikey Çizgiler -->
+                            <line x1="30" y1="70" x2="30" y2="80" stroke="#d4a373" stroke-width="4"/>
+                            <line x1="100" y1="40" x2="100" y2="80" stroke="#d4a373" stroke-width="4"/>
+                            <line x1="170" y1="70" x2="170" y2="80" stroke="#d4a373" stroke-width="4"/>
+                            <line x1="10" y1="65" x2="190" y2="65" stroke="#d4a373" stroke-width="3"/>
+                            <!-- Renkli Noktalar -->
+                            <circle cx="65" cy="73" r="4" fill="#eab308"/>
+                            <circle cx="100" cy="73" r="4" fill="#e11d48"/>
+                            <circle cx="135" cy="73" r="4" fill="#0284c7"/>
+                        </svg>
+                        <div class="brand-font text-2xl font-black tracking-widest text-white leading-none">BROOKLYN</div>
+                        <div class="brand-font text-xs tracking-widest text-amber-400 font-bold uppercase">A C A D E M Y</div>
+                    </div>
+
+                    <p class="text-xs sm:text-sm text-slate-400 leading-relaxed font-normal pt-4">
+                        Brooklyn Academy K-12 Kurumsal Yönetim Portalı. Sınıf takibi, ders programı yönetimi ve veli bildirimleri için tek merkez.
+                    </p>
+                </div>
+
+                <div class="relative z-10 pt-8 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-500">
+                    <span>© 2026 Brooklyn Academy</span>
+                    <span class="flex items-center gap-1.5 text-emerald-400"><i class="fa-solid fa-shield-halved"></i> Güvenli Bağlantı</span>
+                </div>
+            </div>
+
+            <!-- Sağ Form Alanı -->
+            <div class="p-8 sm:p-12 flex flex-col justify-between space-y-6 bg-white">
+                <div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <svg class="w-10 h-8" viewBox="0 0 200 90" fill="none">
+                            <path d="M 30 70 A 35 35 0 0 1 100 70" stroke="#c89d7c" stroke-width="5" fill="none"/>
+                            <path d="M 100 70 A 35 35 0 0 1 170 70" stroke="#c89d7c" stroke-width="5" fill="none"/>
+                            <line x1="100" y1="40" x2="100" y2="80" stroke="#c89d7c" stroke-width="5"/>
+                            <line x1="10" y1="65" x2="190" y2="65" stroke="#c89d7c" stroke-width="4"/>
+                            <circle cx="65" cy="73" r="5" fill="#eab308"/>
+                            <circle cx="100" cy="73" r="5" fill="#e11d48"/>
+                            <circle cx="135" cy="73" r="5" fill="#0284c7"/>
+                        </svg>
+                        <div>
+                            <h2 class="text-xl font-black text-slate-900 brand-font leading-none">GİRİŞ YAPIN</h2>
+                            <p class="text-[11px] text-slate-500 font-medium">K-12 Yönetim Paneli</p>
+                        </div>
+                    </div>
+
+                    <form onsubmit="handleLogin(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Kullanıcı Adı</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-user absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                                <input type="text" id="username" required placeholder="Kullanıcı adınızı girin" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50/50">
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">Şifre</label>
+                                <a href="#" onclick="alert('Şifre sıfırlama işlemi için lütfen kurum yönetimi ile iletişime geçiniz.'); return false;" class="text-[11px] font-semibold text-amber-600 hover:text-amber-700 transition-colors">Şifrenizi mi unuttunuz?</a>
+                            </div>
+                            <div class="relative">
+                                <i class="fa-solid fa-lock absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                                <input type="password" id="password" required placeholder="••••••••" class="w-full pl-10 pr-10 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50/50">
+                                <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 transition-colors">
+                                    <i id="togglePassIcon" class="fa-solid fa-eye text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="loginError" class="hidden text-xs text-rose-600 font-semibold bg-rose-50 p-3 rounded-xl border border-rose-200 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-exclamation text-sm"></i> Kullanıcı adı veya şifre hatalı!
+                        </div>
+
+                        <button type="submit" id="btnLogin" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2 brand-font">
+                            <span>SİSTEME GİRİŞ</span> <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Kurumsal Alt Bilgi Bildirimi -->
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-headset text-slate-400"></i> Teknik Destek</span>
+                    <a href="mailto:info@brooklynacademy.com" class="hover:text-slate-600 transition-colors font-medium">Destek Talebi Oluştur</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 2. ANA PANEL -->
+    <div id="appScreen" class="hidden min-h-screen flex flex-col">
+        
+        <!-- HEADER -->
+        <header class="bg-slate-950 text-white sticky top-0 z-40 shadow-xl border-b border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-slate-900 p-1.5 rounded-xl border border-slate-800 flex items-center gap-2.5 px-3">
+                        <svg class="w-8 h-6" viewBox="0 0 200 90" fill="none">
+                            <path d="M 30 70 A 35 35 0 0 1 100 70" stroke="#d4a373" stroke-width="5" fill="none"/>
+                            <path d="M 100 70 A 35 35 0 0 1 170 70" stroke="#d4a373" stroke-width="5" fill="none"/>
+                            <line x1="100" y1="40" x2="100" y2="80" stroke="#d4a373" stroke-width="5"/>
+                            <line x1="10" y1="65" x2="190" y2="65" stroke="#d4a373" stroke-width="4"/>
+                            <circle cx="65" cy="73" r="5" fill="#eab308"/>
+                            <circle cx="100" cy="73" r="5" fill="#e11d48"/>
+                            <circle cx="135" cy="73" r="5" fill="#0284c7"/>
+                        </svg>
+                        <div>
+                            <span class="brand-font font-black text-sm text-white tracking-widest block leading-none">BROOKLYN</span>
+                            <span class="brand-font font-bold text-[9px] text-amber-400 tracking-widest block">ACADEMY</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div class="text-right hidden sm:block">
+                        <span id="userDisplayName" class="block text-xs font-bold text-slate-100">Kullanıcı</span>
+                        <span id="userRoleBadge" class="inline-block text-[9px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">Rol</span>
+                    </div>
+                    <button onclick="logout()" class="bg-slate-900 hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 border border-slate-800 p-2 sm:px-3 rounded-xl text-xs font-semibold transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">Çıkış</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- İÇERİK ALANI -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex flex-col md:flex-row gap-8 flex-1 w-full">
+
+            <!-- YAN MENÜ (SIDEBAR) -->
+            <aside class="w-full md:w-64 shrink-0">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-3 sticky top-20 space-y-1">
+                    <div class="px-3 py-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Menü</div>
+                    
+                    <nav class="space-y-1" id="sidebarMenu">
+                        <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all bg-slate-900 text-white shadow-md">
+                            <i class="fa-solid fa-house w-5 text-center text-amber-400"></i> Ana Sayfa
+                        </button>
+                        <button onclick="switchTab('classes')" id="btn-classes" class="tab-btn role-admin role-teacher role-student w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
+                            <i class="fa-solid fa-chalkboard-user w-5 text-center text-slate-400"></i> Sınıflar & Program
+                        </button>
+                        <button onclick="switchTab('students')" id="btn-students" class="tab-btn role-admin role-teacher w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
+                            <i class="fa-solid fa-users-gear w-5 text-center text-slate-400"></i> Kullanıcı Yönetimi
+                        </button>
+                        <button onclick="switchTab('attendance')" id="btn-attendance" class="tab-btn role-admin role-teacher role-parent role-student w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
+                            <i class="fa-solid fa-clipboard-user w-5 text-center text-slate-400"></i> Yoklama Takibi
+                        </button>
+                        <button onclick="switchTab('payments')" id="btn-payments" class="tab-btn role-admin role-parent w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-slate-600 hover:bg-slate-100 transition-all">
+                            <i class="fa-solid fa-credit-card w-5 text-center text-slate-400"></i> Ödeme Bilgileri
+                        </button>
+                    </nav>
+
+                    <div class="pt-4 border-t border-slate-100 text-center">
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60 flex flex-col items-center">
+                            <svg class="w-12 h-8" viewBox="0 0 200 90" fill="none">
+                                <path d="M 30 70 A 35 35 0 0 1 100 70" stroke="#c89d7c" stroke-width="5" fill="none"/>
+                                <path d="M 100 70 A 35 35 0 0 1 170 70" stroke="#c89d7c" stroke-width="5" fill="none"/>
+                                <line x1="100" y1="40" x2="100" y2="80" stroke="#c89d7c" stroke-width="5"/>
+                                <line x1="10" y1="65" x2="190" y2="65" stroke="#c89d7c" stroke-width="4"/>
+                                <circle cx="65" cy="73" r="5" fill="#eab308"/>
+                                <circle cx="100" cy="73" r="5" fill="#e11d48"/>
+                                <circle cx="135" cy="73" r="5" fill="#0284c7"/>
+                            </svg>
+                            <span class="brand-font text-[10px] font-bold text-slate-700 tracking-wider mt-1">BROOKLYN ACADEMY</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- ANA İÇERİK (TABLAR) -->
+            <main class="flex-1 min-w-0">
+
+                <!-- 1. GENEL BAKIŞ TAB -->
+                <section id="tab-dashboard" class="tab-content space-y-6">
+                    <div class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white p-6 sm:p-8 rounded-3xl shadow-lg relative overflow-hidden border border-slate-800">
+                        <div class="absolute right-0 top-0 bottom-0 w-1/3 bg-amber-500/5 rounded-l-full blur-2xl"></div>
+                        <div class="relative z-10 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                            <div>
+                                <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2">2026 Akademik Yılı</span>
+                                <h2 class="text-2xl sm:text-3xl font-extrabold brand-font" id="welcomeHeading">Hoş Geldiniz! 👋</h2>
+                                <p class="text-slate-400 text-xs sm:text-sm mt-1" id="welcomeSub">Brooklyn Academy canlı yönetim konsolu.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Veritabanı durum / hata bildirimi -->
+                    <div id="dbStatusBanner" class="hidden"></div>
+
+                    <!-- Günün Özeti -->
                     <div>
-                        <div class="user-name">Kurum Yöneticisi</div>
-                        <div class="user-role">Admin</div>
-                    </div>
-                </div>
-            </div>
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <input type="text" id="username" placeholder="Kullanıcı Adı" required>
-                <input type="password" id="password" placeholder="Şifre" required>
-                <button type="submit" class="btn-primary">Giriş</button>
-                <div id="loginError" class="hidden text-red-400 text-sm">Lütfen geçerli bir kullanıcı adını ve şifrenizi girin.</div>
-            </form>
-        </div>
+                        <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-2 px-1" id="todaySummaryLabel">Günün Özeti</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-user-xmark"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Bugün Devamsız Öğrenci</p>
+                                    <p class="text-2xl font-black text-slate-800 brand-font" id="statTodayAbsent">--</p>
+                                </div>
+                            </div>
 
-        <!-- Main Application Container -->
-        <div id="appScreen" class="tab-container">
-            <div class="tab-content active" id="tab-dashboard">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Sınıflar & Ders Programı Yönetimi</h2>
-                        <p class="card-actions">
-                            <button onclick="switchTab('classes')" class="btn-primary">Sınıflar</button>
-                            <button onclick="switchTab('attendance')" class="btn-primary">Yoklama</button>
-                            <button onclick="switchTab('payments')" class="btn-primary">Ödeme</button>
-                            <button onclick="switchTab('students')" class="btn-primary">Öğrenciler</button>
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-chalkboard-user"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Aktif Sınıf Sayısı</p>
+                                    <p class="text-2xl font-black text-slate-800 brand-font" id="statClassesToday">--</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- İstatistik Kartları -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Aktif Sınıflar</p>
+                                <p class="text-2xl font-black text-slate-800 brand-font" id="statClasses">--</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Kayıtlı Kullanıcı</p>
+                                <p class="text-2xl font-black text-slate-800 brand-font" id="statUsers">--</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-database"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Veritabanı Durumu</p>
+                                <p class="text-xs font-bold text-emerald-600 flex items-center gap-1.5 mt-1">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> Supabase Bağlı
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sınıf Kartları Grid -->
+                    <div>
+                        <div class="flex items-center justify-between mb-3 px-1">
+                            <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Sınıflar</p>
+                            <span class="text-[10px] text-slate-400 font-semibold hidden sm:inline">Öğrenci listesi için bir gruba tıklayın</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="dashboardClassGrid">
+                            <div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 text-sm sm:col-span-2 lg:col-span-3">
+                                <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 block"></i>
+                                Sınıflar yükleniyor...
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. SINIFLAR TAB -->
+                <section id="tab-classes" class="tab-content hidden space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900 brand-font" id="classesHeaderTitle">Sınıflar & Ders Programı Yönetimi</h3>
+                            <p class="text-xs text-slate-500 mt-0.5" id="classesHeaderNote">Kurs bünyesindeki aktif sınıflar ve haftalık programlar.</p>
+                        </div>
+                        <button onclick="toggleAdminForm('formAddClass')" class="role-admin bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md w-fit">
+                            <i class="fa-solid fa-plus"></i> Yeni Sınıf Ekle
+                        </button>
+                    </div>
+
+                    <!-- 2026-2027 A-B-C Grup Listesi (Excel'den gömülü) -->
+                    <div class="role-admin bg-white p-5 rounded-2xl border border-amber-200 shadow-sm space-y-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-people-group text-amber-600"></i>
+                            <h4 class="text-sm font-bold text-slate-900 brand-font">2026-2027 Grup Listesini Sisteme Yükle</h4>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed" id="seedInfoText">
+                            Excel'deki A-B-C grup listesi (gruplar, gün/saat bilgileri ve öğrenciler) bu sayfaya gömülü. Yükleme sırasında
+                            sistemde zaten olan gruplar ve öğrenciler tekrar eklenmez; olan öğrencilerin sadece grup bilgisi güncellenir.
                         </p>
+                        <button onclick="seedGroupsFromExcel()" id="btnSeedGroups" class="bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md w-fit">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Grup ve Öğrenci Listesini Yükle
+                        </button>
                     </div>
-                    <div class="card-actions">
-                        <button onclick="openGroupModal()" class="btn-primary">Gruplar</button>
-                    </div>
-                </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Sınıflar & Ders Programı</h2>
-                        <p class="card-actions">
-                            <button onclick="openGroupModal('EU3 (Pzt-Çar 16:00)')" class="btn-primary">EU3</button>
-                            <button onclick="openGroupModal('EU1 (Pzt-Çar 16:00)')" class="btn-primary">EU1</button>
-                            <button onclick="openGroupModal('EU2 (Sal-Paz 16:00)')" class="btn-primary">EU2</button>
-                            <button onclick="openGroupModal('EU4 (Sal-Paz 12:30)')" class="btn-primary">EU4</button>
-                            <button onclick="openGroupModal('More&More (Pzt-Çar 16:00)')" class="btn-primary">More&More</button>
+                    <div class="role-admin bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-file-excel text-emerald-600"></i>
+                            <h4 class="text-sm font-bold text-slate-900 brand-font">Excel ile Sınıf Verisi Yedekleme</h4>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Sistemdeki tüm verileri (Kullanıcılar, Sınıflar, Yoklama, Ödemeler) Excel'e aktarabilir veya
+                            "Siniflar" sayfası içeren bir Excel dosyasından yeni sınıflar/gruplar içe aktarabilirsiniz.
                         </p>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
+                                <i class="fa-solid fa-file-arrow-down"></i> Excel'e Aktar (Yedekle)
+                            </button>
+                            <button onclick="document.getElementById('excelImportInputClasses').click()" class="bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
+                                <i class="fa-solid fa-file-arrow-up"></i> Excel'den İçe Aktar
+                            </button>
+                            <input type="file" id="excelImportInputClasses" accept=".xlsx,.xls" class="hidden" onchange="importFromExcel(event)">
+                        </div>
                     </div>
-                    <div class="card-actions">
-                        <button onclick="goToClassAttendance()" class="btn-primary">Yoklama</button>
-                    </div>
-                </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Yoklama Takibi</h2>
-                        <p class="card-actions">
-                            <button onclick="goToClassAttendanceById('EU3 (Pzt-Çar 16:00)')" class="btn-primary">Yoklama</button>
+                    <form id="formAddClass" onsubmit="addClass(event)" class="hidden bg-slate-100 p-5 rounded-2xl border border-slate-300/80 grid grid-cols-1 sm:grid-cols-2 gap-3 shadow-inner">
+                        <input type="text" id="clsName" placeholder="Sınıf Adı (Örn: B1 Hafta Sonu)" required class="p-2.5 border rounded-xl text-sm bg-white">
+                        <input type="text" id="clsLevel" placeholder="Seviye (Örn: B1 - Intermediate)" required class="p-2.5 border rounded-xl text-sm bg-white">
+                        <div>
+                            <select id="clsTeacherSelect" onchange="toggleManualTeacherInput()" required class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                                <option value="">-- Öğretmen Seçin --</option>
+                                <option value="__manual__">✏️ Elle Yaz (Listede Yok)</option>
+                            </select>
+                            <input type="text" id="clsTeacherManual" placeholder="Öğretmen Adı Soyadı" class="hidden mt-2 w-full p-2.5 border rounded-xl text-sm bg-white">
+                        </div>
+                        <input type="text" id="clsSchedule" placeholder="Ders Programı (Örn: Cmt-Pzr 10:00-13:00)" required class="p-2.5 border rounded-xl text-sm bg-white">
+                        <button type="submit" class="sm:col-span-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow">Sınıf ve Programı Kaydet</button>
+                    </form>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="classesList"></div>
+                </section>
+
+                <!-- 3. KULLANICI YÖNETİMİ TAB -->
+                <section id="tab-students" class="tab-content hidden space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900 brand-font">Kullanıcı Yönetim Paneli</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Sisteme kayıtlı idari kadro, öğretmen, veli ve öğrenciler.</p>
+                        </div>
+                        <button onclick="toggleAdminForm('formAddUser')" class="role-admin bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md w-fit">
+                            <i class="fa-solid fa-user-plus"></i> Yeni Kullanıcı Ekle
+                        </button>
+                    </div>
+
+                    <!-- Excel İçe/Dışa Aktarma (Admin) -->
+                    <div class="role-admin bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-file-excel text-emerald-600"></i>
+                            <h4 class="text-sm font-bold text-slate-900 brand-font">Excel ile Veri Yedekleme</h4>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Eski verilerinizi (Kullanıcılar, Sınıflar, Yoklama, Ödemeler) tek bir Excel dosyasından içeri aktarabilir,
+                            ya da mevcut sistem verisini yedeklemek için dışarı aktarabilirsiniz. İçe aktarırken dosyanızda
+                            <b>Kullanicilar</b>, <b>Siniflar</b>, <b>Yoklama</b>, <b>Odemeler</b> adlı sayfalar (bulunanlar işlenir; büyük/küçük harf ve Türkçe karakter fark etmez) ve
+                            ilgili başlık satırları (örn. username, password, full_name, role, phone, season / class_name, level, teacher_name, schedule /
+                            student_name, class_name, date, status / student_name, payment_method, season, total_amount, installment_count, installment_no,
+                            plan_id, due_date, amount, status) olmalıdır. Dosyada tek sayfa varsa ve adı tanınmazsa, sütun başlıklarına bakılarak ilk sayfa okunur.
+                            Birden fazla gruba giden öğrencilerde class_name hücresine grupları <b>;</b> ile ayırarak yazın.
                         </p>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
+                                <i class="fa-solid fa-file-arrow-down"></i> Excel'e Aktar (Yedekle)
+                            </button>
+                            <button onclick="document.getElementById('excelImportInput').click()" class="bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
+                                <i class="fa-solid fa-file-arrow-up"></i> Excel'den İçe Aktar
+                            </button>
+                            <input type="file" id="excelImportInput" accept=".xlsx,.xls" class="hidden" onchange="importFromExcel(event)">
+                        </div>
                     </div>
-                    <div class="card-actions">
-                        <button onclick="goToClassAttendanceById('EU1 (Pzt-Çar 16:00)')" class="btn-primary">Yoklama</button>
-                        <button onclick="goToClassAttendanceById('EU2 (Cmt-16:00)')" class="btn-primary">Yoklama</button>
-                    </div>
-                </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Ödeme & Taksit Planları</h2>
-                        <p class="card-actions">
-                            <button onclick="addPaymentPlan()" class="btn-primary">Yeni Plan Ekle</button>
+                    <form id="formAddUser" onsubmit="addUser(event)" class="hidden bg-slate-100 p-5 rounded-2xl border border-slate-300/80 grid grid-cols-1 sm:grid-cols-3 gap-3 shadow-inner">
+                        <input type="text" id="usrName" placeholder="Kullanıcı Adı" required class="p-2.5 border rounded-xl text-sm bg-white">
+                        <input type="password" id="usrPass" placeholder="Şifre" required class="p-2.5 border rounded-xl text-sm bg-white">
+                        <input type="text" id="usrFullName" placeholder="Ad Soyad" required class="p-2.5 border rounded-xl text-sm bg-white">
+                        <select id="usrRole" class="p-2.5 border rounded-xl text-sm bg-white">
+                            <option value="student">Öğrenci</option>
+                            <option value="parent">Veli</option>
+                            <option value="teacher">Öğretmen</option>
+                            <option value="admin">Yönetici (Admin)</option>
+                        </select>
+                        <input type="text" id="usrPhone" placeholder="Telefon (5xx...)" class="p-2.5 border rounded-xl text-sm bg-white">
+                        <select id="usrSeason" class="p-2.5 border rounded-xl text-sm bg-white">
+                            <option value="2026-2027" selected>Sezon: 2026-2027</option>
+                            <option value="2025-2026">Sezon: 2025-2026</option>
+                        </select>
+                        <select id="usrClassName" class="sm:col-span-3 p-2.5 border rounded-xl text-sm bg-white">
+                            <option value="">-- Sınıf/Grup Seçilmedi (öğrenci için) --</option>
+                        </select>
+                        <button type="submit" class="sm:col-span-3 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow">Kullanıcıyı Kaydet</button>
+                    </form>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-100/80 text-slate-700 text-xs uppercase font-bold tracking-wider">
+                                    <tr>
+                                        <th class="p-4">Ad Soyad</th>
+                                        <th class="p-4">Rol</th>
+                                        <th class="p-4">Sınıf/Grup</th>
+                                        <th class="p-4">İletişim / WhatsApp</th>
+                                        <th class="p-4 role-admin">İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100" id="usersTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. YOKLAMA TAB -->
+                <section id="tab-attendance" class="tab-content hidden space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900 brand-font">Yoklama & Devam Takip Modülü</h3>
+                            <p class="text-xs text-slate-500 mt-0.5" id="attendanceHeaderNote">Öğrencilerin derse katılım kayıtları ve öğretmen geri dönütleri.</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                            <button onclick="toggleAttendanceForm()" class="role-admin role-teacher bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md w-fit">
+                                <i class="fa-solid fa-plus"></i> Yoklama Ekle
+                            </button>
+                            <select id="attendanceClassFilterSelect" onchange="setAttendanceFilter(this.value)" class="role-admin role-teacher role-parent w-full sm:w-56 p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
+                                <option value="">Tüm Sınıflar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <form id="formAddAttendance" onsubmit="addAttendance(event)" class="role-admin role-teacher hidden bg-slate-100 p-5 rounded-2xl border border-slate-300/80 grid grid-cols-1 sm:grid-cols-2 gap-3 shadow-inner">
+                        <input type="text" id="attStudentName" list="studentNamesList" oninput="autoFillAttendanceClass()" placeholder="Öğrenci Adı Soyadı" required class="p-2.5 border rounded-xl text-sm bg-white">
+                        <datalist id="studentNamesList"></datalist>
+                        <select id="attClassSelect" required class="p-2.5 border rounded-xl text-sm bg-white">
+                            <option value="">-- Sınıf Seçin --</option>
+                        </select>
+                        <input type="date" id="attDate" required class="p-2.5 border rounded-xl text-sm bg-white">
+                        <select id="attStatus" class="p-2.5 border rounded-xl text-sm bg-white">
+                            <option value="Geldi">✅ Geldi</option>
+                            <option value="Gelmedi">❌ Gelmedi</option>
+                        </select>
+                        <textarea id="attTeacherNote" placeholder="Öğretmen Notu / Geri Dönüt (opsiyonel — örn: derse geç kaldı, çok iyi katıldı vb.)" class="sm:col-span-2 p-2.5 border rounded-xl text-sm bg-white" rows="2"></textarea>
+                        <button type="submit" class="sm:col-span-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow">Yoklamayı Kaydet</button>
+                    </form>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-100/80 text-slate-700 text-xs uppercase font-bold tracking-wider">
+                                    <tr>
+                                        <th class="p-4">Öğrenci Adı</th>
+                                        <th class="p-4">Sınıf</th>
+                                        <th class="p-4">Tarih</th>
+                                        <th class="p-4">Durum</th>
+                                        <th class="p-4 role-admin role-teacher">Öğretmen Notu</th>
+                                        <th class="p-4 role-admin">İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100" id="attendanceTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. ÖDEME TAB -->
+                <section id="tab-payments" class="tab-content hidden space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900 brand-font">Ödeme & Taksit Takip Modülü</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Öğrenci ödeme planları, taksitler ve tahsilat durumu.</p>
+                        </div>
+                        <button onclick="toggleAdminForm('formAddPayment')" class="role-admin bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md w-fit">
+                            <i class="fa-solid fa-plus"></i> Yeni Ödeme Planı Ekle
+                        </button>
+                    </div>
+
+                    <div class="role-admin bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-file-excel text-emerald-600"></i>
+                            <h4 class="text-sm font-bold text-slate-900 brand-font">Excel ile Ödeme Verisi Yedekleme</h4>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Sistemdeki tüm verileri Excel'e aktarabilir veya "Odemeler" sayfası içeren bir Excel dosyasından
+                            yeni ödeme taksitleri içe aktarabilirsiniz.
                         </p>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
+                                <i class="fa-solid fa-file-arrow-down"></i> Excel'e Aktar (Yedekle)
+                            </button>
+                            <button onclick="document.getElementById('excelImportInputPayments').click()" class="bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
+                                <i class="fa-solid fa-file-arrow-up"></i> Excel'den İçe Aktar
+                            </button>
+                            <input type="file" id="excelImportInputPayments" accept=".xlsx,.xls" class="hidden" onchange="importFromExcel(event)">
+                        </div>
                     </div>
-                    <div class="card-actions">
-                        <button onclick="showExcelImport()" class="btn-primary">Excel ile Aktarma</button>
-                    </div>
-                </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Öğrenci Yönetimi</h2>
-                        <p class="card-actions">
-                            <button onclick="openUserModal()" class="btn-primary">Öğrenci Listesi</button>
-                        </p>
+                    <!-- Sezon Sekmeleri + Arama -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div class="flex items-center gap-2 flex-wrap" id="seasonTabs">
+                            <button onclick="setPaymentSeason('Tümü')" data-season="Tümü" class="season-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-900 text-white">Tümü</button>
+                            <button onclick="setPaymentSeason('2025-2026')" data-season="2025-2026" class="season-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">2025-2026</button>
+                            <button onclick="setPaymentSeason('2026-2027')" data-season="2026-2027" class="season-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">2026-2027</button>
+                        </div>
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+                            <input type="text" id="paymentSearchInput" oninput="filterPayments()" placeholder="Öğrenci adına göre ara..." class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
+                        </div>
                     </div>
-                    <div class="card-actions">
-                        <button onclick="openGroupModal()" class="btn-primary">Gruplar</button>
-                    </div>
-                </div>
-            </div>
+
+                    <!-- Yeni Ödeme Planı Formu -->
+                    <form id="formAddPayment" onsubmit="addPaymentPlan(event)" class="hidden bg-slate-100 p-5 sm:p-6 rounded-2xl border border-slate-300/80 shadow-inner space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="sm:col-span-2">
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                                    <i class="fa-solid fa-user-graduate mr-1 text-amber-500"></i> Öğrenci
+                                </label>
+                                <select id="payStudentSelect" onchange="toggleManualStudentInput()" required class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                                    <option value="">-- Öğrenci Seçin --</option>
+                                    <option value="__manual__">✏️ Elle Yaz (Listede Yok)</option>
+                                </select>
+                                <input type="text" id="payStudentManual" placeholder="Öğrenci Adı Soyadı" class="hidden mt-2 w-full p-2.5 border rounded-xl text-sm bg-white">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Sezon</label>
+                                <select id="paySeason" class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                                    <option value="2026-2027" selected>2026-2027</option>
+                                    <option value="2025-2026">2025-2026</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Ödeme Yöntemi</label>
+                                <select id="payMethod" class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                                    <option value="Nakit/Elden">💵 Nakit/Elden</option>
+                                    <option value="Kredi Kartı">💳 Kredi Kartı</option>
+                                    <option value="Banka Havalesi">🏦 Banka Havalesi / EFT</option>
+                                    <option value="Çek">🧾 Çek</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">İlk Taksit / Vade Tarihi</label>
+                                <input type="date" id="payFirstDueDate" required class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Toplam Tutar (₺)</label>
+                                <input type="number" id="payTotalAmount" min="0" step="0.01" oninput="updateInstallmentPreview()" placeholder="Örn: 24000" required class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Taksit Sayısı</label>
+                                <input type="number" id="payInstallmentCount" min="1" max="24" value="1" oninput="updateInstallmentPreview()" required class="w-full p-2.5 border rounded-xl text-sm bg-white">
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Taksit Başına Tutar</label>
+                                <div id="payInstallmentPreview" class="w-full p-3 border border-dashed border-amber-300 rounded-xl text-sm bg-amber-50 text-amber-800 font-bold">
+                                    Toplam tutar ve taksit sayısı girin
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl text-sm transition-all shadow flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> Ödeme Planını Kaydet
+                        </button>
+                    </form>
+
+                    <div class="space-y-4" id="paymentsPlanList"></div>
+                </section>
+
+            </main>
         </div>
+    </div>
 
-        <!-- Group Modal -->
-        <div id="groupModal" class="modal-overlay">
-            <div class="modal-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">${currentGroup?.class_name || 'Grup Modülü'}</h2>
-                        <p class="card-actions">${currentGroup ? `<i class="fa-solid fa-users-gear mr-2"></i> ${currentGroup.class_name}</p></div>
-                    </div>
-                    <div class="card-actions">
-                        <button onclick="closeGroupModal()" class="btn-primary">Kapat</button>
-                    </div>
-                    <div class="card-actions">
-                        <button onclick="openMoveStudentModal()" class="btn-primary">Öğrenci Ekle</button>
-                    </div>
+    <!-- GRUP ÖĞRENCİ LİSTESİ MODALI -->
+    <div id="groupModal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onclick="if(event.target===this) closeGroupModal()">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <span id="groupModalLevel" class="bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md inline-block uppercase tracking-wider mb-2"></span>
+                    <h3 id="groupModalTitle" class="text-lg font-extrabold text-slate-900 brand-font leading-tight"></h3>
+                    <p id="groupModalMeta" class="text-xs text-slate-500 mt-1.5 leading-relaxed"></p>
                 </div>
+                <button onclick="closeGroupModal()" class="text-slate-400 hover:text-slate-600 transition-colors shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-        </div>
-
-        <!-- Students Modal -->
-        <div id="studentsModal" class="modal-overlay">
-            <div class="modal-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Öğrenci Listesi</h2>
-                        <p class="card-actions">${allUsers?.length || 0} öğrenci</p>
-                    </div>
-                    <div class="card-actions">
-                        <button onclick="openMoveStudentModal()" class="btn-primary">Yeni Öğrenci Ekle</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Payments Modal -->
-        <div id="paymentsModal" class="modal-overlay">
-            <div class="modal-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Ödeme Planları</h2>
-                        <p class="card-actions">${allPayments?.length || 0} ödemeli</p>
-                    </div>
-                    <div class="card-actions">
-                        <button onclick="addPaymentPlan()" class="btn-primary">Yeni Plan Ekle</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Payments Detail Modal -->
-        <div id="paymentDetailModal" class="modal-overlay">
-            <div class="modal-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">${selectedPlan?.plan_id || 'Plan Detayı'}</h2>
-                        <p class="card-actions">${selectedPlan ? `<i class="fa-solid fa-check mr-2"></i> ${selectedPlan.plan_id}</p></div>
-                    </div>
-                    <div class="card-actions">
-                        <button onclick="closePaymentDetailModal()" class="btn-primary">Kapat</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Password Modal -->
-        <div id="passwordModal" class="modal-overlay">
-            <div class="modal-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Şifre Değiştirme</h2>
-                        <p class="card-actions">${currentUser ? `<i class="fa-solid fa-key mr-2"></i> ${currentUser.full_name}</p></div>
-                    </div>
-                    <div class="card-actions">
-                        <button onclick="closePasswordModal()" class="btn-primary">Değiştir</button>
-                    </div>
-                </div>
+            <div id="groupModalBody" class="overflow-y-auto flex-1"></div>
+            <div class="p-4 border-t border-slate-100 flex gap-2">
+                <button onclick="closeGroupModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-sm transition-all">Kapat</button>
+                <button id="groupModalAttendanceBtn" onclick="goToGroupAttendanceFromModal()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-xl text-sm transition-all shadow flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-clipboard-user"></i> Yoklamaya Git
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- ÖDEME ALMA MODALI -->
+    <div id="paymentModal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-slate-900 brand-font flex items-center gap-2">
+                    <i class="fa-solid fa-hand-holding-dollar text-emerald-600"></i> Ödeme Al
+                </h3>
+                <button onclick="closePaymentModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="paymentModalInfo" class="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-xl p-3 leading-relaxed"></div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Alınan Tutar (₺)</label>
+                <input type="number" id="paymentModalAmount" min="0.01" step="0.01" required class="w-full p-2.5 border rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
+                <p class="text-[10px] text-slate-400 mt-1"><i class="fa-solid fa-circle-info mr-1"></i>Peyderpey (elden) ödemelerde sadece o gün alınan tutarı girin.</p>
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Ödeme Tarihi <span class="text-rose-500">*</span></label>
+                <input type="date" id="paymentModalDate" required class="w-full p-2.5 border rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
+                <p class="text-[10px] text-slate-400 mt-1"><i class="fa-solid fa-circle-info mr-1"></i>Bugünün tarihi otomatik dolar, gerekirse elle değiştirebilirsiniz.</p>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closePaymentModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-sm transition-all">Vazgeç</button>
+                <button onclick="confirmPaymentModal()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ŞİFRE DEĞİŞTİRME MODALI -->
+    <div id="passwordModal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-slate-900 brand-font flex items-center gap-2">
+                    <i class="fa-solid fa-key text-amber-500"></i> Şifre Değiştir
+                </h3>
+                <button onclick="closePasswordModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <p id="passwordModalInfo" class="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-xl p-3"></p>
+
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Yeni Şifre</label>
+                <div class="relative">
+                    <input type="password" id="passwordModalNewPass" required minlength="4" class="w-full p-2.5 pr-10 border rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all">
+                    <button type="button" onclick="togglePasswordModalVisibility()" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition-colors">
+                        <i id="passwordModalToggleIcon" class="fa-solid fa-eye text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closePasswordModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-sm transition-all">Vazgeç</button>
+                <button onclick="confirmPasswordModal()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-2.5 rounded-xl text-sm transition-all shadow">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ÖĞRENCİ GRUP DEĞİŞTİRME MODALI (birden fazla grup seçilebilir) -->
+    <div id="moveStudentModal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-slate-900 brand-font flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-right-arrow-left text-sky-600"></i> Öğrencinin Grupları
+                </h3>
+                <button onclick="closeMoveStudentModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <p id="moveStudentInfo" class="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-xl p-3 leading-relaxed"></p>
+
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Sınıf / Grup</label>
+                <div id="moveStudentClassList" class="max-h-64 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100"></div>
+                <p class="text-[10px] text-slate-400 mt-1"><i class="fa-solid fa-circle-info mr-1"></i>Öğrenci birden fazla grupta olabilir. İşaretlediğiniz gruplar öğrencinin güncel grupları olur.</p>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeMoveStudentModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-sm transition-all">Vazgeç</button>
+                <button onclick="confirmMoveStudentModal()" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript - Supabase İşlemleri & Mantık -->
     <script>
-        // Initialize global variables
+        const GROUP_SEED = [{"class_name": "EU3 (Pzt-Çar 16:00)", "level": "EU3", "teacher_name": "Buse (Pzt)", "schedule": "Pazartesi - Çarşamba 16:00-18:10", "students": [{"name": "Adem Emre Güner", "grade": "5.SINIF", "tag": ""}, {"name": "Ahmet Sarp Karav", "grade": "4.SINIF", "tag": ""}, {"name": "Ekrem Öcal", "grade": "5.SINIF", "tag": ""}, {"name": "Musab Bünyamin Ünal", "grade": "4.SINIF", "tag": ""}, {"name": "Öykü Akcan", "grade": "3.SINIF", "tag": ""}, {"name": "Duru Nemni", "grade": "4.SINIF", "tag": ""}, {"name": "Emir Alp Çağlayan", "grade": "3.SINIF", "tag": ""}, {"name": "İdil Bilge Açıkgöz", "grade": "4.SINIF", "tag": ""}, {"name": "Eflin Ada Taşdibek", "grade": "4.SINIF", "tag": ""}]}, {"class_name": "More&More (Pzt-Çar 16:00)", "level": "More&More", "teacher_name": "Buse (Çar)", "schedule": "Pazartesi - Çarşamba 16:00-18:10", "students": [{"name": "Gökçen Kayan", "grade": "1.SINIF", "tag": ""}, {"name": "Ahlas Kasap", "grade": "6 YAŞ", "tag": "MM2"}, {"name": "Elçin Meva Taşdibek", "grade": "1.SINIF", "tag": ""}, {"name": "Göktuğ Gülmez", "grade": "1.SINIF", "tag": ""}, {"name": "Atlas Fettahoğlu", "grade": "1.SINIF", "tag": ""}, {"name": "İkra Bilir", "grade": "1.SINIF", "tag": ""}, {"name": "Alya Lina Eski", "grade": "1.SINIF", "tag": ""}]}, {"class_name": "EU1 (Pzt-Çar 16:00)", "level": "EU1", "teacher_name": "Atanmadı", "schedule": "Pazartesi - Çarşamba 16:00-18:10", "students": [{"name": "Tuna Fettahoğlu", "grade": "2.SINIF", "tag": ""}, {"name": "Elif Bade Yılmaz", "grade": "2.SINIF", "tag": ""}, {"name": "Mehmet Çınar Büdüş", "grade": "2.SINIF", "tag": ""}, {"name": "Yusuf Akkuş", "grade": "2.SINIF", "tag": ""}, {"name": "Toprak Avcı", "grade": "2.SINIF", "tag": ""}, {"name": "Defne Taşal", "grade": "2.SINIF", "tag": ""}]}, {"class_name": "EU2 (Sal-Per 16:00)", "level": "EU2", "teacher_name": "Buse (Per)", "schedule": "Salı - Perşembe 16:00-18:10", "students": [{"name": "Zeynep Erva Şimşek", "grade": "2.SINIF", "tag": ""}, {"name": "Umay Deniz Eren", "grade": "2.SINIF", "tag": ""}, {"name": "Duru Değirmendere", "grade": "4.SINIF", "tag": ""}, {"name": "Toprak Tuna Can", "grade": "3.SINIF", "tag": ""}, {"name": "Gülümser Su Sarıbaş", "grade": "3.SINIF", "tag": ""}, {"name": "Çağan Uras Öztürk", "grade": "4.SINIF", "tag": ""}, {"name": "Miraç Günalay", "grade": "4.SINIF", "tag": ""}, {"name": "Ahmet Gökalp Doğance", "grade": "3.SINIF", "tag": ""}, {"name": "Zümra Keloğlanoğlu", "grade": "3.SINIF", "tag": ""}, {"name": "Gökçe Göktaş", "grade": "3.SINIF", "tag": ""}, {"name": "Ayza Özbek", "grade": "3.SINIF", "tag": ""}]}, {"class_name": "EU5 (Sal-Per 16:00)", "level": "EU5", "teacher_name": "Buse (Sal)", "schedule": "Salı - Perşembe 16:00-18:10", "students": [{"name": "Ayperi Azra Yaşar", "grade": "6.SINIF", "tag": ""}, {"name": "Ömer Eyüp Şimşek", "grade": "6.SINIF", "tag": ""}, {"name": "Rafet Rüzgar Sarıbaş", "grade": "6.SINIF", "tag": ""}, {"name": "Mustafa Anıl", "grade": "3.SINIF", "tag": ""}, {"name": "Eymen Şahin", "grade": "6.SINIF", "tag": ""}, {"name": "Zeynep Doğance", "grade": "5.SINIF", "tag": ""}, {"name": "Asya Nur Uzun", "grade": "4.SINIF", "tag": ""}]}, {"class_name": "EU4 (Sal-Per 16:00)", "level": "EU4", "teacher_name": "Atanmadı", "schedule": "Salı - Perşembe 16:00-18:10", "students": []}, {"class_name": "EU2 (Cmt-Paz 10:00)", "level": "EU2", "teacher_name": "Buse (Cmt)", "schedule": "Cumartesi - Pazar 10:00-12:10", "students": [{"name": "Eylül Bilen", "grade": "4.SINIF", "tag": ""}, {"name": "Öykü Eslem Çakmak", "grade": "4.SINIF", "tag": ""}, {"name": "Bilge Neva Gülmez", "grade": "4.SINIF", "tag": ""}, {"name": "Hakan Aktaş", "grade": "4.SINIF", "tag": ""}, {"name": "Defne Temana", "grade": "3.SINIF", "tag": ""}, {"name": "Nil Sezgi Çetinkaya", "grade": "4.SINIF", "tag": ""}, {"name": "Aysima Bilir", "grade": "3.SINIF", "tag": ""}, {"name": "Deniz Ekin Yıldırım", "grade": "4.SINIF", "tag": ""}, {"name": "Ela Doğan", "grade": "4.SINIF", "tag": ""}, {"name": "Aras Mahmutoğlu", "grade": "4.SINIF", "tag": ""}, {"name": "Nisan Ekelik", "grade": "4.SINIF", "tag": ""}, {"name": "Hatice Oluşan", "grade": "4.SINIF", "tag": ""}, {"name": "Miraç Alp Karlık", "grade": "3.SINIF", "tag": ""}]}, {"class_name": "EU4 (Cmt-Paz 10:00)", "level": "EU4", "teacher_name": "Buse (Paz)", "schedule": "Cumartesi - Pazar 10:00-12:10", "students": [{"name": "Bahar Yalçınkaya", "grade": "4.SINIF", "tag": ""}, {"name": "Defne Kıvrak", "grade": "5.SINIF", "tag": ""}, {"name": "Asiye Doğuç", "grade": "4.SINIF", "tag": ""}, {"name": "Neva Uslu", "grade": "5.SINIF", "tag": ""}, {"name": "Defne Gündoğdu", "grade": "4.SINIF", "tag": ""}, {"name": "Buğlem Çevik", "grade": "5.SINIF", "tag": ""}, {"name": "Zeynep Oluşan", "grade": "6.SINIF", "tag": ""}]}, {"class_name": "More&More (Cmt-Paz 10:00)", "level": "More&More", "teacher_name": "Atanmadı", "schedule": "Cumartesi - Pazar 10:00-12:10", "students": [{"name": "Azra Kaya", "grade": "1.SINIF", "tag": "MM2"}, {"name": "Zümra Üner", "grade": "2.SINIF", "tag": "MM2"}, {"name": "Çınar Ali Çakmak", "grade": "1.SINIF", "tag": ""}, {"name": "Hira Uslu", "grade": "6 YAŞ", "tag": ""}, {"name": "Rüzgar Karakuş", "grade": "1.SINIF", "tag": "MM1"}, {"name": "Yiğit Efe Coşkun", "grade": "2.SINIF", "tag": ""}, {"name": "Fatma Ecrin Oluşan", "grade": "2.SINIF", "tag": ""}]}, {"class_name": "EU4 (Cmt-Paz 12:30)", "level": "EU4", "teacher_name": "Buse (Cmt)", "schedule": "Cumartesi - Pazar 12:30-14:40", "students": [{"name": "Çınar Deniz Dağdelen", "grade": "4.SINIF", "tag": ""}, {"name": "İrfan Efe Kıvrak", "grade": "5.SINIF", "tag": ""}, {"name": "Egemen İçigen", "grade": "4.SINIF", "tag": ""}, {"name": "Ömer Kerem Yılmaz", "grade": "4.SINIF", "tag": ""}, {"name": "Elif Doğa Yavaş", "grade": "4.SINIF", "tag": ""}, {"name": "İlkim Derin Akın", "grade": "4.SINIF", "tag": ""}, {"name": "Zeynep Oluşan", "grade": "6.SINIF", "tag": ""}]}, {"class_name": "EU2 (Cmt-Paz 12:30)", "level": "EU2", "teacher_name": "Buse (Paz)", "schedule": "Cumartesi - Pazar 12:30-14:40", "students": [{"name": "Nil Çelikkol", "grade": "3.SINIF", "tag": ""}, {"name": "Erdem Bayram", "grade": "3.SINIF", "tag": ""}, {"name": "Beril Tekin", "grade": "4.SINIF", "tag": ""}, {"name": "Alper Dağdelen", "grade": "3.SINIF", "tag": ""}, {"name": "Ömer Yusuf Turan", "grade": "4.SINIF", "tag": ""}, {"name": "Maide Melis Korkmaz", "grade": "2.SINIF", "tag": ""}, {"name": "Derin Su Çolakoğlu", "grade": "5.SINIF", "tag": ""}, {"name": "Kumsal Özdemir", "grade": "3.SINIF", "tag": ""}, {"name": "Çağan Kurt", "grade": "4.SINIF", "tag": ""}, {"name": "Ege Kurt", "grade": "4.SINIF", "tag": ""}, {"name": "Rüya Korkmaz", "grade": "4.SINIF", "tag": ""}, {"name": "Umut Kerem Bak", "grade": "5.SINIF", "tag": ""}, {"name": "Zeynep Sena Özkaynak", "grade": "4.SINIF", "tag": ""}, {"name": "Hatice Oluşan", "grade": "4.SINIF", "tag": ""}]}, {"class_name": "EU5 (Cmt-Paz 12:30)", "level": "EU5", "teacher_name": "Atanmadı", "schedule": "Cumartesi - Pazar 12:30-14:40", "students": [{"name": "Kerem Gülerde", "grade": "7.SINIF", "tag": ""}, {"name": "Nehir Çelikkol", "grade": "6.SINIF", "tag": ""}, {"name": "Erdoğan Deniz Ulubey", "grade": "6.SINIF", "tag": ""}, {"name": "Hafsa Zeynep Soytürk", "grade": "5.SINIF", "tag": ""}, {"name": "Ali Toprak Yavaş", "grade": "7.SINIF", "tag": ""}, {"name": "Yağız Çubuk", "grade": "7.SINIF", "tag": ""}, {"name": "İnci Güven", "grade": "6.SINIF", "tag": ""}, {"name": "Yağız Ali Kara", "grade": "6.SINIF", "tag": ""}, {"name": "Kürşat Erdoğan", "grade": "6.SINIF", "tag": ""}]}, {"class_name": "More&More (Cmt-Paz 12:30)", "level": "More&More", "teacher_name": "Atanmadı", "schedule": "Cumartesi - Pazar 12:30-14:40", "students": [{"name": "Zeynep Azra Yılmaz", "grade": "1.SINIF", "tag": ""}, {"name": "Ali Deniz Uçaş", "grade": "1.SINIF", "tag": "MM2"}, {"name": "Emir Kağan Turan", "grade": "1.SINIF", "tag": ""}, {"name": "Ali Koray Yılmaz", "grade": "2.SINIF", "tag": ""}, {"name": "Fatma Ecrin Oluşan", "grade": "2.SINIF", "tag": ""}]}, {"class_name": "Kitap Lise Grubu", "level": "Lise", "teacher_name": "Atanmadı", "schedule": "Belirtilmedi", "students": [{"name": "Fatma Betül Karaköse", "grade": "", "tag": ""}, {"name": "Meryem Defne Karaköse", "grade": "", "tag": ""}, {"name": "Yunus Emre Kara", "grade": "", "tag": ""}]}];
+
+        // Öğrenci başına ek bilgi (sınıf düzeyi / More&More seviyesi) - Excel'den gelir
+        const STUDENT_META = {};
+        GROUP_SEED.forEach(g => g.students.forEach(s => {
+            STUDENT_META[foldName(s.name)] = { grade: s.grade, tag: s.tag };
+        }));
+
+        const GROUP_SEP = ';';                       // Bir öğrenci birden fazla gruptaysa class_name içinde ; ile ayrılır
+        const DEFAULT_STUDENT_PASSWORD = 'brooklyn26'; // Excel'den yüklenen yeni öğrenciler için ilk şifre
+
+        function foldName(s) {
+            return String(s || '').replace(/İ/g, 'I').replace(/ı/g, 'i').normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+        }
+
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function getUserGroups(u) {
+            return String((u && u.class_name) || '').split(GROUP_SEP).map(s => s.trim()).filter(Boolean);
+        }
+        function userInGroup(u, className) {
+            return getUserGroups(u).includes(className);
+        }
+        function getGroupStudents(className) {
+            return (allUsers || [])
+                .filter(u => u.role === 'student' && userInGroup(u, className))
+                .sort((a, b) => (a.full_name || '').localeCompare(b.full_name || '', 'tr'));
+        }
+        function studentMetaBadge(name) {
+            const m = STUDENT_META[foldName(name)];
+            if (!m) return '';
+            const grade = m.grade ? `<span class="bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold px-2 py-0.5 rounded-md">${esc(m.grade)}</span>` : '';
+            const tag = m.tag ? `<span class="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-md">${esc(m.tag)}</span>` : '';
+            return grade + tag;
+        }
+        function canOpenGroupDetail() {
+            return currentUser && (currentUser.role === 'admin' || currentUser.role === 'teacher');
+        }
+
         let currentUser = null;
-        let currentGroup = null;
-        let currentPlan = null;
-        let allUsers = [];
+        let allPayments = [];
+        let currentPaymentSeason = 'Tümü';
+        let paymentSearchQuery = '';
         let allClasses = [];
         let allAttendance = [];
-        let allPayments = [];
-        let currentPaymentId = null;
-        let paymentModalContext = null;
+        let attendanceClassFilter = '';
+        let allUsers = [];
+        let currentGroupId = null;
 
-        // Helper functions
-        function formatDate(dateStr) {
-            if (!dateStr) return '';
-            const d = new Date(dateStr + 'T00:00:00');
-            return d.toLocaleDateString('tr-TR', { weekday: 'short', month: 'short', day: 'numeric' });
+        window.onload = function() {
+            const activeUser = JSON.parse(localStorage.getItem('brooklyn_user'));
+            if (activeUser) showApp(activeUser);
+        };
+
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('password');
+            const passIcon = document.getElementById('togglePassIcon');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                passIcon.classList.remove('fa-eye');
+                passIcon.classList.add('fa-eye-slash');
+            } else {
+                passInput.type = 'password';
+                passIcon.classList.remove('fa-eye-slash');
+                passIcon.classList.add('fa-eye');
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const uName = document.getElementById('username').value.trim().toLowerCase();
+            const pass = document.getElementById('password').value.trim();
+            const errDiv = document.getElementById('loginError');
+
+            if (uName === 'adminadmin' && pass === '19651965') {
+                const adminUser = {
+                    id: 999,
+                    username: 'adminadmin',
+                    full_name: 'Kurs Yöneticisi',
+                    role: 'admin',
+                    phone: ''
+                };
+                errDiv.classList.add('hidden');
+                localStorage.setItem('brooklyn_user', JSON.stringify(adminUser));
+                showApp(adminUser);
+                return;
+            }
+
+            const { data, error } = await _supabase.from('users').select('*').eq('username', uName).eq('password', pass).single();
+
+            if (data && !error) {
+                errDiv.classList.add('hidden');
+                localStorage.setItem('brooklyn_user', JSON.stringify(data));
+                showApp(data);
+            } else {
+                errDiv.classList.remove('hidden');
+            }
+        }
+
+        function showApp(user) {
+            currentUser = user;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.remove('hidden');
+
+            const roleTitles = {
+                'admin': '👨‍💼 Kurs Yöneticisi',
+                'teacher': '👨‍🏫 Öğretmen',
+                'parent': '👨‍👩‍👦 Veli',
+                'student': '🎓 Öğrenci'
+            };
+
+            document.getElementById('userDisplayName').innerText = user.full_name;
+            document.getElementById('userRoleBadge').innerText = roleTitles[user.role] || user.role;
+            document.getElementById('welcomeHeading').innerText = `Hoş Geldiniz, ${user.full_name}! 👋`;
+            document.getElementById('welcomeSub').innerText = `${roleTitles[user.role]} paneline canlı bağlandınız.`;
+
+            ['admin', 'teacher', 'parent', 'student'].forEach(r => {
+                document.querySelectorAll('.role-' + r).forEach(el => el.classList.add('hidden'));
+            });
+            document.querySelectorAll('.role-' + user.role).forEach(el => el.classList.remove('hidden'));
+
+            const clsTitle = document.getElementById('classesHeaderTitle');
+            const clsNote = document.getElementById('classesHeaderNote');
+            if (clsTitle && clsNote) {
+                if (user.role === 'student') {
+                    clsTitle.innerText = 'Benim Programım';
+                    clsNote.innerText = 'Kayıtlı olduğunuz sınıf/grup ve haftalık ders programınız.';
+                } else {
+                    clsTitle.innerText = 'Sınıflar & Ders Programı Yönetimi';
+                    clsNote.innerText = 'Kurs bünyesindeki aktif sınıflar ve haftalık programlar. Öğrenci listesi için bir gruba tıklayın.';
+                }
+            }
+            const attNote = document.getElementById('attendanceHeaderNote');
+            if (attNote) attNote.innerText = user.role === 'student' ? 'Kendi yoklama ve devam kayıtlarınız.' : 'Öğrencilerin derse katılım kayıtları ve öğretmen geri dönütleri.';
+
+            loadDataFromSupabase();
+            switchTab('dashboard');
+        }
+
+        async function loadDataFromSupabase() {
+            // 1. Sınıflar & Ders Programları
+            const dbErrors = [];
+            const { data: classes, error: clsErr } = await _supabase.from('classes').select('*');
+            if (clsErr) { console.error('classes', clsErr); dbErrors.push('classes: ' + clsErr.message); }
+            if (classes) {
+                allClasses = classes;
+                document.getElementById('statClasses').innerText = classes.length;
+                renderClassesList();
+                populateAttendanceClassFilterOptions();
+                populateUserClassSelect();
+                renderDashboard();
+            }
+
+            // 2. Kullanıcılar
+            const { data: users, error: usrErr } = await _supabase.from('users').select('*');
+            if (usrErr) { console.error('users', usrErr); dbErrors.push('users: ' + usrErr.message); }
+            if (users) {
+                allUsers = users;
+                document.getElementById('statUsers').innerText = users.length;
+
+                // Ödeme formundaki "Öğrenci Seçin" listesini doldur
+                const studentSelect = document.getElementById('payStudentSelect');
+                if (studentSelect) {
+                    const currentSelection = studentSelect.value;
+                    const students = users.filter(u => u.role === 'student');
+                    studentSelect.innerHTML = '<option value="">-- Öğrenci Seçin --</option>' +
+                        students.map(s => `<option value="${esc(s.full_name)}">${esc(s.full_name)}</option>`).join('') +
+                        '<option value="__manual__">✏️ Elle Yaz (Listede Yok)</option>';
+                    if (currentSelection) studentSelect.value = currentSelection;
+                }
+
+                populateClassTeacherSelect();
+                populateStudentNamesDatalist();
+                renderUsersTable();
+                // Öğrenci sayıları kullanıcılar yüklendikten sonra netleşir
+                renderClassesList();
+                renderDashboard();
+                if (currentGroupId) renderGroupModal();
+            }
+
+            // 3. Yoklama
+            const { data: attendance } = await _supabase.from('attendance').select('*');
+            if (attendance) {
+                allAttendance = attendance;
+                renderAttendanceTable();
+                renderDashboard();
+            }
+
+            // 4. Ödemeler (taksit planları olarak grupla)
+            const { data: payments } = await _supabase.from('payments').select('*');
+            if (payments) {
+                allPayments = payments;
+                renderPaymentsPlans();
+            }
+            showDbStatus(dbErrors);
+        }
+
+        function showDbStatus(errors) {
+            const el = document.getElementById('dbStatusBanner');
+            if (!el) return;
+            if (errors && errors.length) {
+                el.className = 'bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl p-4 text-xs leading-relaxed';
+                el.innerHTML = `<b><i class="fa-solid fa-triangle-exclamation mr-1"></i> Veritabanından veri okunamadı.</b><br>` +
+                    errors.map(esc).join('<br>') +
+                    `<br><br><b>Olası nedenler:</b> (1) Dosyanın başındaki <code>SUPABASE_KEY</code> değeri orijinal anahtarınızla birebir aynı değil — kendi eski dosyanızdaki anahtarı buraya yapıştırın. ` +
+                    `(2) Supabase'de tablolar için RLS açık ve okuma politikası yok.`;
+                return;
+            }
+            const missing = GROUP_SEED.filter(g => !(allClasses || []).some(c => c.class_name === g.class_name)).length;
+            if (currentUser && currentUser.role === 'admin' && missing > 0) {
+                el.className = 'bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-4 text-xs leading-relaxed flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+                el.innerHTML = `<span><b><i class="fa-solid fa-circle-info mr-1"></i> Excel'deki ${missing} grup henüz sisteme yüklenmemiş.</b> Yüklemek için butona basın.</span>` +
+                    `<button onclick="seedGroupsFromExcel()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-4 py-2 rounded-xl w-fit"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Grup ve Öğrenci Listesini Yükle</button>`;
+                return;
+            }
+            el.className = 'hidden';
+            el.innerHTML = '';
+        }
+
+        function renderClassesList() {
+            const listEl = document.getElementById('classesList');
+            if (!listEl) return;
+            let classesToShow = allClasses || [];
+            if (currentUser.role === 'student') {
+                classesToShow = classesToShow.filter(c => userInGroup(currentUser, c.class_name));
+            }
+            if (!classesToShow || classesToShow.length === 0) {
+                listEl.innerHTML = `
+                    <div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 text-sm sm:col-span-2">
+                        <i class="fa-solid fa-chalkboard text-2xl mb-2 block"></i>
+                        ${currentUser.role === 'student' ? 'Henüz bir sınıf/gruba atanmadınız. Lütfen yönetici ile iletişime geçin.' : 'Henüz kayıtlı sınıf yok.'}
+                    </div>`;
+                return;
+            }
+            const canOpen = canOpenGroupDetail();
+            listEl.innerHTML = classesToShow.map(c => {
+                const count = getGroupStudents(c.class_name).length;
+                return `
+                <div ${canOpen ? `onclick="openGroupModal(${c.id})"` : ''} class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3 relative hover:shadow-md transition-all ${canOpen ? 'cursor-pointer hover:border-slate-300' : ''}">
+                    ${currentUser.role === 'admin' ? `
+                        <div onclick="event.stopPropagation()" class="absolute top-4 right-4 flex flex-wrap justify-end gap-2 max-w-[70%]">
+                            <button onclick="editTeacher(${c.id}, '${(c.teacher_name || '').replace(/'/g, "\\'")}')" class="text-sky-600 hover:text-sky-800 text-xs font-bold bg-sky-50 px-2 py-1 rounded-lg border border-sky-200"><i class="fa-solid fa-user-pen"></i> Öğretmen</button>
+                            <button onclick="editSchedule(${c.id}, '${(c.schedule || '').replace(/'/g, "\\'")}')" class="text-amber-600 hover:text-amber-800 text-xs font-bold bg-amber-50 px-2 py-1 rounded-lg border border-amber-200"><i class="fa-solid fa-pen"></i> Düzenle</button>
+                            <button onclick="deleteRecord('classes', ${c.id})" class="text-rose-600 hover:text-rose-800 text-xs font-bold bg-rose-50 px-2 py-1 rounded-lg border border-rose-200"><i class="fa-solid fa-trash"></i> Sil</button>
+                        </div>
+                    ` : ''}
+                    <span class="bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md inline-block uppercase tracking-wider">${esc(c.level)}</span>
+                    <h4 class="text-lg font-extrabold text-slate-800 brand-font">${esc(c.class_name)}</h4>
+                    <p class="text-xs text-slate-500 font-medium"><i class="fa-solid fa-user-chalkboard mr-1.5 text-slate-400"></i> Eğitmen: <b>${esc(c.teacher_name)}</b></p>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 text-xs text-slate-700 font-semibold flex items-center gap-2">
+                        <i class="fa-regular fa-clock text-amber-500 text-sm"></i>
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase font-bold block">Ders Programı</span>
+                            <span id="sched-text-${c.id}">${esc(c.schedule)}</span>
+                        </div>
+                    </div>
+                    ${canOpen ? `
+                    <div class="flex items-center justify-between pt-1">
+                        <span class="text-xs font-bold text-slate-600"><i class="fa-solid fa-users mr-1.5 text-slate-400"></i>${count} öğrenci</span>
+                        <span class="text-[11px] font-bold text-sky-600">Öğrenci listesini aç <i class="fa-solid fa-chevron-right text-[9px] ml-0.5"></i></span>
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        // ---------- GRUP ÖĞRENCİ LİSTESİ MODALI ----------
+
+        function openGroupModal(classId) {
+            if (!canOpenGroupDetail()) return;
+            currentGroupId = classId;
+            renderGroupModal();
+            document.getElementById('groupModal').classList.remove('hidden');
+        }
+
+        function closeGroupModal() {
+            document.getElementById('groupModal').classList.add('hidden');
+            currentGroupId = null;
+        }
+
+        function renderGroupModal() {
+            const c = (allClasses || []).find(x => x.id === currentGroupId);
+            if (!c) { closeGroupModal(); return; }
+            const students = getGroupStudents(c.class_name);
+            const isAdmin = currentUser.role === 'admin';
+
+            document.getElementById('groupModalLevel').innerText = c.level || '';
+            document.getElementById('groupModalTitle').innerText = c.class_name;
+            document.getElementById('groupModalMeta').innerHTML =
+                `<i class="fa-solid fa-user-chalkboard mr-1.5 text-slate-400"></i>${esc(c.teacher_name)}<br>` +
+                `<i class="fa-regular fa-clock mr-1.5 text-amber-500"></i>${esc(c.schedule)}<br>` +
+                `<i class="fa-solid fa-users mr-1.5 text-slate-400"></i><b>${students.length}</b> öğrenci`;
+
+            const body = document.getElementById('groupModalBody');
+            if (students.length === 0) {
+                body.innerHTML = `
+                    <div class="p-10 text-center text-slate-400 text-sm">
+                        <i class="fa-solid fa-user-slash text-2xl mb-2 block"></i>
+                        Bu grupta henüz öğrenci yok.
+                    </div>`;
+                return;
+            }
+
+            body.innerHTML = `<ul class="divide-y divide-slate-100">` + students.map((s, i) => {
+                const others = getUserGroups(s).filter(g => g !== c.class_name);
+                return `
+                <li class="flex items-center justify-between gap-3 px-5 py-3 hover:bg-slate-50 transition-all">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="w-7 h-7 rounded-lg bg-slate-900 text-amber-400 text-[11px] font-black flex items-center justify-center shrink-0">${i + 1}</span>
+                        <div class="min-w-0">
+                            <p class="text-sm font-bold text-slate-800 truncate">${esc(s.full_name)}</p>
+                            <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                ${studentMetaBadge(s.full_name)}
+                                ${others.length ? `<span class="bg-sky-50 text-sky-700 border border-sky-200 text-[10px] font-bold px-2 py-0.5 rounded-md" title="Diğer grupları">Ayrıca: ${others.map(esc).join(', ')}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        ${s.phone ? `<a href="https://wa.me/90${esc(s.phone)}" target="_blank" class="text-emerald-600 hover:text-emerald-700 text-base" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
+                        ${isAdmin ? `<button onclick="openMoveStudentModal(${s.id})" class="text-sky-600 hover:text-sky-800 font-bold text-[11px] bg-sky-50 border border-sky-200 px-2 py-1 rounded-lg"><i class="fa-solid fa-arrow-right-arrow-left mr-1"></i>Grup</button>` : ''}
+                    </div>
+                </li>`;
+            }).join('') + `</ul>`;
+        }
+
+        function goToGroupAttendanceFromModal() {
+            const c = (allClasses || []).find(x => x.id === currentGroupId);
+            if (!c) return;
+            closeGroupModal();
+            goToClassAttendance(c.class_name);
         }
 
         function getTodayStr() {
             return new Date().toISOString().split('T')[0];
         }
 
-        // Authentication
-        function handleLogin(event) {
-            event.preventDefault();
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            const errorDiv = document.getElementById('loginError');
+        function renderAttendanceTable() {
+            const bodyEl = document.getElementById('attendanceTableBody');
+            if (!bodyEl) return;
 
-            if (!username || !password) {
-                errorDiv.textContent = 'Lütfen kullanıcı adını ve şifrenizi girin.';
+            let rows = allAttendance || [];
+            if (currentUser.role === 'student') {
+                rows = rows.filter(a => a.student_name === currentUser.full_name);
+            } else if (attendanceClassFilter) {
+                rows = rows.filter(a => a.class_name === attendanceClassFilter);
+            }
+
+            if (rows.length === 0) {
+                bodyEl.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="p-8 text-center text-slate-400 text-sm">
+                            <i class="fa-solid fa-inbox text-xl mb-2 block"></i>
+                            Kayıt bulunamadı.
+                        </td>
+                    </tr>`;
                 return;
             }
 
-            const supabase = new Supabase('https://uywoqcoutebyszemfulx.supabase.co', 'eyJhbGciOiJIUzI1NiIsInV5dCI6IkpXVCJ9.eyJpc3MiOiJzdXBt...');
-            const { data, error } = supabase.auth.signInWithPassword(username, password);
+            const canEditNote = currentUser.role === 'admin' || currentUser.role === 'teacher';
 
-            if (error) {
-                errorDiv.textContent = 'Kullanıcı bilgileri yanlış. Lütfen tekrar deneyin.';
-            } else if (data) {
-                currentUser = data.user;
-                localStorage.setItem('brooklyn_user', JSON.stringify(currentUser));
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('appScreen').classList.remove('hidden');
-                document.getElementById('tab-dashboard').classList.add('active');
-                document.getElementById('tab-users').classList.add('active');
-                document.getElementById('tab-classes').classList.add('active');
-                document.getElementById('tab-attendance').classList.add('active');
-                document.getElementById('tab-payments').classList.add('active');
-                document.getElementById('tab-students').classList.add('active'));
-                renderAll();
-            } else {
-                errorDiv.textContent = 'Kullanıcı bulunamadı. Lütfen tekrar giriş yapın.';
+            bodyEl.innerHTML = rows.map(a => `
+                <tr class="hover:bg-slate-50/80 transition-all">
+                    <td class="p-4 font-semibold text-slate-800">${esc(a.student_name)}</td>
+                    <td class="p-4 text-slate-600">${esc(a.class_name)}</td>
+                    <td class="p-4 text-slate-500 text-xs">${a.date}</td>
+                    <td class="p-4">
+                        <span class="${a.status === 'Geldi' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-rose-100 text-rose-800 border-rose-200'} text-[11px] font-bold px-2.5 py-1 rounded-full border">${a.status}</span>
+                    </td>
+                    <td class="p-4 role-admin role-teacher ${canEditNote ? '' : 'hidden'} max-w-[220px]">
+                        <div class="flex items-start gap-2">
+                            <span class="text-xs text-slate-600 leading-snug">${a.teacher_note ? esc(a.teacher_note) : '<span class="text-slate-300 italic">Not yok</span>'}</span>
+                            ${canEditNote ? `<button onclick="editAttendanceNote(${a.id}, '${(a.teacher_note || '').replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, ' ')}')" class="text-slate-400 hover:text-slate-700 shrink-0"><i class="fa-solid fa-pen text-[11px]"></i></button>` : ''}
+                        </div>
+                    </td>
+                    <td class="p-4 role-admin ${currentUser.role === 'admin' ? '' : 'hidden'}">
+                        <button onclick="deleteRecord('attendance', ${a.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash mr-1"></i> Sil</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function populateAttendanceClassFilterOptions() {
+            const sel = document.getElementById('attendanceClassFilterSelect');
+            const addSel = document.getElementById('attClassSelect');
+            const classNames = (allClasses || []).map(c => c.class_name);
+
+            if (sel) {
+                const currentSelection = sel.value;
+                sel.innerHTML = '<option value="">Tüm Sınıflar</option>' +
+                    classNames.map(name => `<option value="${esc(name)}">${esc(name)}</option>`).join('');
+                if (currentSelection && classNames.includes(currentSelection)) {
+                    sel.value = currentSelection;
+                } else if (attendanceClassFilter && classNames.includes(attendanceClassFilter)) {
+                    sel.value = attendanceClassFilter;
+                }
             }
+
+            if (addSel) {
+                const currentAddSelection = addSel.value;
+                addSel.innerHTML = '<option value="">-- Sınıf Seçin --</option>' +
+                    classNames.map(name => `<option value="${esc(name)}">${esc(name)}</option>`).join('');
+                if (currentAddSelection && classNames.includes(currentAddSelection)) {
+                    addSel.value = currentAddSelection;
+                }
+            }
+        }
+
+        function toggleAttendanceForm() {
+            const form = document.getElementById('formAddAttendance');
+            form.classList.toggle('hidden');
+            if (!form.classList.contains('hidden')) {
+                const dateInput = document.getElementById('attDate');
+                if (dateInput && !dateInput.value) dateInput.value = getTodayStr();
+            }
+        }
+
+        async function addAttendance(e) {
+            e.preventDefault();
+            const student_name = document.getElementById('attStudentName').value.trim();
+            const class_name = document.getElementById('attClassSelect').value;
+            const date = document.getElementById('attDate').value;
+            const status = document.getElementById('attStatus').value;
+            const teacher_note = document.getElementById('attTeacherNote').value.trim();
+
+            if (!student_name || !class_name || !date) { alert('Lütfen öğrenci, sınıf ve tarih alanlarını doldurun.'); return; }
+
+            let payload = { student_name, class_name, date, status, teacher_note: teacher_note || null };
+            let { error } = await _supabase.from('attendance').insert([payload]);
+            if (error && /teacher_note/i.test(error.message || '')) {
+                delete payload.teacher_note;
+                const retry = await _supabase.from('attendance').insert([payload]);
+                error = retry.error;
+            }
+
+            if (!error) {
+                alert('Yoklama kaydı başarıyla eklendi!');
+                document.getElementById('formAddAttendance').reset();
+                toggleAttendanceForm();
+                loadDataFromSupabase();
+            } else {
+                alert('Hata oluştu: ' + error.message + '\n\nNot: Öğretmen notunu kaydedebilmek için "attendance" tablosunda "teacher_note" (text) sütununun bulunduğundan emin olun.');
+            }
+        }
+
+        async function editAttendanceNote(id, oldNote) {
+            const newNote = prompt('Öğretmen Notu / Geri Dönüt:', oldNote || '');
+            if (newNote === null) return;
+            const { error } = await _supabase.from('attendance').update({ teacher_note: newNote.trim() || null }).eq('id', id);
+            if (!error) {
+                loadDataFromSupabase();
+            } else {
+                alert('Hata oluştu: ' + error.message + '\n\nNot: "attendance" tablosunda "teacher_note" (text) sütununun bulunduğundan emin olun.');
+            }
+        }
+
+        function setAttendanceFilter(className) {
+            attendanceClassFilter = className;
+            renderAttendanceTable();
+        }
+
+        function goToClassAttendance(className) {
+            attendanceClassFilter = className;
+            switchTab('attendance');
+            const sel = document.getElementById('attendanceClassFilterSelect');
+            if (sel) sel.value = className;
+            renderAttendanceTable();
+        }
+
+        function goToClassAttendanceById(classId) {
+            const c = (allClasses || []).find(x => x.id === classId);
+            if (c) goToClassAttendance(c.class_name);
+        }
+
+        // Dashboard kartı: yönetici/öğretmen için öğrenci listesi, diğer roller için yoklama
+        function onDashboardClassClick(classId) {
+            if (canOpenGroupDetail()) openGroupModal(classId);
+            else goToClassAttendanceById(classId);
+        }
+
+        function renderDashboard() {
+            const gridEl = document.getElementById('dashboardClassGrid');
+            const statAbsentEl = document.getElementById('statTodayAbsent');
+            const statClassesTodayEl = document.getElementById('statClassesToday');
+            if (!gridEl) return;
+
+            let classes = allClasses || [];
+            const attendance = allAttendance || [];
+            if (currentUser.role === 'student') {
+                classes = classes.filter(c => userInGroup(currentUser, c.class_name));
+            }
+            const todayStr = getTodayStr();
+
+            // Bugünkü devamsızlık (Geldi dışındaki durumlar devamsız sayılır)
+            const todaysAbsentRows = attendance.filter(a => a.date === todayStr && a.status !== 'Geldi');
+            if (statAbsentEl) statAbsentEl.innerText = todaysAbsentRows.length;
+            if (statClassesTodayEl) statClassesTodayEl.innerText = classes.length;
+
+            if (classes.length === 0) {
+                gridEl.innerHTML = `
+                    <div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 text-sm sm:col-span-2 lg:col-span-3">
+                        <i class="fa-solid fa-chalkboard text-2xl mb-2 block"></i>
+                        Henüz kayıtlı sınıf yok.
+                    </div>`;
+                return;
+            }
+
+            const canOpen = canOpenGroupDetail();
+
+            gridEl.innerHTML = classes.map(c => {
+                const absentToday = attendance.filter(a => a.class_name === c.class_name && a.date === todayStr && a.status !== 'Geldi').length;
+                const badgeClass = absentToday > 0 ? 'bg-rose-100 text-rose-700 border-rose-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                const badgeText = absentToday > 0 ? `Bugün ${absentToday} Öğrenci Yok` : 'Bugün Tam Katılım';
+                const badgeIcon = absentToday > 0 ? 'fa-user-xmark' : 'fa-circle-check';
+                const count = getGroupStudents(c.class_name).length;
+
+                return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3 hover:shadow-md hover:border-slate-300 transition-all cursor-pointer" onclick="onDashboardClassClick(${c.id})">
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <span class="bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md inline-block uppercase tracking-wider mb-2">${esc(c.level || '')}</span>
+                            <h4 class="text-lg font-extrabold text-slate-800 brand-font leading-tight">${esc(c.class_name)}</h4>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 font-medium"><i class="fa-solid fa-user-chalkboard mr-1.5 text-slate-400"></i> Öğretmen: <b>${esc(c.teacher_name)}</b></p>
+                    <p class="text-xs text-slate-500 font-medium"><i class="fa-regular fa-clock mr-1.5 text-amber-500"></i> ${esc(c.schedule)}</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        ${canOpen ? `<span class="bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5"><i class="fa-solid fa-users"></i> ${count} öğrenci</span>` : ''}
+                        <span class="${badgeClass} text-[11px] font-bold px-2.5 py-1 rounded-full border inline-flex items-center gap-1.5">
+                            <i class="fa-solid ${badgeIcon}"></i> ${badgeText}
+                        </span>
+                    </div>
+                    <div class="flex gap-2 mt-1">
+                        ${canOpen ? `<button onclick="event.stopPropagation(); openGroupModal(${c.id})" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-users"></i> Öğrenci Listesi
+                        </button>` : ''}
+                        <button onclick="event.stopPropagation(); goToClassAttendanceById(${c.id})" class="${canOpen ? 'px-4 bg-slate-100 hover:bg-slate-200 text-slate-700' : 'flex-1 bg-slate-900 hover:bg-slate-800 text-white'} text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-clipboard-user"></i> ${canOpen ? 'Yoklama' : 'Detay / Yoklama'}
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderUsersTable() {
+            const bodyEl = document.getElementById('usersTableBody');
+            if (!bodyEl) return;
+            const isAdmin = currentUser.role === 'admin';
+            bodyEl.innerHTML = (allUsers || []).map(u => {
+                const groups = getUserGroups(u);
+                return `
+                <tr class="hover:bg-slate-50/80 transition-all">
+                    <td class="p-4 font-semibold text-slate-800">${esc(u.full_name)}</td>
+                    <td class="p-4"><span class="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-lg text-[10px] uppercase font-bold tracking-wider">${esc(u.role)}</span></td>
+                    <td class="p-4">
+                        ${u.role === 'student' ? `
+                            <div class="flex items-center gap-2 flex-wrap">
+                                ${groups.length
+                                    ? groups.map(g => `<span class="bg-sky-50 text-sky-700 border-sky-200 text-[11px] font-bold px-2.5 py-1 rounded-lg border">${esc(g)}</span>`).join('')
+                                    : `<span class="bg-slate-50 text-slate-400 border-slate-200 text-[11px] font-bold px-2.5 py-1 rounded-lg border">Grup Atanmadı</span>`}
+                                ${isAdmin ? `<button onclick="openMoveStudentModal(${u.id})" class="text-sky-600 hover:text-sky-800 font-bold text-[11px] bg-sky-50 border border-sky-200 px-2 py-1 rounded-lg"><i class="fa-solid fa-arrow-right-arrow-left mr-1"></i> Grup</button>` : ''}
+                            </div>
+                        ` : '<span class="text-slate-300 text-xs">-</span>'}
+                    </td>
+                    <td class="p-4">
+                        ${u.phone
+                            ? `<a href="https://wa.me/90${esc(u.phone)}" target="_blank" class="inline-flex items-center gap-1.5 text-emerald-600 font-semibold hover:underline text-xs bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg"><i class="fa-brands fa-whatsapp text-sm"></i> ${esc(u.phone)}</a>`
+                            : '<span class="text-slate-300 text-xs">Yok</span>'}
+                    </td>
+                    <td class="p-4 role-admin ${isAdmin ? '' : 'hidden'}">
+                        <div class="flex items-center gap-3">
+                            <button onclick="openPasswordModal(${u.id}, '${(u.full_name || '').replace(/'/g, "\\'")}')" class="text-amber-600 hover:text-amber-800 font-bold text-xs"><i class="fa-solid fa-key mr-1"></i> Şifre Değiştir</button>
+                            <button onclick="deleteRecord('users', ${u.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash mr-1"></i> Sil</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        let passwordModalContext = null;
+
+        function openPasswordModal(userId, fullName) {
+            passwordModalContext = { userId };
+            document.getElementById('passwordModalInfo').innerHTML = `<b>${esc(fullName)}</b> kullanıcısı için yeni bir şifre belirleyin.`;
+            document.getElementById('passwordModalNewPass').value = '';
+            document.getElementById('passwordModal').classList.remove('hidden');
+        }
+
+        function closePasswordModal() {
+            document.getElementById('passwordModal').classList.add('hidden');
+            passwordModalContext = null;
+        }
+
+        function togglePasswordModalVisibility() {
+            const input = document.getElementById('passwordModalNewPass');
+            const icon = document.getElementById('passwordModalToggleIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye');
+            }
+        }
+
+        async function confirmPasswordModal() {
+            if (!passwordModalContext) return;
+            const newPass = document.getElementById('passwordModalNewPass').value.trim();
+            if (!newPass || newPass.length < 4) { alert('Lütfen en az 4 karakterli bir şifre girin.'); return; }
+
+            const { error } = await _supabase.from('users').update({ password: newPass }).eq('id', passwordModalContext.userId);
+            if (!error) {
+                alert('Şifre başarıyla güncellendi!');
+                closePasswordModal();
+            } else {
+                alert('Hata oluştu: ' + error.message);
+            }
+        }
+
+        let moveStudentContext = null;
+
+        function openMoveStudentModal(userId) {
+            const user = (allUsers || []).find(u => u.id === userId);
+            if (!user) return;
+            moveStudentContext = { userId };
+            const currentGroups = getUserGroups(user);
+            document.getElementById('moveStudentInfo').innerHTML =
+                `<b>${esc(user.full_name)}</b> adlı öğrencinin hangi sınıf/gruplarda olacağını işaretleyin.` +
+                (currentGroups.length ? `<br>Mevcut: <b>${currentGroups.map(esc).join(', ')}</b>` : '');
+            const listEl = document.getElementById('moveStudentClassList');
+            listEl.innerHTML = (allClasses || []).map((c, i) => `
+                <label class="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 cursor-pointer text-sm">
+                    <input type="checkbox" class="move-group-check w-4 h-4 accent-slate-900" value="${esc(c.class_name)}" ${currentGroups.includes(c.class_name) ? 'checked' : ''}>
+                    <span class="font-semibold text-slate-700">${esc(c.class_name)}</span>
+                </label>`).join('');
+            document.getElementById('moveStudentModal').classList.remove('hidden');
+        }
+
+        function closeMoveStudentModal() {
+            document.getElementById('moveStudentModal').classList.add('hidden');
+            moveStudentContext = null;
+        }
+
+        async function confirmMoveStudentModal() {
+            if (!moveStudentContext) return;
+            const selected = Array.from(document.querySelectorAll('.move-group-check:checked')).map(el => el.value);
+            const newValue = selected.length ? selected.join(GROUP_SEP) : null;
+
+            const { error } = await _supabase.from('users').update({ class_name: newValue }).eq('id', moveStudentContext.userId);
+            if (!error) {
+                alert('Öğrencinin grup bilgisi güncellendi!');
+                closeMoveStudentModal();
+                loadDataFromSupabase();
+            } else {
+                alert('Hata oluştu: ' + error.message + '\n\nNot: "users" tablosunda "class_name" (text) sütununun bulunduğundan emin olun.');
+            }
+        }
+
+        function populateUserClassSelect() {
+            const sel = document.getElementById('usrClassName');
+            if (!sel) return;
+            const currentSelection = sel.value;
+            const classNames = (allClasses || []).map(c => c.class_name);
+            sel.innerHTML = '<option value="">-- Sınıf/Grup Seçilmedi (öğrenci için) --</option>' +
+                classNames.map(name => `<option value="${esc(name)}">${esc(name)}</option>`).join('');
+            if (currentSelection && classNames.includes(currentSelection)) sel.value = currentSelection;
+        }
+
+        function populateStudentNamesDatalist() {
+            const dl = document.getElementById('studentNamesList');
+            if (!dl) return;
+            const students = (allUsers || []).filter(u => u.role === 'student');
+            dl.innerHTML = students.map(s => `<option value="${esc(s.full_name)}">`).join('');
+        }
+
+        function autoFillAttendanceClass() {
+            const name = document.getElementById('attStudentName').value.trim();
+            const student = (allUsers || []).find(u => u.role === 'student' && u.full_name === name);
+            const classSel = document.getElementById('attClassSelect');
+            const groups = student ? getUserGroups(student) : [];
+            if (groups.length && classSel) {
+                // Filtre seçili bir gruptaysa ve öğrenci o gruptaysa onu koru, yoksa ilk grubu seç
+                classSel.value = groups.includes(attendanceClassFilter) ? attendanceClassFilter : groups[0];
+            }
+        }
+
+        function populateClassTeacherSelect() {
+            const sel = document.getElementById('clsTeacherSelect');
+            if (!sel) return;
+            const currentSelection = sel.value;
+            const teachers = (allUsers || []).filter(u => u.role === 'teacher');
+            sel.innerHTML = '<option value="">-- Öğretmen Seçin --</option>' +
+                teachers.map(t => `<option value="${esc(t.full_name)}">${esc(t.full_name)}</option>`).join('') +
+                '<option value="__manual__">✏️ Elle Yaz (Listede Yok)</option>';
+            if (currentSelection) sel.value = currentSelection;
+        }
+
+        function toggleManualTeacherInput() {
+            const sel = document.getElementById('clsTeacherSelect');
+            const manual = document.getElementById('clsTeacherManual');
+            if (sel.value === '__manual__') {
+                manual.classList.remove('hidden');
+                manual.required = true;
+            } else {
+                manual.classList.add('hidden');
+                manual.required = false;
+                manual.value = '';
+            }
+        }
+
+        async function editTeacher(classId, oldTeacher) {
+            const teachers = (allUsers || []).filter(u => u.role === 'teacher').map(t => t.full_name);
+            const hint = teachers.length ? `\n\nKayıtlı öğretmenler: ${teachers.join(', ')}` : '';
+            const newTeacher = prompt('Yeni Öğretmeni Girin:' + hint, oldTeacher);
+            if (newTeacher !== null && newTeacher.trim() !== '') {
+                const { error } = await _supabase.from('classes').update({ teacher_name: newTeacher.trim() }).eq('id', classId);
+                if (!error) {
+                    alert('Öğretmen ataması güncellendi!');
+                    loadDataFromSupabase();
+                } else {
+                    alert('Güncelleme hatası: ' + error.message);
+                }
+            }
+        }
+
+        // ---------- EXCEL'DEN GÖMÜLÜ GRUP LİSTESİNİ SİSTEME YÜKLE ----------
+
+        async function seedGroupsFromExcel() {
+            const totalStudents = new Set(GROUP_SEED.flatMap(g => g.students.map(s => foldName(s.name)))).size;
+            if (!confirm(
+                `${GROUP_SEED.length} grup ve ${totalStudents} öğrenci sisteme yüklenecek.\n\n` +
+                `• Aynı adlı grup zaten varsa tekrar eklenmez.\n` +
+                `• Aynı adlı öğrenci zaten varsa yeni kayıt açılmaz, sadece grup bilgisi eklenir.\n` +
+                `• Yeni öğrencilerin ilk şifresi: ${DEFAULT_STUDENT_PASSWORD}\n\nDevam edilsin mi?`
+            )) return;
+
+            const btn = document.getElementById('btnSeedGroups');
+            const oldHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...';
+
+            try {
+                // Güncel veriyi taze çek
+                const { data: dbClasses, error: e1 } = await _supabase.from('classes').select('*');
+                if (e1) throw e1;
+                const { data: dbUsers, error: e2 } = await _supabase.from('users').select('*');
+                if (e2) throw e2;
+
+                const summary = [];
+
+                // 1. Gruplar
+                const existingClassNames = new Set((dbClasses || []).map(c => c.class_name));
+                const newClasses = GROUP_SEED
+                    .filter(g => !existingClassNames.has(g.class_name))
+                    .map(g => ({ class_name: g.class_name, level: g.level, teacher_name: g.teacher_name, schedule: g.schedule }));
+                if (newClasses.length) summary.push(await bulkInsert('classes', newClasses, []));
+                else summary.push('classes: tüm gruplar zaten kayıtlı.');
+
+                // 2. Öğrenciler -> hangi gruplarda oldukları
+                const roster = new Map(); // foldedName -> { name, groups: [] }
+                GROUP_SEED.forEach(g => g.students.forEach(s => {
+                    const key = foldName(s.name);
+                    if (!roster.has(key)) roster.set(key, { name: s.name, groups: [] });
+                    const entry = roster.get(key);
+                    if (!entry.groups.includes(g.class_name)) entry.groups.push(g.class_name);
+                }));
+
+                const existingStudents = new Map();
+                (dbUsers || []).filter(u => u.role === 'student').forEach(u => existingStudents.set(foldName(u.full_name), u));
+                const usedUsernames = new Set((dbUsers || []).map(u => String(u.username || '').toLowerCase()));
+
+                const makeUsername = (fullName) => {
+                    const base = foldName(fullName).replace(/[^a-z0-9 ]/g, '').trim().replace(/\s+/g, '.') || 'ogrenci';
+                    let candidate = base, n = 2;
+                    while (usedUsernames.has(candidate)) { candidate = base + n; n++; }
+                    usedUsernames.add(candidate);
+                    return candidate;
+                };
+
+                const newUsers = [];
+                const updates = [];
+                roster.forEach((entry, key) => {
+                    const existing = existingStudents.get(key);
+                    if (existing) {
+                        const merged = Array.from(new Set([...getUserGroups(existing), ...entry.groups]));
+                        if (merged.length !== getUserGroups(existing).length) {
+                            updates.push({ id: existing.id, class_name: merged.join(GROUP_SEP) });
+                        }
+                    } else {
+                        newUsers.push({
+                            username: makeUsername(entry.name),
+                            password: DEFAULT_STUDENT_PASSWORD,
+                            full_name: entry.name,
+                            role: 'student',
+                            phone: '',
+                            season: '2026-2027',
+                            class_name: entry.groups.join(GROUP_SEP)
+                        });
+                    }
+                });
+
+                if (newUsers.length) summary.push(await bulkInsert('users', newUsers, ['season', 'class_name']));
+                else summary.push('users: eklenecek yeni öğrenci yok.');
+
+                let updOk = 0, updErr = null;
+                for (const u of updates) {
+                    const { error } = await _supabase.from('users').update({ class_name: u.class_name }).eq('id', u.id);
+                    if (error) updErr = error; else updOk++;
+                }
+                if (updates.length) summary.push(`Mevcut öğrenci grup güncellemesi: ${updOk}/${updates.length}` + (updErr ? ` (Hata: ${updErr.message})` : ''));
+
+                alert('Yükleme tamamlandı:\n\n' + summary.join('\n'));
+                await loadDataFromSupabase();
+            } catch (err) {
+                alert('Yükleme sırasında hata oluştu: ' + (err.message || err));
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = oldHtml;
+            }
+        }
+
+        // ---------- EXCEL İÇE/DIŞA AKTARMA ----------
+
+        // Sütun başlıklarını normalize eder: büyük/küçük harf ve Türkçe karakter (İ, ı, ğ, ü, ş, ö, ç) duyarsız
+        function normalizeKey(k) {
+            return String(k == null ? '' : k)
+                .replace(/İ/g, 'i').replace(/ı/g, 'i')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase().trim()
+                .replace(/[\s-]+/g, '_');
+        }
+
+        // Sayfa (sheet) adlarını normalize eder: harf büyüklüğü, Türkçe karakterler, boşluk/altçizgi/tire fark etmez
+        // Örn: "Kullanıcılar", "KULLANICILAR", "kullanicilar", "Kullanıcı Listesi" -> "kullanicilar" / "kullanicilistesi"
+        function normalizeSheetName(s) {
+            return String(s == null ? '' : s)
+                .replace(/İ/g, 'i').replace(/ı/g, 'i')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '');
+        }
+
+        function normalizeRowKeys(row) {
+            const out = {};
+            Object.keys(row).forEach(k => { out[normalizeKey(k)] = row[k]; });
+            return out;
+        }
+
+        function pick(normRow, aliases) {
+            for (const a of aliases) {
+                if (normRow[a] !== undefined && normRow[a] !== '') return normRow[a];
+            }
+            return '';
+        }
+
+        function toDateStr(v) {
+            if (v === null || v === undefined || v === '') return null;
+            if (v instanceof Date) return v.toISOString().slice(0, 10);
+            if (typeof v === 'number') {
+                const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+                return d.toISOString().slice(0, 10);
+            }
+            const s = String(v).trim();
+            let m = s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
+            if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+            m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+            if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+            return s;
+        }
+
+        function chunkArray(arr, size) {
+            const out = [];
+            for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+            return out;
+        }
+
+        async function bulkInsert(table, rows, optionalColumns) {
+            if (!rows || rows.length === 0) return `${table}: içe aktarılacak geçerli satır bulunamadı.`;
+            const chunks = chunkArray(rows, 200);
+            let inserted = 0;
+            let lastError = null;
+            for (const chunk of chunks) {
+                let payload = chunk;
+                let { error } = await _supabase.from(table).insert(payload);
+                let guard = 0;
+                while (error && guard < optionalColumns.length + 1) {
+                    const missingCol = optionalColumns.find(col => new RegExp(col, 'i').test(error.message || ''));
+                    if (!missingCol) break;
+                    payload = payload.map(r => { const clone = { ...r }; delete clone[missingCol]; return clone; });
+                    const retry = await _supabase.from(table).insert(payload);
+                    error = retry.error;
+                    guard++;
+                }
+                if (!error) inserted += chunk.length;
+                else lastError = error;
+            }
+            return `${table}: ${inserted}/${rows.length} satır eklendi.` + (lastError ? ` (Son hata: ${lastError.message})` : '');
+        }
+
+        function exportToExcel() {
+            if (typeof XLSX === 'undefined') { alert('Excel kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.'); return; }
+            const wb = XLSX.utils.book_new();
+
+            const usersSheet = XLSX.utils.json_to_sheet((allUsers || []).map(u => ({
+                id: u.id, username: u.username, password: u.password, full_name: u.full_name,
+                role: u.role, phone: u.phone, season: u.season || '', class_name: u.class_name || ''
+            })));
+            XLSX.utils.book_append_sheet(wb, usersSheet, 'Kullanicilar');
+
+            const classesSheet = XLSX.utils.json_to_sheet((allClasses || []).map(c => ({
+                id: c.id, class_name: c.class_name, level: c.level, teacher_name: c.teacher_name, schedule: c.schedule
+            })));
+            XLSX.utils.book_append_sheet(wb, classesSheet, 'Siniflar');
+
+            const attendanceSheet = XLSX.utils.json_to_sheet((allAttendance || []).map(a => ({
+                id: a.id, student_name: a.student_name, class_name: a.class_name, date: a.date, status: a.status,
+                teacher_note: a.teacher_note || ''
+            })));
+            XLSX.utils.book_append_sheet(wb, attendanceSheet, 'Yoklama');
+
+            const paymentsSheet = XLSX.utils.json_to_sheet((allPayments || []).map(p => ({
+                id: p.id, student_name: p.student_name, payment_method: p.payment_method, season: p.season,
+                total_amount: p.total_amount, installment_count: p.installment_count, installment_no: p.installment_no,
+                plan_id: p.plan_id, due_date: p.due_date, amount: p.amount, status: p.status,
+                paid_date: p.paid_date || '', received_amount: getReceivedAmount(p)
+            })));
+            XLSX.utils.book_append_sheet(wb, paymentsSheet, 'Odemeler');
+
+            XLSX.writeFile(wb, `brooklyn_academy_yedek_${getTodayStr()}.xlsx`);
+        }
+
+        // --- Excel içe aktarma: tablo tanımları (sayfa adı takma adları, sütun ipuçları, satır dönüştürücüler) ---
+        // aliases: normalizeSheetName() ile karşılaştırılır (harf/Türkçe karakter/boşluk duyarsız)
+        // hints: sayfa adı tanınmazsa sütun başlıklarından tabloyu anlamak için kullanılır (normalizeKey biçiminde)
+        const IMPORT_TABLES = {
+            users: {
+                label: 'Kullanicilar',
+                aliases: ['kullanicilar', 'kullanici', 'kullanicilistesi', 'users', 'user', 'uyeler'],
+                hints: ['username', 'kullanici_adi', 'password', 'sifre', 'full_name', 'fullname', 'ad_soyad', 'role', 'rol'],
+                optional: ['season', 'class_name'],
+                build: rows => rows.map(r => {
+                    const n = normalizeRowKeys(r);
+                    return {
+                        username: pick(n, ['username', 'kullanici_adi']),
+                        password: String(pick(n, ['password', 'sifre']) || ''),
+                        full_name: pick(n, ['full_name', 'fullname', 'ad_soyad']),
+                        role: (pick(n, ['role', 'rol']) || 'student').toString().toLowerCase(),
+                        phone: String(pick(n, ['phone', 'telefon']) || ''),
+                        season: pick(n, ['season', 'sezon']) || '2026-2027',
+                        class_name: pick(n, ['class_name', 'sinif_grubu', 'sinif']) || null
+                    };
+                }).filter(u => u.username && u.full_name)
+            },
+            classes: {
+                label: 'Siniflar',
+                aliases: ['siniflar', 'sinif', 'siniflistesi', 'gruplar', 'classes', 'class'],
+                hints: ['level', 'seviye', 'teacher_name', 'ogretmen', 'ogretmen_adi', 'schedule', 'ders_programi', 'program'],
+                optional: [],
+                build: rows => rows.map(r => {
+                    const n = normalizeRowKeys(r);
+                    return {
+                        class_name: pick(n, ['class_name', 'sinif_adi']),
+                        level: pick(n, ['level', 'seviye']),
+                        teacher_name: pick(n, ['teacher_name', 'ogretmen', 'ogretmen_adi']),
+                        schedule: pick(n, ['schedule', 'ders_programi', 'program'])
+                    };
+                }).filter(c => c.class_name)
+            },
+            attendance: {
+                label: 'Yoklama',
+                aliases: ['yoklama', 'yoklamalar', 'devam', 'devamsizlik', 'attendance'],
+                hints: ['date', 'tarih', 'teacher_note', 'ogretmen_notu', 'not'],
+                optional: ['teacher_note'],
+                build: rows => rows.map(r => {
+                    const n = normalizeRowKeys(r);
+                    return {
+                        student_name: pick(n, ['student_name', 'ogrenci_adi']),
+                        class_name: pick(n, ['class_name', 'sinif_adi', 'sinif']),
+                        date: toDateStr(pick(n, ['date', 'tarih'])),
+                        status: pick(n, ['status', 'durum']) || 'Geldi',
+                        teacher_note: pick(n, ['teacher_note', 'not', 'ogretmen_notu']) || null
+                    };
+                }).filter(a => a.student_name && a.date)
+            },
+            payments: {
+                label: 'Odemeler',
+                aliases: ['odemeler', 'odeme', 'odemeplani', 'taksitler', 'payments', 'payment'],
+                hints: ['amount', 'tutar', 'total_amount', 'toplam_tutar', 'installment_no', 'installment_count', 'taksit_no', 'taksit_sayisi', 'plan_id', 'due_date', 'vade_tarihi', 'payment_method', 'odeme_yontemi'],
+                optional: ['paid_date', 'received_amount'],
+                build: rows => rows.map(r => {
+                    const n = normalizeRowKeys(r);
+                    return {
+                        student_name: pick(n, ['student_name', 'ogrenci_adi']),
+                        payment_method: pick(n, ['payment_method', 'odeme_yontemi']) || 'Nakit/Elden',
+                        season: pick(n, ['season', 'sezon']) || '2026-2027',
+                        total_amount: Number(pick(n, ['total_amount', 'toplam_tutar']) || 0),
+                        installment_count: Number(pick(n, ['installment_count', 'taksit_sayisi']) || 1),
+                        installment_no: Number(pick(n, ['installment_no', 'taksit_no']) || 1),
+                        plan_id: pick(n, ['plan_id']) || `import_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                        due_date: toDateStr(pick(n, ['due_date', 'vade_tarihi'])),
+                        amount: Number(pick(n, ['amount', 'tutar']) || 0),
+                        status: pick(n, ['status', 'durum']) || 'Bekliyor',
+                        paid_date: toDateStr(pick(n, ['paid_date', 'odeme_tarihi'])),
+                        received_amount: Number(pick(n, ['received_amount', 'alinan_tutar']) || 0)
+                    };
+                }).filter(p => p.student_name && p.amount)
+            }
+        };
+
+        // Aktif sekmeye göre varsayılan tablo (tek sayfalı dosyada başlıklardan tablo anlaşılamazsa kullanılır)
+        const IMPORT_TAB_TO_TABLE = {
+            'tab-students': 'users',
+            'tab-classes': 'classes',
+            'tab-attendance': 'attendance',
+            'tab-payments': 'payments'
+        };
+
+        // ---------- "GRUPLANMIŞ" EXCEL DÜZENİ ----------
+        // Düzen: bir başlık satırı (Seviye | Gün(ler) | Saat), altında o grubun öğrencileri (Ad Soyad | Sınıf | Etiket).
+        // Örn:  EU3 | PAZARTESİ - ÇARŞAMBA | 16:00-18:10
+        //       Adem Emre Güner | 5.SINIF
+        const DAY_TOKENS = { pazartesi: 'Pzt', sali: 'Sal', carsamba: 'Çar', persembe: 'Per', cuma: 'Cum', cumartesi: 'Cmt', pazar: 'Paz',
+                             pzt: 'Pzt', sal: 'Sal', car: 'Çar', per: 'Per', cum: 'Cum', cmt: 'Cmt', paz: 'Paz' };
+        const DAY_FULL = { Pzt: 'Pazartesi', Sal: 'Salı', Çar: 'Çarşamba', Per: 'Perşembe', Cum: 'Cuma', Cmt: 'Cumartesi', Paz: 'Pazar' };
+
+        function parseDaysFromText(text) {
+            const toks = foldName(text).split(/[^a-z]+/).filter(Boolean);
+            const days = [];
+            toks.forEach(t => { if (DAY_TOKENS[t] && !days.includes(DAY_TOKENS[t])) days.push(DAY_TOKENS[t]); });
+            return days;
+        }
+
+        function parseTimeFromText(text) {
+            const m = String(text || '').match(/(\d{1,2})[:.](\d{2})(?:\s*[-–—]\s*(\d{1,2})[:.](\d{2}))?/);
+            if (!m) return null;
+            const pad = n => String(n).padStart(2, '0');
+            const start = `${pad(m[1])}:${m[2]}`;
+            const end = m[3] !== undefined ? `${pad(m[3])}:${m[4]}` : '';
+            return { start, range: end ? `${start}-${end}` : start };
+        }
+
+        function parseGroupedLayout(ws) {
+            const grid = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false, blankrows: true });
+            const cellStr = (r, c) => String((grid[r] && grid[r][c] != null) ? grid[r][c] : '').trim();
+
+            // 1. Grup başlıklarını bul: bir hücre + sağındaki 3 hücre içinde gün ve saat bilgisi
+            const anchors = [];
+            for (let r = 0; r < grid.length; r++) {
+                const width = (grid[r] || []).length;
+                for (let c = 0; c < width; c++) {
+                    const lvl = cellStr(r, c);
+                    if (!lvl) continue;
+                    if (parseDaysFromText(lvl).length || parseTimeFromText(lvl)) continue;
+                    let days = [], time = null;
+                    for (let k = 1; k <= 3; k++) {
+                        const t = cellStr(r, c + k);
+                        if (!t) continue;
+                        if (!days.length) days = parseDaysFromText(t);
+                        if (!time) time = parseTimeFromText(t);
+                    }
+                    if (days.length && time) anchors.push({ r, c, level: lvl, days, time });
+                }
+            }
+            if (!anchors.length) return [];
+
+            // 2. Her başlığın altındaki öğrencileri (aynı sütunda, sonraki başlığa kadar) topla
+            return anchors.map(a => {
+                const next = anchors.find(b => b.c === a.c && b.r > a.r);
+                const endRow = next ? next.r : grid.length;
+                const students = [];
+                const seen = new Set();
+                for (let rr = a.r + 1; rr < endRow; rr++) {
+                    let off = 0;
+                    let name = cellStr(rr, a.c);
+                    if (/^\d+[.)]?$/.test(name)) { off = 1; name = cellStr(rr, a.c + 1); } // baştaki sıra numarasını atla
+                    if (!name) continue;
+                    const key = foldName(name);
+                    if (seen.has(key)) continue;
+                    seen.add(key);
+                    students.push({ name, grade: cellStr(rr, a.c + 1 + off), tag: cellStr(rr, a.c + 2 + off) });
+                }
+                return {
+                    class_name: `${a.level} (${a.days.join('-')} ${a.time.start})`,
+                    level: a.level,
+                    teacher_name: 'Atanmadı',
+                    schedule: `${a.days.map(d => DAY_FULL[d]).join(' - ')} ${a.time.range}`,
+                    students
+                };
+            });
+        }
+
+        function getActiveImportTable() {
+            const active = document.querySelector('.tab-content:not(.hidden)');
+            return active ? (IMPORT_TAB_TO_TABLE[active.id] || null) : null;
+        }
+
+        // Sayfa adına göre tablo bul: önce birebir eşleşme, sonra "içeriyor" eşleşmesi
+        function assignSheetsByName(sheetNames) {
+            const assigned = {};
+            const used = new Set();
+            const tables = Object.keys(IMPORT_TABLES);
+
+            // 1. geçiş: normalize edilmiş birebir eşleşme
+            tables.forEach(t => {
+                const aliases = IMPORT_TABLES[t].aliases;
+                const found = sheetNames.find(n => !used.has(n) && aliases.includes(normalizeSheetName(n)));
+                if (found) { assigned[t] = found; used.add(found); }
+            });
+            // 2. geçiş: takma ad sayfa adının içinde geçiyor mu (örn. "2026 Kullanıcılar")
+            tables.forEach(t => {
+                if (assigned[t]) return;
+                const aliases = IMPORT_TABLES[t].aliases.filter(a => a.length >= 4);
+                const found = sheetNames.find(n => {
+                    if (used.has(n)) return false;
+                    const norm = normalizeSheetName(n);
+                    return aliases.some(a => norm.includes(a));
+                });
+                if (found) { assigned[t] = found; used.add(found); }
+            });
+            return { assigned, used };
+        }
+
+        // Sütun başlıklarına bakarak sayfanın hangi tabloya ait olduğunu tahmin et
+        function detectTableByHeaders(ws) {
+            const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+            if (!rows.length) return { table: null, score: 0 };
+            const keys = new Set(Object.keys(rows[0]).map(normalizeKey));
+            let best = null, bestScore = 0;
+            Object.keys(IMPORT_TABLES).forEach(t => {
+                const score = IMPORT_TABLES[t].hints.filter(h => keys.has(h)).length;
+                if (score > bestScore) { best = t; bestScore = score; }
+            });
+            return { table: best, score: bestScore };
+        }
+
+        async function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!confirm('Excel dosyasındaki veriler mevcut Supabase tablolarına EKLENECEKTİR (mevcut kayıtların üzerine yazılmaz, yeni satır olarak eklenir). Devam etmek istiyor musunuz?')) {
+                event.target.value = '';
+                return;
+            }
+
+            try {
+                const data = await file.arrayBuffer();
+                const wb = XLSX.read(data, { type: 'array', cellDates: true });
+                const sheetNames = wb.SheetNames || [];
+                const notes = [];
+
+                // 1. Sayfa adlarına göre eşleştir (büyük/küçük harf ve Türkçe karakter duyarsız)
+                const { assigned, used } = assignSheetsByName(sheetNames);
+
+                // 2. Adı tanınmayan sayfaları sütun başlıklarından tanı
+                sheetNames.filter(n => !used.has(n)).forEach(n => {
+                    const { table, score } = detectTableByHeaders(wb.Sheets[n]);
+                    if (table && score >= 2 && !assigned[table]) {
+                        assigned[table] = n;
+                        used.add(n);
+                        notes.push(`"${n}" sayfasının adı tanınmadı; sütun başlıklarına göre "${IMPORT_TABLES[table].label}" olarak okundu.`);
+                    }
+                });
+
+                // 3. Hâlâ eşleşme yoksa ve dosyada tek sayfa varsa: ilk sayfayı varsayılan olarak oku
+                if (Object.keys(assigned).length === 0 && sheetNames.length === 1) {
+                    const onlySheet = sheetNames[0];
+                    let table = detectTableByHeaders(wb.Sheets[onlySheet]).table;
+                    let how = 'sütun başlıklarına göre';
+                    if (!table) {
+                        table = getActiveImportTable() || 'users';
+                        how = 'bulunduğunuz sekmeye göre';
+                    }
+                    assigned[table] = onlySheet;
+                    notes.push(`Dosyada tek sayfa var ("${onlySheet}"); adı tanınmadığı için ${how} "${IMPORT_TABLES[table].label}" olarak okundu.`);
+                }
+
+                // 4. Yine de eşleşme sağlanamadıysa esnek bir hata mesajı göster
+                if (Object.keys(assigned).length === 0) {
+                    const expected = Object.values(IMPORT_TABLES).map(t => `• ${t.label}  (kabul edilen: ${t.aliases.slice(0, 3).join(', ')} ...)`).join('\n');
+                    alert(
+                        'Dosyada tanınan bir sayfa bulunamadı.\n\n' +
+                        `Dosyanızdaki sayfalar: ${sheetNames.length ? sheetNames.map(n => `"${n}"`).join(', ') : '(hiç sayfa yok)'}\n\n` +
+                        'Beklenen sayfa adlarından en az biri gerekli (büyük/küçük harf ve Türkçe karakter fark etmez):\n' +
+                        expected +
+                        '\n\nİpucu: Sayfa adını yukarıdakilerden biriyle değiştirin ya da sayfadaki sütun başlıklarını (örn. username, full_name / class_name, level / student_name, date / amount, plan_id) kontrol edin.'
+                    );
+                    event.target.value = '';
+                    return;
+                }
+
+                // 5. Eşleşen sayfaları ilgili tablolara aktar
+                const summary = [];
+                for (const table of Object.keys(IMPORT_TABLES)) {
+                    const sheetName = assigned[table];
+                    if (!sheetName) continue;
+                    const cfg = IMPORT_TABLES[table];
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: '' });
+                    const payload = cfg.build(rows);
+                    let line = `[${sheetName}] ` + await bulkInsert(table, payload, cfg.optional);
+                    if (payload.length === 0) {
+                        const expectedCols = {
+                            users: 'username (kullanici_adi), full_name (ad_soyad)  | opsiyonel: password, role, phone, season, class_name',
+                            classes: 'class_name (sinif_adi)  | opsiyonel: level, teacher_name, schedule',
+                            attendance: 'student_name (ogrenci_adi), date (tarih)  | opsiyonel: class_name, status, teacher_note',
+                            payments: 'student_name (ogrenci_adi), amount (tutar)  | opsiyonel: total_amount, installment_no, plan_id, due_date, status'
+                        }[table];
+                        const foundCols = rows.length ? Object.keys(rows[0]).filter(k => !/^__EMPTY/.test(k)) : [];
+                        line += `\n   ↳ Sayfada ${rows.length} veri satırı okundu.` +
+                            `\n   ↳ Okunan sütun başlıkları: ${foundCols.length ? foundCols.join(', ') : '(başlık bulunamadı - ilk satır boş ya da başlık olmayabilir)'}` +
+                            `\n   ↳ Gerekli sütunlar: ${expectedCols}`;
+                    }
+                    summary.push(line);
+                }
+
+                event.target.value = '';
+                alert('İçe aktarma tamamlandı:\n\n' + summary.join('\n') + (notes.length ? '\n\nBilgi:\n' + notes.join('\n') : ''));
+                loadDataFromSupabase();
+            } catch (err) {
+                alert('Excel dosyası okunurken hata oluştu: ' + err.message);
+                event.target.value = '';
+            }
+        }
+
+        function formatTRDate(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function setPaymentSeason(season) {
+            currentPaymentSeason = season;
+            document.querySelectorAll('.season-tab-btn').forEach(btn => {
+                if (btn.dataset.season === season) {
+                    btn.classList.add('bg-slate-900', 'text-white');
+                    btn.classList.remove('bg-slate-100', 'text-slate-600');
+                } else {
+                    btn.classList.remove('bg-slate-900', 'text-white');
+                    btn.classList.add('bg-slate-100', 'text-slate-600');
+                }
+            });
+            renderPaymentsPlans();
+        }
+
+        function filterPayments() {
+            paymentSearchQuery = document.getElementById('paymentSearchInput').value.trim().toLowerCase();
+            renderPaymentsPlans();
+        }
+
+        function togglePlanDetails(safeId) {
+            const details = document.getElementById('details-' + safeId);
+            const chevron = document.getElementById('chevron-' + safeId);
+            if (!details) return;
+            details.classList.toggle('hidden');
+            if (chevron) chevron.classList.toggle('rotate-180');
+        }
+
+        function renderPaymentsPlans() {
+            const listEl = document.getElementById('paymentsPlanList');
+            if (!listEl) return;
+
+            if (!allPayments || allPayments.length === 0) {
+                listEl.innerHTML = `
+                    <div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 text-sm">
+                        <i class="fa-solid fa-inbox text-2xl mb-2 block"></i>
+                        Henüz kayıtlı ödeme planı yok.
+                    </div>`;
+                return;
+            }
+
+            // Sezona göre filtrele
+            let payments = allPayments;
+            if (currentPaymentSeason !== 'Tümü') {
+                payments = payments.filter(p => (p.season || '') === currentPaymentSeason);
+            }
+
+            // Taksitleri plan_id'ye göre grupla (plan_id yoksa tekil kayıt olarak ele al)
+            const groups = {};
+            payments.forEach(p => {
+                const key = p.plan_id || ('single_' + p.id);
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(p);
+            });
+
+            let planKeys = Object.keys(groups).sort((a, b) => {
+                const na = (groups[a][0].student_name || '').toLowerCase();
+                const nb = (groups[b][0].student_name || '').toLowerCase();
+                return na.localeCompare(nb, 'tr');
+            });
+
+            // Arama filtresi
+            if (paymentSearchQuery) {
+                planKeys = planKeys.filter(key => (groups[key][0].student_name || '').toLowerCase().includes(paymentSearchQuery));
+            }
+
+            if (planKeys.length === 0) {
+                listEl.innerHTML = `
+                    <div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 text-sm">
+                        <i class="fa-solid fa-magnifying-glass text-2xl mb-2 block"></i>
+                        Aramanızla veya seçili sezonla eşleşen kayıt bulunamadı.
+                    </div>`;
+                return;
+            }
+
+            const methodIcons = { 'Nakit/Elden': '💵', 'Nakit': '💵', 'Kredi Kartı': '💳', 'Banka Havalesi': '🏦', 'Çek': '🧾' };
+            const isAdmin = currentUser.role === 'admin';
+
+            listEl.innerHTML = `<p class="text-[11px] text-slate-400 font-semibold px-1">${planKeys.length} öğrenci listeleniyor</p>` +
+                `<div class="space-y-2.5">` + planKeys.map(key => {
+                const rows = groups[key].slice().sort((a, b) => (a.installment_no || 1) - (b.installment_no || 1));
+                const first = rows[0];
+                const totalAmount = first.total_amount ? Number(first.total_amount) : rows.reduce((s, r) => s + Number(r.amount || 0), 0);
+                const totalCount = first.installment_count || rows.length;
+                const paidRows = rows.filter(r => r.status === 'Ödendi');
+                const paidCount = paidRows.length;
+                const paidAmount = rows.reduce((s, r) => s + getReceivedAmount(r), 0);
+                const remaining = +(totalAmount - paidAmount).toFixed(2);
+                const progressPct = totalAmount > 0 ? Math.min(100, Math.round((paidAmount / totalAmount) * 100)) : 0;
+                const isFullyPaid = remaining <= 0.01;
+                const hasPaid = paidCount > 0;
+                const safeId = key.replace(/[^a-zA-Z0-9_]/g, '');
+
+                return `
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+
+                    <!-- Kapalı Satır (Öğrenci Özeti) -->
+                    <button onclick="togglePlanDetails('${safeId}')" class="w-full flex items-center justify-between gap-3 p-4 hover:bg-slate-50 transition-all text-left">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl ${isFullyPaid ? 'bg-emerald-500' : 'bg-slate-900'} text-white flex items-center justify-center font-black shrink-0 text-sm">
+                                ${(first.student_name || '?').charAt(0).toUpperCase()}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-bold text-slate-800 text-sm truncate">${first.student_name}</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5 truncate">
+                                    ${first.season ? `<span class="font-semibold text-slate-600">${first.season}</span> · ` : ''}
+                                    ${methodIcons[first.payment_method] || ''} ${first.payment_method || 'Belirtilmedi'} · ${paidCount}/${totalCount} Ay
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            ${isFullyPaid ? `<span class="hidden sm:inline-block bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap"><i class="fa-solid fa-circle-check mr-1"></i>Tamamlandı</span>` : ''}
+                            <div class="hidden sm:block text-right">
+                                <p class="text-xs font-black text-slate-900">₺${totalAmount.toLocaleString('tr-TR')}</p>
+                                <p class="text-[10px] font-bold ${isFullyPaid ? 'text-emerald-600' : 'text-amber-600'}">%${progressPct}</p>
+                            </div>
+                            <i id="chevron-${safeId}" class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform"></i>
+                        </div>
+                    </button>
+
+                    <!-- Açılan Detay -->
+                    <div id="details-${safeId}" class="hidden border-t border-slate-100 p-5">
+
+                        ${isAdmin ? `
+                        <div class="flex justify-end mb-3">
+                            ${hasPaid
+                                ? `<span title="Ödeme alınmış planlar silinemez. Önce ilgili taksitleri 'İptal Et' ile geri alın." class="text-slate-300 text-[11px] font-semibold flex items-center gap-1.5 cursor-not-allowed"><i class="fa-solid fa-lock"></i> Plan Korumalı</span>`
+                                : `<button onclick="deletePlan('${key}')" class="text-rose-500 hover:text-rose-700 text-[11px] font-bold bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg"><i class="fa-solid fa-trash mr-1"></i> Planı Sil</button>`}
+                        </div>` : ''}
+
+                        <!-- Özet Kutuları -->
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="bg-slate-50 rounded-xl p-2.5 text-center border border-slate-100">
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Toplam</p>
+                                <p class="text-sm font-black text-slate-900 mt-0.5">₺${totalAmount.toLocaleString('tr-TR')}</p>
+                            </div>
+                            <div class="bg-emerald-50 rounded-xl p-2.5 text-center border border-emerald-100">
+                                <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Ödenen</p>
+                                <p class="text-sm font-black text-emerald-700 mt-0.5">₺${paidAmount.toLocaleString('tr-TR')}</p>
+                            </div>
+                            <div class="bg-amber-50 rounded-xl p-2.5 text-center border border-amber-100">
+                                <p class="text-[9px] font-bold text-amber-600 uppercase tracking-wider">Kalan</p>
+                                <p class="text-sm font-black text-amber-700 mt-0.5">₺${remaining.toLocaleString('tr-TR')}</p>
+                            </div>
+                        </div>
+
+                        <!-- İlerleme -->
+                        <div class="mt-3.5">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-[11px] font-bold text-slate-600"><i class="fa-solid fa-calendar-check text-slate-400 mr-1"></i>${paidCount}/${totalCount} Ay Ödendi</span>
+                                <span class="text-[11px] font-black ${isFullyPaid ? 'text-emerald-600' : 'text-amber-600'}">%${progressPct}</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                <div class="h-full ${isFullyPaid ? 'bg-emerald-500' : 'bg-amber-500'} rounded-full transition-all" style="width:${progressPct}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Aylık Taksit Takvimi -->
+                        <div class="mt-4">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Aylık Taksit Takvimi</p>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                ${rows.map(r => {
+                                    const paid = r.status === 'Ödendi';
+                                    const receivedR = getReceivedAmount(r);
+                                    const dueAmountR = Number(r.amount || 0);
+                                    const remainingR = +(dueAmountR - receivedR).toFixed(2);
+                                    const partial = !paid && receivedR > 0;
+                                    const cardClass = paid ? 'bg-emerald-50 border-emerald-200' : (partial ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200');
+                                    const iconClass = paid ? 'fa-circle-check text-emerald-500' : (partial ? 'fa-circle-half-stroke text-amber-500' : 'fa-clock text-amber-400');
+                                    return `
+                                    <div class="p-2.5 rounded-xl border ${cardClass}">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-[9px] font-bold text-slate-400">${r.installment_no || 1}. Ay</span>
+                                            <i class="fa-solid ${iconClass} text-[11px]"></i>
+                                        </div>
+                                        <p class="text-[10.5px] font-semibold text-slate-600 leading-tight">${formatTRDate(r.due_date)}</p>
+                                        <p class="text-xs font-black ${paid ? 'text-emerald-700' : (partial ? 'text-amber-700' : 'text-slate-800')} mt-0.5">₺${dueAmountR.toLocaleString('tr-TR')}</p>
+                                        ${partial ? `<p class="text-[9px] text-amber-700 font-bold mt-1">₺${receivedR.toLocaleString('tr-TR')} alındı · Kalan ₺${remainingR.toLocaleString('tr-TR')}</p>` : ''}
+                                        ${(paid || partial) && r.paid_date ? `<p class="text-[9px] ${paid ? 'text-emerald-600' : 'text-amber-600'} font-semibold mt-1">Son ödeme: ${formatTRDate(r.paid_date)}</p>` : ''}
+                                        ${isAdmin ? (
+                                            paid
+                                                ? `<button onclick="cancelInstallmentPayment(${r.id})" class="mt-1.5 w-full text-[9px] font-bold text-slate-400 hover:text-slate-600">İptal Et</button>`
+                                                : partial
+                                                    ? `<div class="mt-1.5 flex gap-1">
+                                                        <button onclick="openPaymentModal(${r.id})" class="flex-1 text-[10px] font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg py-1.5 transition-all"><i class="fa-solid fa-plus mr-1"></i>Ekle</button>
+                                                        <button onclick="cancelInstallmentPayment(${r.id})" class="text-[9px] font-bold text-slate-400 hover:text-slate-600 px-1.5">İptal</button>
+                                                       </div>`
+                                                    : `<button onclick="openPaymentModal(${r.id})" class="mt-1.5 w-full text-[10px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg py-1.5 transition-all"><i class="fa-solid fa-hand-holding-dollar mr-1"></i>Ödeme Al</button>`
+                                        ) : ''}
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('') + `</div>`;
+        }
+
+        async function editSchedule(classId, oldSchedule) {
+            const newSchedule = prompt("Yeni Ders Programını Girin:", oldSchedule);
+            if (newSchedule !== null && newSchedule.trim() !== "") {
+                const { error } = await _supabase.from('classes').update({ schedule: newSchedule.trim() }).eq('id', classId);
+                if (!error) {
+                    alert('Ders programı başarıyla güncellendi!');
+                    loadDataFromSupabase();
+                } else {
+                    alert('Güncelleme hatası: ' + error.message);
+                }
+            }
+        }
+
+        function toggleAdminForm(formId) {
+            const form = document.getElementById(formId);
+            form.classList.toggle('hidden');
+        }
+
+        async function addUser(e) {
+            e.preventDefault();
+            const username = document.getElementById('usrName').value.trim();
+            const password = document.getElementById('usrPass').value.trim();
+            const full_name = document.getElementById('usrFullName').value.trim();
+            const role = document.getElementById('usrRole').value;
+            const phone = document.getElementById('usrPhone').value.trim();
+            const season = document.getElementById('usrSeason').value;
+            const class_name = document.getElementById('usrClassName') ? document.getElementById('usrClassName').value : '';
+
+            let payload = { username, password, full_name, role, phone, season, class_name: class_name || null };
+            let { error } = await _supabase.from('users').insert([payload]);
+            let guard = 0;
+            while (error && guard < 2) {
+                if (/season/i.test(error.message || '')) { delete payload.season; }
+                else if (/class_name/i.test(error.message || '')) { delete payload.class_name; }
+                else break;
+                const retry = await _supabase.from('users').insert([payload]);
+                error = retry.error;
+                guard++;
+            }
+            if (!error) {
+                alert('Kullanıcı başarıyla eklendi!');
+                document.getElementById('formAddUser').reset();
+                toggleAdminForm('formAddUser');
+                loadDataFromSupabase();
+            } else alert('Hata oluştu: ' + error.message + '\n\nNot: Sezon ve Sınıf/Grup bilgilerini kaydedebilmek için "users" tablosunda "season" ve "class_name" (text) sütunlarının bulunduğundan emin olun.');
+        }
+
+        async function addClass(e) {
+            e.preventDefault();
+            const class_name = document.getElementById('clsName').value.trim();
+            const level = document.getElementById('clsLevel').value.trim();
+            const teacherSel = document.getElementById('clsTeacherSelect');
+            const teacherManual = document.getElementById('clsTeacherManual');
+            const teacher_name = teacherSel.value === '__manual__' ? teacherManual.value.trim() : teacherSel.value;
+            const schedule = document.getElementById('clsSchedule').value.trim();
+
+            if (!teacher_name) { alert('Lütfen bir öğretmen seçin veya adını yazın.'); return; }
+            if (class_name.includes(GROUP_SEP)) { alert('Sınıf adında ";" karakteri kullanılamaz.'); return; }
+
+            const { error } = await _supabase.from('classes').insert([{ class_name, level, teacher_name, schedule }]);
+            if (!error) {
+                alert('Sınıf ve ders programı başarıyla eklendi!');
+                document.getElementById('formAddClass').reset();
+                toggleManualTeacherInput();
+                toggleAdminForm('formAddClass');
+                loadDataFromSupabase();
+            } else alert('Hata oluştu: ' + error.message);
+        }
+
+        function toggleManualStudentInput() {
+            const sel = document.getElementById('payStudentSelect');
+            const manual = document.getElementById('payStudentManual');
+            if (sel.value === '__manual__') {
+                manual.classList.remove('hidden');
+                manual.required = true;
+            } else {
+                manual.classList.add('hidden');
+                manual.required = false;
+                manual.value = '';
+            }
+        }
+
+        function updateInstallmentPreview() {
+            const total = parseFloat(document.getElementById('payTotalAmount').value) || 0;
+            const count = parseInt(document.getElementById('payInstallmentCount').value) || 1;
+            const preview = document.getElementById('payInstallmentPreview');
+            if (total > 0 && count > 0) {
+                const perInstallment = total / count;
+                preview.innerHTML = `₺${perInstallment.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <span class="text-[11px] font-semibold text-amber-600">× ${count} taksit</span>`;
+            } else {
+                preview.innerText = 'Toplam tutar ve taksit sayısı girin';
+            }
+        }
+
+        function addMonths(dateStr, months) {
+            const d = new Date(dateStr + 'T00:00:00');
+            d.setMonth(d.getMonth() + months);
+            return d.toISOString().split('T')[0];
+        }
+
+        async function addPaymentPlan(e) {
+            e.preventDefault();
+
+            const sel = document.getElementById('payStudentSelect');
+            const manual = document.getElementById('payStudentManual');
+            const student_name = sel.value === '__manual__' ? manual.value.trim() : sel.value;
+
+            if (!student_name) { alert('Lütfen bir öğrenci seçin veya adını yazın.'); return; }
+
+            const payment_method = document.getElementById('payMethod').value;
+            const season = document.getElementById('paySeason').value;
+            const total_amount = parseFloat(document.getElementById('payTotalAmount').value);
+            const installment_count = parseInt(document.getElementById('payInstallmentCount').value);
+            const firstDate = document.getElementById('payFirstDueDate').value;
+
+            if (!total_amount || total_amount <= 0 || !installment_count || installment_count < 1 || !firstDate) {
+                alert('Lütfen tüm alanları doğru şekilde doldurun.');
+                return;
+            }
+
+            const plan_id = `plan_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+            const baseAmount = Math.floor((total_amount / installment_count) * 100) / 100;
+
+            const installments = [];
+            for (let i = 0; i < installment_count; i++) {
+                const isLast = i === installment_count - 1;
+                const amount = isLast ? +(total_amount - baseAmount * (installment_count - 1)).toFixed(2) : baseAmount;
+                installments.push({
+                    student_name,
+                    payment_method,
+                    season,
+                    total_amount,
+                    installment_count,
+                    installment_no: i + 1,
+                    plan_id,
+                    due_date: addMonths(firstDate, i),
+                    amount,
+                    status: 'Bekliyor'
+                });
+            }
+
+            const { error } = await _supabase.from('payments').insert(installments);
+            if (!error) {
+                alert(`Ödeme planı başarıyla oluşturuldu! ${installment_count} taksit kaydedildi.`);
+                document.getElementById('formAddPayment').reset();
+                document.getElementById('payInstallmentPreview').innerText = 'Toplam tutar ve taksit sayısı girin';
+                toggleManualStudentInput();
+                toggleAdminForm('formAddPayment');
+                loadDataFromSupabase();
+            } else {
+                alert('Hata oluştu: ' + error.message + '\n\nNot: "payments" tablosunda payment_method, season, total_amount, installment_count, installment_no, plan_id sütunlarının bulunduğundan emin olun.');
+            }
+        }
+
+        // Bir taksitten şimdiye kadar fiilen alınmış tutarı döner.
+        // "received_amount" sütunu henüz yoksa, eski kayıtlarla uyumlu olması için
+        // "Ödendi" ise taksit tutarının tamamı alınmış kabul edilir.
+        function getReceivedAmount(r) {
+            if (r.received_amount !== undefined && r.received_amount !== null) return Number(r.received_amount);
+            return r.status === 'Ödendi' ? Number(r.amount || 0) : 0;
+        }
+
+        let paymentModalContext = null;
+
+        function openPaymentModal(installmentId) {
+            const row = allPayments.find(p => p.id === installmentId);
+            if (!row) return;
+            paymentModalContext = { installmentId };
+
+            const dueAmount = Number(row.amount || 0);
+            const received = getReceivedAmount(row);
+            const remaining = +(dueAmount - received).toFixed(2);
+
+            document.getElementById('paymentModalInfo').innerHTML =
+                `<b>${row.student_name}</b> · ${row.installment_no || 1}. Taksit<br>` +
+                `Taksit Tutarı: <b>₺${dueAmount.toLocaleString('tr-TR')}</b>` +
+                (received > 0
+                    ? `<br>Şimdiye Kadar Alınan: ₺${received.toLocaleString('tr-TR')} · Kalan: <b>₺${Math.max(remaining, 0).toLocaleString('tr-TR')}</b>`
+                    : '');
+
+            document.getElementById('paymentModalAmount').value = remaining > 0 ? remaining : dueAmount;
+            document.getElementById('paymentModalDate').value = getTodayStr();
+            document.getElementById('paymentModal').classList.remove('hidden');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.add('hidden');
+            paymentModalContext = null;
+        }
+
+        async function confirmPaymentModal() {
+            if (!paymentModalContext) return;
+            const enteredAmount = parseFloat(document.getElementById('paymentModalAmount').value);
+            const enteredDate = document.getElementById('paymentModalDate').value;
+
+            if (!enteredAmount || enteredAmount <= 0) { alert('Lütfen geçerli bir tutar girin.'); return; }
+            if (!enteredDate) { alert('Lütfen ödeme tarihini girin. Bu alan zorunludur.'); return; }
+
+            const row = allPayments.find(p => p.id === paymentModalContext.installmentId);
+            if (!row) { closePaymentModal(); return; }
+
+            const dueAmount = Number(row.amount || 0);
+            const previousReceived = getReceivedAmount(row);
+            const newReceived = +(previousReceived + enteredAmount).toFixed(2);
+            const newStatus = newReceived >= dueAmount - 0.01 ? 'Ödendi' : 'Kısmi Ödendi';
+
+            let payload = { status: newStatus, paid_date: enteredDate, received_amount: newReceived };
+            let { error } = await _supabase.from('payments').update(payload).eq('id', row.id);
+
+            let columnWarning = '';
+            if (error && /received_amount/i.test(error.message || '')) {
+                delete payload.received_amount;
+                const retry = await _supabase.from('payments').update(payload).eq('id', row.id);
+                error = retry.error;
+                columnWarning = '\n\nNot: Kısmi (elden) ödemeleri kalıcı olarak takip edebilmek için Supabase "payments" tablosuna "received_amount" (numeric) sütunu eklemeniz gerekiyor.';
+            }
+            if (error && /paid_date/i.test(error.message || '')) {
+                delete payload.paid_date;
+                const retry2 = await _supabase.from('payments').update(payload).eq('id', row.id);
+                error = retry2.error;
+            }
+
+            if (!error) {
+                closePaymentModal();
+                loadDataFromSupabase();
+                if (columnWarning) setTimeout(() => alert(columnWarning.trim()), 300);
+            } else {
+                alert('Hata oluştu: ' + error.message);
+            }
+        }
+
+        async function cancelInstallmentPayment(id) {
+            if (!confirm('Bu taksitin ödeme kaydını sıfırlamak (İptal Et) istediğinize emin misiniz?')) return;
+            let payload = { status: 'Bekliyor', received_amount: 0, paid_date: null };
+            let { error } = await _supabase.from('payments').update(payload).eq('id', id);
+            if (error && /received_amount/i.test(error.message || '')) {
+                delete payload.received_amount;
+                const retry = await _supabase.from('payments').update(payload).eq('id', id);
+                error = retry.error;
+            }
+            if (error && /paid_date/i.test(error.message || '')) {
+                delete payload.paid_date;
+                const retry2 = await _supabase.from('payments').update(payload).eq('id', id);
+                error = retry2.error;
+            }
+            if (!error) loadDataFromSupabase();
+            else alert('Hata oluştu: ' + error.message);
+        }
+
+        async function deletePlan(key) {
+            // Korumalı sistem: ödeme alınmış (Ödendi) taksiti olan bir plan silinemez
+            const rows = allPayments.filter(p => (p.plan_id || ('single_' + p.id)) === key);
+            if (rows.some(r => r.status === 'Ödendi')) {
+                alert('Bu planda ödendi olarak işaretlenmiş taksitler var. Ödeme alınan kayıtlar silinemez. Önce ilgili taksitleri "İptal Et" ile geri alın, ardından tekrar deneyin.');
+                return;
+            }
+            if (!confirm('Bu ödeme planındaki tüm taksitleri silmek istediğinize emin misiniz?')) return;
+            if (key.startsWith('single_')) {
+                const id = key.replace('single_', '');
+                await _supabase.from('payments').delete().eq('id', id);
+            } else {
+                await _supabase.from('payments').delete().eq('plan_id', key);
+            }
+            loadDataFromSupabase();
+        }
+
+        async function deleteRecord(table, id) {
+            if (confirm('Bu kaydı veritabanından silmek istediğinize emin misiniz?')) {
+                const { error } = await _supabase.from(table).delete().eq('id', id);
+                if (!error) loadDataFromSupabase();
+                else alert('Silme işleminde hata oluştu.');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('brooklyn_user');
+            document.getElementById('appScreen').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
         }
 
         function switchTab(tabId) {
@@ -314,377 +2458,6 @@
                 activeBtn.classList.remove('text-slate-600', 'font-medium');
             }
         }
-
-        function renderAll() {
-            if (!currentUser) return;
-
-            // Update user info
-            document.getElementById('userDisplayName').textContent = currentUser.full_name;
-            document.getElementById('userRoleBadge').textContent = currentUser.role === 'student' ? 'Öğrenci' : currentUser.role === 'teacher' ? 'Öğretmen' : currentUser.role === 'parent' ? 'Veli' : 'Yönetici';
-
-            // Render dashboard cards
-            renderDashboardCards();
-
-            // Render classes
-            renderClasses();
-
-            // Render attendance
-            renderAttendanceTable();
-
-            // Render payments
-            renderPayments();
-        }
-
-        function renderDashboardCards() {
-            const today = getTodayStr();
-            const todaysAbsent = allAttendance?.filter(a => a.student_name === currentUser.full_name).length || 0;
-
-            document.getElementById('statTodayAbsent').textContent = todaysAbsent;
-            document.getElementById('statClassesToday').textContent = allClasses?.length || 0;
-
-            // Classes stats
-            const classStats = allClasses?.reduce((acc, cls) => {
-                acc[cls] = (acc[cls] || 0) + 1;
-                return acc;
-            }, {});
-
-            document.getElementById('statClasses').innerHTML = 
-                Object.entries(classStats).map(([name, count]) => 
-                    `<span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-md">${name}: ${count}</span>`).join('');
-        }
-
-        function renderClasses() {
-            const container = document.getElementById('classesList');
-            if (!container) return;
-
-            const classes = allClasses || [];
-            if (classes.length === 0) {
-                container.innerHTML = '<div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400">Hiç sınıf bulunamadı.</div>';
-                return;
-            }
-
-            container.innerHTML = classes.map(cls => {
-                const clsName = cls.class_name || 'Grup';
-                const clsCount = classStats[clsName] || 0;
-                const clsStudents = allClasses?.filter(c => c.class_name === clsName);
-                const clsStudentsCount = clsStudents?.length || 0;
-
-                return `
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h4 class="font-semibold text-slate-800">${clsName}</h4>
-                                <p class="text-xs text-slate-500">${clsCount} öğrenci</p>
-                            </div>
-                            <span class="text-xs text-slate-400">${clsStudentsCount} öğrenci</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderAttendanceTable() {
-            const container = document.getElementById('attendanceTableBody');
-            if (!container) return;
-
-            const attendance = allAttendance || [];
-            if (attendance.length === 0) {
-                container.innerHTML = '<div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center">Hiç yoklama kaydı bulunamadı.</div>';
-                return;
-            }
-
-            const today = getTodayStr();
-            const filtered = attendance.filter(a => a.date === today || a.date.includes('T00:00:00'));
-
-            container.innerHTML = filtered.map(a => {
-                const statusClass = a.status === 'Geldi' ? 'status-ok' : a.status === 'Gelmedi' ? 'status-warn' : 'status-error';
-                const studentLink = a.student_name ? `<a href="#" class="text-slate-400 hover:text-slate-700">${escapeHtml(a.student_name)}</a>` : 'Gizli';
-                return `
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h4 class="font-semibold text-slate-800">${escapeHtml(a.student_name)}</h4>
-                                <p class="text-xs text-slate-500">${a.date}</p>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold ${statusClass}">${a.status}</span>
-                                ${studentLink}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderPayments() {
-            const container = document.getElementById('paymentsPlanList');
-            if (!container) return;
-
-            const payments = allPayments || [];
-            if (payments.length === 0) {
-                container.innerHTML = '<div class="bg-white p-10 rounded-2xl border border-dashed border-slate-300 text-center">Hiç ödeme planı bulunamadı.</div>';
-                return;
-            }
-
-            const sorted = [...payments].sort((a, b) => {
-                const aStatus = a.status || 'Bekliyor';
-                const bStatus = b.status || 'Bekliyor';
-                if (aStatus.localeCompare(bStatus)) return aStatus.localeCompare(bStatus);
-                return 0;
-            });
-
-            container.innerHTML = sorted.map(p => {
-                const statusClass = p.status === 'Ödendi' ? 'status-ok' : p.status === 'Bekliyor' ? 'status-warn' : 'status-error';
-                const paidDate = p.paid_date || '';
-                const received = p.received_amount || 0;
-                const remaining = Math.max(0, p.amount - received);
-                const percent = p.status === 'Ödendi' ? '100%' : p.status === 'Bekliyor' ? '0%' : '0%';
-
-                return `
-                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h4 class="font-semibold text-slate-800">${escapeHtml(p.student_name)}</h4>
-                                <p class="text-xs text-slate-500">${p.plan_id || 'None'}</p>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold ${statusClass}">${p.status}</span>
-                                <span class="text-xs text-slate-400">${percent}</span>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <p class="text-xs text-slate-500">Taksit Tutarı: ₺${p.amount.toFixed(2)}</p>
-                            ${paidDate ? `<p class="text-xs text-slate-400">Tarih: ${formatDate(paidDate)}</p>` : ''}
-                            ${remaining > 0 ? `<p class="text-xs text-amber-600">Kalan: ₺${remaining.toFixed(2)}</p>` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function openGroupModal(classId) {
-            currentGroup = classId;
-            document.getElementById('groupModal').classList.remove('hidden');
-            document.getElementById('groupModal').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function closeGroupModal() {
-            document.getElementById('groupModal').classList.add('hidden');
-            currentGroup = null;
-        }
-
-        function openMoveStudentModal() {
-            const user = currentUser;
-            if (!user) return;
-            document.getElementById('moveStudentModal').classList.remove('hidden');
-            document.getElementById('moveStudentModal').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function openPaymentModal(installmentId) {
-            currentPlan = installmentId;
-            document.getElementById('paymentDetailModal').classList.remove('hidden');
-            document.getElementById('paymentDetailModal').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function closePaymentModal() {
-            document.getElementById('paymentDetailModal').classList.add('hidden');
-            currentPlan = null;
-        }
-
-        function openUserModal() {
-            document.getElementById('usersModal').classList.remove('hidden');
-            document.getElementById('usersModal').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function closeUserModal() {
-            document.getElementById('usersModal').classList.add('hidden');
-        }
-
-        function addPaymentPlan() {
-            const name = document.getElementById('payStudentName').value.trim();
-            const role = document.getElementById('payStudentRole').value;
-            const phone = document.getElementById('payStudentPhone').value.trim();
-            const season = document.getElementById('paySeason').value;
-            const totalAmount = parseFloat(document.getElementById('payTotalAmount').value) || 0;
-            const installmentCount = parseInt(document.getElementById('payInstallmentCount').value) || 1;
-            const firstDate = document.getElementById('payFirstDueDate').value;
-
-            if (!name || !role || !phone || !season || !totalAmount || installmentCount < 1) {
-                alert('Tüm alanlar zorunludur.');
-                return;
-            }
-
-            const planId = `plan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const baseAmount = Math.floor((totalAmount / installmentCount) * 100) / 100;
-
-            const installments = [];
-            for (let i = 1; i <= installmentCount; i++) {
-                const isLast = i === installmentCount;
-                const amount = isLast ? +(totalAmount - baseAmount * (installmentCount - 1)).toFixed(2) : baseAmount;
-                installments.push({
-                    student_name: name,
-                    payment_method: role,
-                    season,
-                    total_amount: amount,
-                    installment_count: installmentCount,
-                    installment_no: i,
-                    plan_id: planId,
-                    due_date: isLast ? firstDate : addMonths(firstDate, i),
-                    amount: amount,
-                    status: 'Bekliyor'
-                });
-            }
-
-            const { error } = supabase.from('payments').insert(installments);
-            if (!error) {
-                alert(`Ödeme planı başarıyla oluşturuldu! ${installmentCount} taksit kaydedildi.`);
-                closePaymentModal();
-                loadDataFromSupabase();
-            } else {
-                alert('Hata oluştu: ' + error.message);
-            }
-        }
-
-        function showExcelImport() {
-            document.getElementById('exportToExcel').classList.remove('hidden');
-            document.getElementById('importFromExcel').classList.add('hidden');
-        }
-
-        function importFromExcel(event) {
-            event.preventDefault();
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const wb = XLSX.read(data, { type: 'array' });
-                const sheets = wb.SheetNames || [];
-
-                // Process each sheet
-                sheets.forEach(sheetName => {
-                    const sheet = wb.Sheets[sheetName];
-                    if (sheet) {
-                        const rows = sheet.Data;
-                        if (rows.length > 0) {
-                            const { tableName, columns } = convertXLSXToTable(rows);
-                            if (tableName) {
-                                addTableToSupabase(tableName, rows);
-                            }
-                        }
-                    }
-                });
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function addTableToSupabase(tableName, rows) {
-            const { data, headers } = convertXLSXToTable(rows);
-            if (data.length > 0) {
-                const { error } = supabase.from(tableName).insert(data);
-                if (!error) {
-                    console.log(`${tableName} tablosu başarıyla eklendi.`);
-                }
-            }
-        }
-
-        function convertXLSXToTable(rows) {
-            const headers = rows[0] || [];
-            const table = {
-                headers: headers.map(h => h[0] || 'Column'),
-                data: rows.map(row => {
-                    const obj = {};
-                    headers.forEach((h, i) => {
-                        obj[h] = row[i] || '';
-                    });
-                    return obj;
-                })
-            };
-            return { data: table.data, headers: table.headers };
-        }
-
-        function closePaymentDetailModal() {
-            document.getElementById('paymentDetailModal').classList.add('hidden');
-            currentPlan = null;
-        }
-
-        function closePasswordModal() {
-            document.getElementById('passwordModal').classList.add('hidden');
-            currentPlan = null;
-        }
-
-        function logOut() {
-            localStorage.removeItem('brooklyn_user');
-            currentUser = null;
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('appScreen').classList.add('hidden');
-            document.getElementById('tab-dashboard').classList.add('hidden');
-            document.getElementById('tab-users').classList.add('hidden');
-            document.getElementById('tab-classes').classList.add('hidden');
-            document.getElementById('tab-attendance').classList.add('hidden');
-            document.getElementById('tab-payments').classList.add('hidden');
-            document.getElementById('tab-students').classList.add('hidden');
-            renderAll();
-        }
-
-        // Utility functions
-        function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
-        function getTodayStr() {
-            return new Date().toISOString().split('T')[0];
-        }
-
-        function addMonths(dateStr, months) {
-            const d = new Date(dateStr + 'T00:00:00');
-            d.setMonth(d.getMonth() + months);
-            return d.toISOString().split('T')[0];
-        }
-
-        function formatDate(dateStr) {
-            if (!dateStr) return '';
-            const d = new Date(dateStr + 'T00:00:00');
-            return d.toLocaleDateString('tr-TR', { weekday: 'short', month: 'short', day: 'numeric' });
-        }
-
-        // Event listeners
-        document.getElementById('loginForm').addEventListener('submit', handleLogin);
-        document.getElementById('payStudentName').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') handleLogin(e);
-        });
-        document.getElementById('payStudentRole').addEventListener('change', function() {
-            if (this.value === 'admin') {
-                document.getElementById('payStudentRole').disabled = true;
-            } else if (this.value === 'teacher') {
-                document.getElementById('payStudentRole').disabled = true;
-            } else if (this.value === 'parent') {
-                document.getElementById('payStudentRole').disabled = true;
-            }
-        });
-        document.getElementById('paySeason').addEventListener('change', function() {
-            if (this.value) {
-                document.getElementById('payTotalAmount').value = '';
-                document.getElementById('payInstalledCount').value = '';
-            }
-        });
-
-        // Close modals on overlay click
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.add('hidden');
-                    if (this.id === 'paymentDetailModal') closePaymentDetailModal();
-                    if (this.id === 'groupModal') closeGroupModal();
-                    if (this.id === 'usersModal') closeUserModal();
-                }
-            });
-        });
-
-        // Initial render
-        renderAll();
     </script>
 </body>
 </html>
