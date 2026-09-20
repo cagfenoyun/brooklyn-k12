@@ -1801,7 +1801,7 @@
   gridSaving = true;
 
   // Supabase için veri modelini hazırlama
-  const payload = filledRows.map(r => ({
+  const payload = validRows.map(r => ({
     full_name: r.full_name ? r.full_name.trim() : null,
     class_name: r.class_name ? r.class_name.trim() : null,
     group_name: r.group ? r.group.trim() : null,
