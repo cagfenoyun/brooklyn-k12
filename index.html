@@ -1874,18 +1874,18 @@ entries.push({
 
                 let savedCount = 0;
                 for (const chunk of chunkArray(entries, 200)) {
-                    const { error } = await _supabase.from('users').insert(chunk.map(e => e.payload));
-                    if (error) {
-                        const savedRows = new Set(entries.slice(0, savedCount).map(e => e.row));
-                        gridRows = gridRows.filter(r => !savedRows.has(r));
-                        if (!gridRows.length) gridRows.push(newGridRow());
-                        renderStudentGrid();
-                        if (savedCount) loadDataFromSupabase();
-                        showToast(`Kayıt hatası: ${error.message}` + (savedCount ? ` (${savedCount} öğrenci kaydedildi, kalanlar tabloda duruyor.)` : ''), 'error');
-                        return;
-                    }
-                    savedCount += chunk.length;
-                }
+        const { error } = await _supabase.from('users').insert(chunk.map(e => e.payload));
+        if (error) {
+          const savedRows = new Set(entries.slice(0, savedCount).map(e => e.row));
+          gridRows = gridRows.filter(r => !savedRows.has(r));
+          if (!gridRows.length) gridRows.push(newGridRow());
+          renderStudentGrid();
+          if (savedCount) loadDataFromSupabase();
+          showToast(`Kayıt hatası: ${error.message}` + (savedCount ? ` (${savedCount} öğrenci kaydedildi, kalanlar tabloda duruyor.)` : ''), 'error');
+          return;
+        }
+        savedCount += chunk.length;
+      }
 
                 showToast(`${savedCount} öğrenci başarıyla kaydedildi.`, 'success');
                 initStudentGrid();
