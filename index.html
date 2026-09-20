@@ -1834,7 +1834,7 @@
                 const entries = [];
                 const dupNames = [];
 
-                filledRows.forEach(row => {
+                validRows.forEach(row => {
                     const fullName = row.name.replace(/\s+/g, ' ').trim();
                     if (existingNames.has(foldName(fullName))) dupNames.push(fullName);
 
