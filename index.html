@@ -1814,18 +1814,15 @@
     book_delivery_status: r.book_delivery_status || 'Verilmedi',
     role: 'student' // varsayılan rol
   }));
-            if (invalidCount) {
-                if (firstInvalid) firstInvalid.focus();
-                showToast(`${invalidCount} zorunlu hücre (Ad Soyad / Grup) boş. Kırmızı hücreleri doldurun.`, 'error');
-                return;
-            }
+                    const btn = document.getElementById('btnSaveGrid');
+  const oldHtml = btn ? btn.innerHTML : '';
+  gridSaving = true;
 
-            const btn = document.getElementById('btnSaveGrid');
-            const oldHtml = btn.innerHTML;
-            gridSaving = true;
-            btn.disabled = true;
-            btn.classList.add('opacity-60', 'cursor-not-allowed');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+  if (btn) {
+    btn.disabled = true;
+    btn.classList.add('opacity-60', 'cursor-not-allowed');
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+  }
 
             try {
                 const { data: dbUsers, error: uErr } = await _supabase.from('users').select('username, full_name, role');
