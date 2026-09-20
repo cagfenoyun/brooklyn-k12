@@ -791,7 +791,9 @@
             const uName = document.getElementById('username').value.trim().toLowerCase();
             const pass = document.getElementById('password').value.trim();
             const errDiv = document.getElementById('loginError');
+            const btn = document.getElementById('btnLogin');
 
+            // Admin girişi (Supabase'den bağımsız, her zaman çalışır)
             if (uName === 'adminadmin' && pass === '19651965') {
                 const adminUser = {
                     id: 999,
@@ -806,14 +808,31 @@
                 return;
             }
 
-            const { data, error } = await _supabase.from('users').select('*').eq('username', uName).eq('password', pass).single();
+            // Supabase girişi
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Giriş yapılıyor...';
 
-            if (data && !error) {
-                errDiv.classList.add('hidden');
-                localStorage.setItem('brooklyn_user', JSON.stringify(data));
-                showApp(data);
-            } else {
+            try {
+                const { data, error } = await _supabase
+                    .from('users')
+                    .select('*')
+                    .eq('username', uName)
+                    .eq('password', pass)
+                    .maybeSingle();
+
+                if (data && !error) {
+                    errDiv.classList.add('hidden');
+                    localStorage.setItem('brooklyn_user', JSON.stringify(data));
+                    showApp(data);
+                } else {
+                    errDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error('Giriş hatası:', err);
                 errDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>SİSTEME GİRİŞ</span> <i class="fa-solid fa-arrow-right text-xs"></i>';
             }
         }
 
