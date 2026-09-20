@@ -10,7 +10,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -326,26 +325,6 @@
                         </button>
                     </div>
 
-                    <div class="role-admin bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-file-excel text-emerald-600"></i>
-                            <h4 class="text-sm font-bold text-slate-900 brand-font">Excel ile Sınıf Verisi Yedekleme</h4>
-                        </div>
-                        <p class="text-xs text-slate-500 leading-relaxed">
-                            Sistemdeki tüm verileri (Kullanıcılar, Sınıflar, Yoklama, Ödemeler) Excel'e aktarabilir veya
-                            "Siniflar" sayfası içeren bir Excel dosyasından yeni sınıflar/gruplar içe aktarabilirsiniz.
-                        </p>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
-                                <i class="fa-solid fa-file-arrow-down"></i> Excel'e Aktar (Yedekle)
-                            </button>
-                            <button onclick="document.getElementById('excelImportInputClasses').click()" class="bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
-                                <i class="fa-solid fa-file-arrow-up"></i> Excel'den İçe Aktar
-                            </button>
-                            <input type="file" id="excelImportInputClasses" accept=".xlsx,.xls" class="hidden" onchange="importFromExcel(event)">
-                        </div>
-                    </div>
-
                     <form id="formAddClass" onsubmit="addClass(event)" class="hidden bg-slate-100 p-5 rounded-2xl border border-slate-300/80 grid grid-cols-1 sm:grid-cols-2 gap-3 shadow-inner">
                         <input type="text" id="clsName" placeholder="Sınıf Adı (Örn: B1 Hafta Sonu)" required class="p-2.5 border rounded-xl text-sm bg-white">
                         <input type="text" id="clsLevel" placeholder="Seviye (Örn: B1 - Intermediate)" required class="p-2.5 border rounded-xl text-sm bg-white">
@@ -385,7 +364,7 @@
                                 <p class="text-xs text-slate-500 leading-relaxed mt-1.5">
                                     Excel'den hücreleri kopyalayıp tabloya tıkladıktan sonra <b>Ctrl+V</b> ile yapıştırın; sütunlar otomatik dağılır.
                                     Sütun sırası: Ad Soyad, Grup, Yaş, Sınıf, Veli Telefon, Kullanıcı Adı. Kullanıcı adı addan otomatik üretilir.
-                                    Birden fazla grup için grupları <b>;</b> ile ayırın. Yeni öğrencilerin şifresi <b>123</b> olur.
+                                    Grup, <b>Sınıflar &amp; Program</b> sekmesinde açtığınız gruplardan listeden seçilir. Yeni öğrencilerin şifresi <b>123</b> olur.
                                 </p>
                             </div>
                             <div class="flex flex-wrap items-center gap-2 shrink-0">
@@ -414,7 +393,6 @@
                                 </thead>
                                 <tbody id="gridBody" class="bg-white"></tbody>
                             </table>
-                            <datalist id="gridGroupList"></datalist>
                         </div>
 
                         <div class="p-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/60">
@@ -523,26 +501,6 @@
                         <button onclick="toggleAdminForm('formAddPayment')" class="role-admin bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md w-fit">
                             <i class="fa-solid fa-plus"></i> Yeni Ödeme Planı Ekle
                         </button>
-                    </div>
-
-                    <div class="role-admin bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-file-excel text-emerald-600"></i>
-                            <h4 class="text-sm font-bold text-slate-900 brand-font">Excel ile Ödeme Verisi Yedekleme</h4>
-                        </div>
-                        <p class="text-xs text-slate-500 leading-relaxed">
-                            Sistemdeki tüm verileri Excel'e aktarabilir veya "Odemeler" sayfası içeren bir Excel dosyasından
-                            yeni ödeme taksitleri içe aktarabilirsiniz.
-                        </p>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
-                                <i class="fa-solid fa-file-arrow-down"></i> Excel'e Aktar (Yedekle)
-                            </button>
-                            <button onclick="document.getElementById('excelImportInputPayments').click()" class="bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
-                                <i class="fa-solid fa-file-arrow-up"></i> Excel'den İçe Aktar
-                            </button>
-                            <input type="file" id="excelImportInputPayments" accept=".xlsx,.xls" class="hidden" onchange="importFromExcel(event)">
-                        </div>
                     </div>
 
                     <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center gap-3">
@@ -932,14 +890,16 @@
                 if (currentGroupId) renderGroupModal();
             }
 
-            const { data: attendance } = await _supabase.from('attendance').select('*');
+            const { data: attendance, error: attErr } = await _supabase.from('attendance').select('*');
+            if (attErr) { console.error('attendance', attErr); dbErrors.push('attendance: ' + attErr.message); }
             if (attendance) {
                 allAttendance = attendance;
                 renderAttendanceTable();
                 renderDashboard();
             }
 
-            const { data: payments } = await _supabase.from('payments').select('*');
+            const { data: payments, error: payErr } = await _supabase.from('payments').select('*');
+            if (payErr) { console.error('payments', payErr); dbErrors.push('payments: ' + payErr.message); }
             if (payments) {
                 allPayments = payments;
                 renderPaymentsPlans();
@@ -954,15 +914,7 @@
                 el.className = 'bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl p-4 text-xs leading-relaxed';
                 el.innerHTML = `<b><i class="fa-solid fa-triangle-exclamation mr-1"></i> Veritabanından veri okunamadı.</b><br>` +
                     errors.map(esc).join('<br>') +
-                    `<br><br><b>Olası nedenler:</b> (1) Dosyanın başındaki <code>SUPABASE_KEY</code> değeri orijinal anahtarınızla birebir aynı değil — kendi eski dosyanızdaki anahtarı buraya yapıştırın. ` +
-                    `(2) Supabase'de tablolar için RLS açık ve okuma politikası yok.`;
-                return;
-            }
-            const missing = GROUP_SEED.filter(g => !(allClasses || []).some(c => c.class_name === g.class_name)).length;
-            if (currentUser && currentUser.role === 'admin' && missing > 0) {
-                el.className = 'bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-4 text-xs leading-relaxed flex flex-col sm:flex-row sm:items-center justify-between gap-3';
-                el.innerHTML = `<span><b><i class="fa-solid fa-circle-info mr-1"></i> Excel'deki ${missing} grup henüz sisteme yüklenmemiş.</b> Yüklemek için butona basın.</span>` +
-                    `<button onclick="seedGroupsFromExcel()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-4 py-2 rounded-xl w-fit"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Grup ve Öğrenci Listesini Yükle</button>`;
+                    `<br><br><b>Olası nedenler:</b> Supabase anahtarı (<code>SUPABASE_KEY</code>) hatalı olabilir, ilgili tablo/sütun bulunmayabilir ya da tabloda RLS açık ve okuma politikası tanımlı değildir.`;
                 return;
             }
             el.className = 'hidden';
@@ -1414,8 +1366,7 @@
                     classNames.map(name => `<option value="${esc(name)}">${esc(name)}</option>`).join('');
                 if (currentSelection && classNames.includes(currentSelection)) sel.value = currentSelection;
             }
-            const gridList = document.getElementById('gridGroupList');
-            if (gridList) gridList.innerHTML = classNames.map(name => `<option value="${esc(name)}">`).join('');
+            refreshGridGroupOptions();
         }
 
         function populateStudentNamesDatalist() {
@@ -1565,50 +1516,6 @@
             }
         }
 
-        function normalizeKey(k) {
-            return String(k == null ? '' : k)
-                .replace(/İ/g, 'i').replace(/ı/g, 'i')
-                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                .toLowerCase().trim()
-                .replace(/[\s-]+/g, '_');
-        }
-
-        function normalizeSheetName(s) {
-            return String(s == null ? '' : s)
-                .replace(/İ/g, 'i').replace(/ı/g, 'i')
-                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                .toLowerCase()
-                .replace(/[^a-z0-9]/g, '');
-        }
-
-        function normalizeRowKeys(row) {
-            const out = {};
-            Object.keys(row).forEach(k => { out[normalizeKey(k)] = row[k]; });
-            return out;
-        }
-
-        function pick(normRow, aliases) {
-            for (const a of aliases) {
-                if (normRow[a] !== undefined && normRow[a] !== '') return normRow[a];
-            }
-            return '';
-        }
-
-        function toDateStr(v) {
-            if (v === null || v === undefined || v === '') return null;
-            if (v instanceof Date) return v.toISOString().slice(0, 10);
-            if (typeof v === 'number') {
-                const d = new Date(Math.round((v - 25569) * 86400 * 1000));
-                return d.toISOString().slice(0, 10);
-            }
-            const s = String(v).trim();
-            let m = s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
-            if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
-            m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-            if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
-            return s;
-        }
-
         function chunkArray(arr, size) {
             const out = [];
             for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
@@ -1638,38 +1545,6 @@
             return `${table}: ${inserted}/${rows.length} satır eklendi.` + (lastError ? ` (Son hata: ${lastError.message})` : '');
         }
 
-        function exportToExcel() {
-            if (typeof XLSX === 'undefined') { alert('Excel kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.'); return; }
-            const wb = XLSX.utils.book_new();
-
-            const usersSheet = XLSX.utils.json_to_sheet((allUsers || []).map(u => ({
-                id: u.id, username: u.username, password: u.password, full_name: u.full_name,
-                role: u.role, phone: u.phone, season: u.season || '', class_name: u.class_name || ''
-            })));
-            XLSX.utils.book_append_sheet(wb, usersSheet, 'Kullanicilar');
-
-            const classesSheet = XLSX.utils.json_to_sheet((allClasses || []).map(c => ({
-                id: c.id, class_name: c.class_name, level: c.level, teacher_name: c.teacher_name, schedule: c.schedule
-            })));
-            XLSX.utils.book_append_sheet(wb, classesSheet, 'Siniflar');
-
-            const attendanceSheet = XLSX.utils.json_to_sheet((allAttendance || []).map(a => ({
-                id: a.id, student_name: a.student_name, class_name: a.class_name, date: a.date, status: a.status,
-                teacher_note: a.teacher_note || ''
-            })));
-            XLSX.utils.book_append_sheet(wb, attendanceSheet, 'Yoklama');
-
-            const paymentsSheet = XLSX.utils.json_to_sheet((allPayments || []).map(p => ({
-                id: p.id, student_name: p.student_name, payment_method: p.payment_method, season: p.season,
-                total_amount: p.total_amount, installment_count: p.installment_count, installment_no: p.installment_no,
-                plan_id: p.plan_id, due_date: p.due_date, amount: p.amount, status: p.status,
-                paid_date: p.paid_date || '', received_amount: getReceivedAmount(p)
-            })));
-            XLSX.utils.book_append_sheet(wb, paymentsSheet, 'Odemeler');
-
-            XLSX.writeFile(wb, `brooklyn_academy_yedek_${getTodayStr()}.xlsx`);
-        }
-
         function normalizePhoneStr(v) {
             let p = String(v == null ? '' : v).replace(/\D/g, '');
             if (p.length === 12 && p.startsWith('90')) p = p.slice(2);
@@ -1694,6 +1569,32 @@
             return GRID_FIELDS.every(f => !String(row[f] || '').trim());
         }
 
+        function groupOptionsHtml(selected) {
+            const names = (allClasses || []).map(c => c.class_name);
+            return '<option value="">-- Grup Seçin --</option>' +
+                names.map(n => `<option value="${esc(n)}" ${n === selected ? 'selected' : ''}>${esc(n)}</option>`).join('');
+        }
+
+        function refreshGridGroupOptions() {
+            const names = (allClasses || []).map(c => c.class_name);
+            gridRows.forEach(row => { if (row.group && !names.includes(row.group)) row.group = ''; });
+            document.querySelectorAll('#gridBody select.grid-group').forEach(sel => {
+                const r = parseInt(sel.dataset.r, 10);
+                const row = gridRows[r];
+                sel.innerHTML = groupOptionsHtml(row ? row.group : '');
+            });
+        }
+
+        function matchGridGroup(raw) {
+            const key = foldName(raw);
+            if (!key) return '';
+            const names = (allClasses || []).map(c => c.class_name);
+            const exact = names.find(n => foldName(n) === key);
+            if (exact) return exact;
+            const starts = names.filter(n => foldName(n).startsWith(key));
+            return starts.length === 1 ? starts[0] : '';
+        }
+
         function initStudentGrid() {
             gridRows = [];
             for (let i = 0; i < GRID_DEFAULT_ROWS; i++) gridRows.push(newGridRow());
@@ -1703,15 +1604,17 @@
         function renderStudentGrid(focus) {
             const body = document.getElementById('gridBody');
             if (!body) return;
-            const placeholders = ['Örn: Ahmet Yılmaz', 'Örn: EU3 (Pzt-Çar 16:00)', '', '', '5xx xxx xx xx', 'otomatik'];
+            const placeholders = ['Örn: Ahmet Yılmaz', '', '', '', '5xx xxx xx xx', 'otomatik'];
             body.innerHTML = gridRows.map((row, r) => `
                 <tr class="hover:bg-slate-50/60">
                     <td class="px-3 py-2 text-center text-[11px] font-bold text-slate-400 bg-slate-50 select-none">${r + 1}</td>
-                    ${GRID_FIELDS.map((f, c) => `
+                    ${GRID_FIELDS.map((f, c) => f === 'group' ? `
+                    <td class="p-0">
+                        <select class="grid-cell grid-group" data-r="${r}" data-c="${c}">${groupOptionsHtml(row.group)}</select>
+                    </td>` : `
                     <td class="p-0">
                         <input type="text" class="grid-cell ${f === 'username' && !row.manual ? 'grid-auto' : ''}" data-r="${r}" data-c="${c}"
-                            ${f === 'group' ? 'list="gridGroupList"' : ''} autocomplete="off"
-                            placeholder="${esc(placeholders[c])}" value="${esc(row[f])}">
+                            autocomplete="off" placeholder="${esc(placeholders[c])}" value="${esc(row[f])}">
                     </td>`).join('')}
                     <td class="p-0 text-center">
                         <button type="button" data-remove="${r}" tabindex="-1" class="text-slate-300 hover:text-rose-600 px-2 py-2 transition-colors" title="Satırı sil"><i class="fa-solid fa-xmark text-xs"></i></button>
@@ -1796,6 +1699,7 @@
 
             const startR = parseInt(target.dataset.r, 10);
             const startC = parseInt(target.dataset.c, 10);
+            let unmatchedPaste = 0;
 
             lines.forEach((line, i) => {
                 const r = startR + i;
@@ -1806,6 +1710,11 @@
                     if (c >= GRID_FIELDS.length) return;
                     const field = GRID_FIELDS[c];
                     let val = cell.replace(/^"(.*)"$/, '$1').trim();
+                    if (field === 'group' && val) {
+                        const matched = matchGridGroup(val);
+                        if (!matched) unmatchedPaste++;
+                        val = matched;
+                    }
                     row[field] = val;
                     if (field === 'username') row.manual = val !== '';
                 });
@@ -1814,6 +1723,7 @@
 
             renderStudentGrid({ r: Math.min(startR + lines.length - 1, gridRows.length - 1), c: startC });
             showToast(`${lines.length} satır tabloya yapıştırıldı.`, 'info');
+            if (unmatchedPaste) showToast(`${unmatchedPaste} satırda grup adı mevcut gruplarla eşleşmedi; grubu listeden seçin.`, 'error');
         }
 
         function handleGridKeydown(e) {
@@ -1837,6 +1747,7 @@
             const body = document.getElementById('gridBody');
             if (!body) return;
             body.addEventListener('input', e => { if (e.target.classList.contains('grid-cell')) handleGridInput(e.target); });
+            body.addEventListener('change', e => { if (e.target.classList.contains('grid-group')) handleGridInput(e.target); });
             body.addEventListener('paste', handleGridPaste);
             body.addEventListener('keydown', handleGridKeydown);
             body.addEventListener('click', e => {
@@ -1844,18 +1755,6 @@
                 if (btn) removeGridRow(parseInt(btn.dataset.remove, 10));
             });
             initStudentGrid();
-        }
-
-        function resolveGridGroups(raw) {
-            const parts = String(raw || '').split(/[;\n]/).map(s => s.trim()).filter(Boolean);
-            const known = (allClasses || []).map(c => c.class_name);
-            let unmatched = 0;
-            const out = parts.map(p => {
-                const hit = known.find(k => foldName(k) === foldName(p));
-                if (!hit) unmatched++;
-                return hit || p;
-            });
-            return { value: Array.from(new Set(out)).join(GROUP_SEP), unmatched };
         }
 
         async function saveStudentGrid() {
@@ -1900,13 +1799,10 @@
                 const existingNames = new Set((dbUsers || []).filter(u => u.role === 'student').map(u => foldName(u.full_name)));
 
                 const entries = [];
-                let unmatchedGroups = 0;
                 const dupNames = [];
 
                 filledRows.forEach(row => {
                     const fullName = row.name.replace(/\s+/g, ' ').trim();
-                    const groups = resolveGridGroups(row.group);
-                    unmatchedGroups += groups.unmatched;
                     if (existingNames.has(foldName(fullName))) dupNames.push(fullName);
 
                     let base = (row.manual ? row.username.trim().toLowerCase() : generateUsername(fullName)) || 'ogrenci';
@@ -1918,7 +1814,7 @@
                         row,
                         payload: {
                             full_name: fullName,
-                            class_name: groups.value,
+                            class_name: row.group,
                             phone: normalizePhoneStr(row.phone),
                             username: candidate,
                             password: GRID_STUDENT_PASSWORD,
@@ -1929,7 +1825,6 @@
 
                 let msg = `${entries.length} öğrenci sisteme kaydedilecek (şifre: ${GRID_STUDENT_PASSWORD}).`;
                 if (dupNames.length) msg += `\n\n⚠ Sistemde zaten bu adla kayıtlı öğrenci var (tekrar eklenecek):\n• ${dupNames.slice(0, 8).join('\n• ')}${dupNames.length > 8 ? '\n• ...' : ''}`;
-                if (unmatchedGroups) msg += `\n\n⚠ ${unmatchedGroups} grup adı mevcut sınıf listesiyle eşleşmedi; yazıldığı gibi kaydedilecek.`;
                 msg += '\n\nDevam edilsin mi?';
                 if (!confirm(msg)) return;
 
@@ -1958,279 +1853,6 @@
                 btn.disabled = false;
                 btn.classList.remove('opacity-60', 'cursor-not-allowed');
                 btn.innerHTML = oldHtml;
-            }
-        }
-
-        const IMPORT_TABLES = {
-            users: {
-                label: 'Kullanicilar',
-                aliases: ['kullanicilar', 'kullanici', 'kullanicilistesi', 'users', 'user', 'uyeler'],
-                hints: ['username', 'kullanici_adi', 'password', 'sifre', 'full_name', 'fullname', 'ad_soyad', 'role', 'rol'],
-                optional: ['season', 'class_name'],
-                build: rows => rows.map(r => {
-                    const n = normalizeRowKeys(r);
-                    return {
-                        username: pick(n, ['username', 'kullanici_adi']),
-                        password: String(pick(n, ['password', 'sifre']) || ''),
-                        full_name: pick(n, ['full_name', 'fullname', 'ad_soyad']),
-                        role: (pick(n, ['role', 'rol']) || 'student').toString().toLowerCase(),
-                        phone: String(pick(n, ['phone', 'telefon']) || ''),
-                        season: pick(n, ['season', 'sezon']) || '2026-2027',
-                        class_name: pick(n, ['class_name', 'sinif_grubu', 'sinif']) || null
-                    };
-                }).filter(u => u.username && u.full_name)
-            },
-            classes: {
-                label: 'Siniflar',
-                aliases: ['siniflar', 'sinif', 'siniflistesi', 'gruplar', 'classes', 'class'],
-                hints: ['level', 'seviye', 'teacher_name', 'ogretmen', 'ogretmen_adi', 'schedule', 'ders_programi', 'program'],
-                optional: [],
-                build: rows => rows.map(r => {
-                    const n = normalizeRowKeys(r);
-                    return {
-                        class_name: pick(n, ['class_name', 'sinif_adi']),
-                        level: pick(n, ['level', 'seviye']),
-                        teacher_name: pick(n, ['teacher_name', 'ogretmen', 'ogretmen_adi']),
-                        schedule: pick(n, ['schedule', 'ders_programi', 'program'])
-                    };
-                }).filter(c => c.class_name)
-            },
-            attendance: {
-                label: 'Yoklama',
-                aliases: ['yoklama', 'yoklamalar', 'devam', 'devamsizlik', 'attendance'],
-                hints: ['date', 'tarih', 'teacher_note', 'ogretmen_notu', 'not'],
-                optional: ['teacher_note'],
-                build: rows => rows.map(r => {
-                    const n = normalizeRowKeys(r);
-                    return {
-                        student_name: pick(n, ['student_name', 'ogrenci_adi']),
-                        class_name: pick(n, ['class_name', 'sinif_adi', 'sinif']),
-                        date: toDateStr(pick(n, ['date', 'tarih'])),
-                        status: pick(n, ['status', 'durum']) || 'Geldi',
-                        teacher_note: pick(n, ['teacher_note', 'not', 'ogretmen_notu']) || null
-                    };
-                }).filter(a => a.student_name && a.date)
-            },
-            payments: {
-                label: 'Odemeler',
-                aliases: ['odemeler', 'odeme', 'odemeplani', 'taksitler', 'payments', 'payment'],
-                hints: ['amount', 'tutar', 'total_amount', 'toplam_tutar', 'installment_no', 'installment_count', 'taksit_no', 'taksit_sayisi', 'plan_id', 'due_date', 'vade_tarihi', 'payment_method', 'odeme_yontemi'],
-                optional: ['paid_date', 'received_amount'],
-                build: rows => rows.map(r => {
-                    const n = normalizeRowKeys(r);
-                    return {
-                        student_name: pick(n, ['student_name', 'ogrenci_adi']),
-                        payment_method: pick(n, ['payment_method', 'odeme_yontemi']) || 'Nakit/Elden',
-                        season: pick(n, ['season', 'sezon']) || '2026-2027',
-                        total_amount: Number(pick(n, ['total_amount', 'toplam_tutar']) || 0),
-                        installment_count: Number(pick(n, ['installment_count', 'taksit_sayisi']) || 1),
-                        installment_no: Number(pick(n, ['installment_no', 'taksit_no']) || 1),
-                        plan_id: pick(n, ['plan_id']) || `import_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-                        due_date: toDateStr(pick(n, ['due_date', 'vade_tarihi'])),
-                        amount: Number(pick(n, ['amount', 'tutar']) || 0),
-                        status: pick(n, ['status', 'durum']) || 'Bekliyor',
-                        paid_date: toDateStr(pick(n, ['paid_date', 'odeme_tarihi'])),
-                        received_amount: Number(pick(n, ['received_amount', 'alinan_tutar']) || 0)
-                    };
-                }).filter(p => p.student_name && p.amount)
-            }
-        };
-
-        const IMPORT_TAB_TO_TABLE = {
-            'tab-students': 'users',
-            'tab-classes': 'classes',
-            'tab-attendance': 'attendance',
-            'tab-payments': 'payments'
-        };
-
-        const DAY_TOKENS = { pazartesi: 'Pzt', sali: 'Sal', carsamba: 'Çar', persembe: 'Per', cuma: 'Cum', cumartesi: 'Cmt', pazar: 'Paz',
-                             pzt: 'Pzt', sal: 'Sal', car: 'Çar', per: 'Per', cum: 'Cum', cmt: 'Cmt', paz: 'Paz' };
-        const DAY_FULL = { Pzt: 'Pazartesi', Sal: 'Salı', Çar: 'Çarşamba', Per: 'Perşembe', Cum: 'Cuma', Cmt: 'Cumartesi', Paz: 'Pazar' };
-
-        function parseDaysFromText(text) {
-            const toks = foldName(text).split(/[^a-z]+/).filter(Boolean);
-            const days = [];
-            toks.forEach(t => { if (DAY_TOKENS[t] && !days.includes(DAY_TOKENS[t])) days.push(DAY_TOKENS[t]); });
-            return days;
-        }
-
-        function parseTimeFromText(text) {
-            const m = String(text || '').match(/(\d{1,2})[:.](\d{2})(?:\s*[-–—]\s*(\d{1,2})[:.](\d{2}))?/);
-            if (!m) return null;
-            const pad = n => String(n).padStart(2, '0');
-            const start = `${pad(m[1])}:${m[2]}`;
-            const end = m[3] !== undefined ? `${pad(m[3])}:${m[4]}` : '';
-            return { start, range: end ? `${start}-${end}` : start };
-        }
-
-        function parseGroupedLayout(ws) {
-            const grid = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false, blankrows: true });
-            const cellStr = (r, c) => String((grid[r] && grid[r][c] != null) ? grid[r][c] : '').trim();
-
-            const anchors = [];
-            for (let r = 0; r < grid.length; r++) {
-                const width = (grid[r] || []).length;
-                for (let c = 0; c < width; c++) {
-                    const lvl = cellStr(r, c);
-                    if (!lvl) continue;
-                    if (parseDaysFromText(lvl).length || parseTimeFromText(lvl)) continue;
-                    let days = [], time = null;
-                    for (let k = 1; k <= 3; k++) {
-                        const t = cellStr(r, c + k);
-                        if (!t) continue;
-                        if (!days.length) days = parseDaysFromText(t);
-                        if (!time) time = parseTimeFromText(t);
-                    }
-                    if (days.length && time) anchors.push({ r, c, level: lvl, days, time });
-                }
-            }
-            if (!anchors.length) return [];
-
-            return anchors.map(a => {
-                const next = anchors.find(b => b.c === a.c && b.r > a.r);
-                const endRow = next ? next.r : grid.length;
-                const students = [];
-                const seen = new Set();
-                for (let rr = a.r + 1; rr < endRow; rr++) {
-                    let off = 0;
-                    let name = cellStr(rr, a.c);
-                    if (/^\d+[.)]?$/.test(name)) { off = 1; name = cellStr(rr, a.c + 1); }
-                    if (!name) continue;
-                    const key = foldName(name);
-                    if (seen.has(key)) continue;
-                    seen.add(key);
-                    students.push({ name, grade: cellStr(rr, a.c + 1 + off), tag: cellStr(rr, a.c + 2 + off) });
-                }
-                return {
-                    class_name: `${a.level} (${a.days.join('-')} ${a.time.start})`,
-                    level: a.level,
-                    teacher_name: 'Atanmadı',
-                    schedule: `${a.days.map(d => DAY_FULL[d]).join(' - ')} ${a.time.range}`,
-                    students
-                };
-            });
-        }
-
-        function getActiveImportTable() {
-            const active = document.querySelector('.tab-content:not(.hidden)');
-            return active ? (IMPORT_TAB_TO_TABLE[active.id] || null) : null;
-        }
-
-        function assignSheetsByName(sheetNames) {
-            const assigned = {};
-            const used = new Set();
-            const tables = Object.keys(IMPORT_TABLES);
-
-            tables.forEach(t => {
-                const aliases = IMPORT_TABLES[t].aliases;
-                const found = sheetNames.find(n => !used.has(n) && aliases.includes(normalizeSheetName(n)));
-                if (found) { assigned[t] = found; used.add(found); }
-            });
-            tables.forEach(t => {
-                if (assigned[t]) return;
-                const aliases = IMPORT_TABLES[t].aliases.filter(a => a.length >= 4);
-                const found = sheetNames.find(n => {
-                    if (used.has(n)) return false;
-                    const norm = normalizeSheetName(n);
-                    return aliases.some(a => norm.includes(a));
-                });
-                if (found) { assigned[t] = found; used.add(found); }
-            });
-            return { assigned, used };
-        }
-
-        function detectTableByHeaders(ws) {
-            const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
-            if (!rows.length) return { table: null, score: 0 };
-            const keys = new Set(Object.keys(rows[0]).map(normalizeKey));
-            let best = null, bestScore = 0;
-            Object.keys(IMPORT_TABLES).forEach(t => {
-                const score = IMPORT_TABLES[t].hints.filter(h => keys.has(h)).length;
-                if (score > bestScore) { best = t; bestScore = score; }
-            });
-            return { table: best, score: bestScore };
-        }
-
-        async function importFromExcel(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (!confirm('Excel dosyasındaki veriler mevcut Supabase tablolarına EKLENECEKTİR (mevcut kayıtların üzerine yazılmaz, yeni satır olarak eklenir). Devam etmek istiyor musunuz?')) {
-                event.target.value = '';
-                return;
-            }
-
-            try {
-                const data = await file.arrayBuffer();
-                const wb = XLSX.read(data, { type: 'array', cellDates: true });
-                const sheetNames = wb.SheetNames || [];
-                const notes = [];
-
-                const { assigned, used } = assignSheetsByName(sheetNames);
-
-                sheetNames.filter(n => !used.has(n)).forEach(n => {
-                    const { table, score } = detectTableByHeaders(wb.Sheets[n]);
-                    if (table && score >= 2 && !assigned[table]) {
-                        assigned[table] = n;
-                        used.add(n);
-                        notes.push(`"${n}" sayfasının adı tanınmadı; sütun başlıklarına göre "${IMPORT_TABLES[table].label}" olarak okundu.`);
-                    }
-                });
-
-                if (Object.keys(assigned).length === 0 && sheetNames.length === 1) {
-                    const onlySheet = sheetNames[0];
-                    let table = detectTableByHeaders(wb.Sheets[onlySheet]).table;
-                    let how = 'sütun başlıklarına göre';
-                    if (!table) {
-                        table = getActiveImportTable() || 'users';
-                        how = 'bulunduğunuz sekmeye göre';
-                    }
-                    assigned[table] = onlySheet;
-                    notes.push(`Dosyada tek sayfa var ("${onlySheet}"); adı tanınmadığı için ${how} "${IMPORT_TABLES[table].label}" olarak okundu.`);
-                }
-
-                if (Object.keys(assigned).length === 0) {
-                    const expected = Object.values(IMPORT_TABLES).map(t => `• ${t.label}  (kabul edilen: ${t.aliases.slice(0, 3).join(', ')} ...)`).join('\n');
-                    alert(
-                        'Dosyada tanınan bir sayfa bulunamadı.\n\n' +
-                        `Dosyanızdaki sayfalar: ${sheetNames.length ? sheetNames.map(n => `"${n}"`).join(', ') : '(hiç sayfa yok)'}\n\n` +
-                        'Beklenen sayfa adlarından en az biri gerekli (büyük/küçük harf ve Türkçe karakter fark etmez):\n' +
-                        expected +
-                        '\n\nİpucu: Sayfa adını yukarıdakilerden biriyle değiştirin ya da sayfadaki sütun başlıklarını (örn. username, full_name / class_name, level / student_name, date / amount, plan_id) kontrol edin.'
-                    );
-                    event.target.value = '';
-                    return;
-                }
-
-                const summary = [];
-                for (const table of Object.keys(IMPORT_TABLES)) {
-                    const sheetName = assigned[table];
-                    if (!sheetName) continue;
-                    const cfg = IMPORT_TABLES[table];
-                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: '' });
-                    const payload = cfg.build(rows);
-                    let line = `[${sheetName}] ` + await bulkInsert(table, payload, cfg.optional);
-                    if (payload.length === 0) {
-                        const expectedCols = {
-                            users: 'username (kullanici_adi), full_name (ad_soyad)  | opsiyonel: password, role, phone, season, class_name',
-                            classes: 'class_name (sinif_adi)  | opsiyonel: level, teacher_name, schedule',
-                            attendance: 'student_name (ogrenci_adi), date (tarih)  | opsiyonel: class_name, status, teacher_note',
-                            payments: 'student_name (ogrenci_adi), amount (tutar)  | opsiyonel: total_amount, installment_no, plan_id, due_date, status'
-                        }[table];
-                        const foundCols = rows.length ? Object.keys(rows[0]).filter(k => !/^__EMPTY/.test(k)) : [];
-                        line += `\n   ↳ Sayfada ${rows.length} veri satırı okundu.` +
-                            `\n   ↳ Okunan sütun başlıkları: ${foundCols.length ? foundCols.join(', ') : '(başlık bulunamadı - ilk satır boş ya da başlık olmayabilir)'}` +
-                            `\n   ↳ Gerekli sütunlar: ${expectedCols}`;
-                    }
-                    summary.push(line);
-                }
-
-                event.target.value = '';
-                alert('İçe aktarma tamamlandı:\n\n' + summary.join('\n') + (notes.length ? '\n\nBilgi:\n' + notes.join('\n') : ''));
-                loadDataFromSupabase();
-            } catch (err) {
-                alert('Excel dosyası okunurken hata oluştu: ' + err.message);
-                event.target.value = '';
             }
         }
 
