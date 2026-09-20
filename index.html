@@ -1801,47 +1801,30 @@
 
         async function saveStudentGrid() {
             if (gridSaving) return;
-  
-  // Boş olmayan satırları filtreleme
-  const validRows = gridRows.filter(r => !isGridRowEmpty(r));
 
-  if (validRows.length === 0) {
-    alert('Lütfen kaydetmek için en az bir öğrenci bilgisi giriniz.');
-    return;
-  }
+            const validRows = gridRows.filter(r => !isGridRowEmpty(r));
 
-  // Zorunlu alan kontrolü (Ad Soyad)
-  const invalidRow = validRows.find(r => !r.full_name || !r.full_name.trim());
-  if (invalidRow) {
-    alert('Lütfen doldurulan tüm satırlarda "Ad Soyad" alanını eksiksiz giriniz.');
-    return;
-  }
+            if (validRows.length === 0) {
+                alert('Lütfen kaydetmek için en az bir öğrenci bilgisi giriniz.');
+                return;
+            }
 
-  gridSaving = true;
+            const invalidRow = validRows.find(r => !r.full_name || !r.full_name.trim());
+            if (invalidRow) {
+                alert('Lütfen doldurulan tüm satırlarda "Ad Soyad" alanını eksiksiz giriniz.');
+                return;
+            }
 
-  // Supabase için veri modelini hazırlama
-  const payload = validRows.map(r => ({
-    full_name: r.full_name ? r.full_name.trim() : null,
-    class_name: r.class_name ? r.class_name.trim() : null,
-    group_name: r.group ? r.group.trim() : null,
-    academic_period: r.academic_period || '2026-2027',
-    tc_no: r.tc_no ? r.tc_no.trim() : null,
-    parent_name: r.parent_name ? r.parent_name.trim() : null,
-    parent_phone: r.parent_phone ? normalizePhoneStr(r.parent_phone) : null,
-    year_in_institution: parseInt(r.year_in_institution) || 1,
-    books_delivered: r.books_delivered ? r.books_delivered.trim() : null,
-    book_delivery_status: r.book_delivery_status || 'Verilmedi',
-    role: 'student' // varsayılan rol
-  }));
-                    const btn = document.getElementById('btnSaveGrid');
-  const oldHtml = btn ? btn.innerHTML : '';
-  gridSaving = true;
+            gridSaving = true;
 
-  if (btn) {
-    btn.disabled = true;
-    btn.classList.add('opacity-60', 'cursor-not-allowed');
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
-  }
+            const btn = document.getElementById('btnSaveGrid');
+            const oldHtml = btn ? btn.innerHTML : '';
+
+            if (btn) {
+                btn.disabled = true;
+                btn.classList.add('opacity-60', 'cursor-not-allowed');
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+            }
 
             try {
                 const { data: dbUsers, error: uErr } = await _supabase.from('users').select('username, full_name, role');
@@ -1854,34 +1837,32 @@
                 const dupNames = [];
 
                 validRows.forEach(row => {
-                   validRows.forEach(row => {
-    const rawName = row.full_name || row.fullName || row.name || '';
-    const fullName = rawName.replace(/\s+/g, ' ').trim();
+                    const rawName = row.full_name || row.fullName || row.name || '';
+                    const fullName = rawName.replace(/\s+/g, ' ').trim();
 
-    if (existingNames.has(foldName(fullName))) dupNames.push(fullName);
-if (existingNames.has(foldName(fullName))) dupNames.push(fullName);
+                    if (existingNames.has(foldName(fullName))) dupNames.push(fullName);
 
-let base = (row.manual && row.username ? row.username.trim().toLowerCase() : generateUsername(fullName)) || 'ogrenci';
-let candidate = base, n = 2;
-while (usedUsernames.has(candidate)) { candidate = base + n; n++; }
-usedUsernames.add(candidate);
+                    let base = (row.manual && row.username ? row.username.trim().toLowerCase() : generateUsername(fullName)) || 'ogrenci';
+                    let candidate = base, n = 2;
+                    while (usedUsernames.has(candidate)) { candidate = base + n; n++; }
+                    usedUsernames.add(candidate);
 
-entries.push({
-  row,
-  payload: {
-    full_name: fullName,
-    class_name: row.class_name || null,
-    group_name: row.group || null,
-    academic_period: row.academic_period || '2026-2027',
-    tc_no: row.tc_no ? row.tc_no.trim() : null,
-    parent_name: row.parent_name ? row.parent_name.trim() : null,
-    phone: normalizePhoneStr(row.parent_phone || row.phone || ''),
-    year_in_institution: parseInt(row.year_in_institution) || 1,
-    books_delivered: row.books_delivered || null,
-    book_delivery_status: row.book_delivery_status || 'Verilmedi',
-    username: candidate,
-    password: GRID_STUDENT_PASSWORD,
-    role: 'student'
+                    entries.push({
+                        row,
+                        payload: {
+                            full_name: fullName,
+                            class_name: row.class_name || null,
+                            group_name: row.group || null,
+                            academic_period: row.academic_period || '2026-2027',
+                            tc_no: row.tc_no ? row.tc_no.trim() : null,
+                            parent_name: row.parent_name ? row.parent_name.trim() : null,
+                            phone: normalizePhoneStr(row.parent_phone || row.phone || ''),
+                            year_in_institution: parseInt(row.year_in_institution) || 1,
+                            books_delivered: row.books_delivered || null,
+                            book_delivery_status: row.book_delivery_status || 'Verilmedi',
+                            username: candidate,
+                            password: GRID_STUDENT_PASSWORD,
+                            role: 'student'
                         }
                     });
                 });
@@ -1889,22 +1870,22 @@ entries.push({
                 let msg = `${entries.length} öğrenci sisteme kaydedilecek (şifre: ${GRID_STUDENT_PASSWORD}).`;
                 if (dupNames.length) msg += `\n\n⚠ Sistemde zaten bu adla kayıtlı öğrenci var (tekrar eklenecek):\n• ${dupNames.slice(0, 8).join('\n• ')}${dupNames.length > 8 ? '\n• ...' : ''}`;
                 msg += '\n\nDevam edilsin mi?';
-                if (!confirm(msg)) return;
+                if (!confirm(msg)) { gridSaving = false; if (btn) { btn.disabled = false; btn.classList.remove('opacity-60', 'cursor-not-allowed'); btn.innerHTML = oldHtml; } return; }
 
                 let savedCount = 0;
                 for (const chunk of chunkArray(entries, 200)) {
-        const { error } = await _supabase.from('users').insert(chunk.map(e => e.payload));
-        if (error) {
-          const savedRows = new Set(entries.slice(0, savedCount).map(e => e.row));
-          gridRows = gridRows.filter(r => !savedRows.has(r));
-          if (!gridRows.length) gridRows.push(newGridRow());
-          renderStudentGrid();
-          if (savedCount) loadDataFromSupabase();
-          showToast(`Kayıt hatası: ${error.message}` + (savedCount ? ` (${savedCount} öğrenci kaydedildi, kalanlar tabloda duruyor.)` : ''), 'error');
-          return;
-        }
-        savedCount += chunk.length;
-      }
+                    const { error } = await _supabase.from('users').insert(chunk.map(e => e.payload));
+                    if (error) {
+                        const savedRows = new Set(entries.slice(0, savedCount).map(e => e.row));
+                        gridRows = gridRows.filter(r => !savedRows.has(r));
+                        if (!gridRows.length) gridRows.push(newGridRow());
+                        renderStudentGrid();
+                        if (savedCount) loadDataFromSupabase();
+                        showToast(`Kayıt hatası: ${error.message}` + (savedCount ? ` (${savedCount} öğrenci kaydedildi, kalanlar tabloda duruyor.)` : ''), 'error');
+                        return;
+                    }
+                    savedCount += chunk.length;
+                }
                 showToast(`${savedCount} öğrenci başarıyla kaydedildi.`, 'success');
                 initStudentGrid();
                 loadDataFromSupabase();
@@ -1912,9 +1893,11 @@ entries.push({
                 showToast('Beklenmeyen hata: ' + (err.message || err), 'error');
             } finally {
                 gridSaving = false;
-                btn.disabled = false;
-                btn.classList.remove('opacity-60', 'cursor-not-allowed');
-                btn.innerHTML = oldHtml;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    btn.innerHTML = oldHtml;
+                }
             }
         }
 
