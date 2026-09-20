@@ -393,16 +393,15 @@
                     <div class="role-admin bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-file-excel text-emerald-600"></i>
-                            <h4 class="text-sm font-bold text-slate-900 brand-font">Excel ile Veri Yedekleme</h4>
+                            <h4 class="text-sm font-bold text-slate-900 brand-font">Excel ile Öğrenci Aktarımı / Veri Yedekleme</h4>
                         </div>
                         <p class="text-xs text-slate-500 leading-relaxed">
-                            Eski verilerinizi (Kullanıcılar, Sınıflar, Yoklama, Ödemeler) tek bir Excel dosyasından içeri aktarabilir,
-                            ya da mevcut sistem verisini yedeklemek için dışarı aktarabilirsiniz. İçe aktarırken dosyanızda
-                            <b>Kullanicilar</b>, <b>Siniflar</b>, <b>Yoklama</b>, <b>Odemeler</b> adlı sayfalar (bulunanlar işlenir; büyük/küçük harf ve Türkçe karakter fark etmez) ve
-                            ilgili başlık satırları (örn. username, password, full_name, role, phone, season / class_name, level, teacher_name, schedule /
-                            student_name, class_name, date, status / student_name, payment_method, season, total_amount, installment_count, installment_no,
-                            plan_id, due_date, amount, status) olmalıdır. Dosyada tek sayfa varsa ve adı tanınmazsa, sütun başlıklarına bakılarak ilk sayfa okunur.
-                            Birden fazla gruba giden öğrencilerde class_name hücresine grupları <b>;</b> ile ayırarak yazın.
+                            <b>İçe aktarma:</b> Excel (.xlsx, .xls) veya CSV dosyasının <b>ilk çalışma sayfası</b> okunur (sayfa adı önemli değildir) ve
+                            tüm satırlar <b>öğrenci</b> olarak eklenir. Birinci satırda şu başlıklar olmalıdır (büyük/küçük harf ve Türkçe karakter fark etmez):
+                            <b>ad_soyad</b> (Ad Soyad), <b>grup</b> (Sınıf/Grup), <b>kullanici_adi</b>, <b>sifre</b>, <b>telefon</b>, <b>kayit_tarihi</b>.
+                            Birden fazla gruba giden öğrencilerde grup hücresine grupları <b>;</b> ile ayırarak yazın.
+                            Kullanıcı adı boş bırakılırsa addan otomatik üretilir; şifre boşsa ilk şifre olarak <b>brooklyn26</b> atanır.<br>
+                            <b>Dışa aktarma:</b> Sistemdeki tüm veriyi (Kullanıcılar, Sınıflar, Yoklama, Ödemeler) yedek olarak Excel'e indirebilirsiniz.
                         </p>
                         <div class="flex flex-wrap items-center gap-2">
                             <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
@@ -411,7 +410,7 @@
                             <button onclick="document.getElementById('excelImportInput').click()" class="bg-slate-900 hover:bg-slate-800 text-amber-400 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md">
                                 <i class="fa-solid fa-file-arrow-up"></i> Excel'den İçe Aktar
                             </button>
-                            <input type="file" id="excelImportInput" accept=".xlsx,.xls" class="hidden" onchange="importFromExcel(event)">
+                            <input type="file" id="excelImportInput" accept=".xlsx,.xls,.csv" class="hidden" onchange="importStudentsFromExcel(event)">
                         </div>
                     </div>
 
@@ -1667,7 +1666,199 @@
             XLSX.writeFile(wb, `brooklyn_academy_yedek_${getTodayStr()}.xlsx`);
         }
 
-        // --- Excel içe aktarma: tablo tanımları (sayfa adı takma adları, sütun ipuçları, satır dönüştürücüler) ---
+        // ============================================================================
+        // ÖĞRENCİ EXCEL/CSV İÇE AKTARMA  (Kullanıcı Yönetimi sekmesi)
+        // ----------------------------------------------------------------------------
+        // Sabit sütun yapısı (1. satır başlıkları):
+        //   A: ad_soyad      -> users.full_name
+        //   B: grup          -> users.class_name
+        //   C: kullanici_adi -> users.username
+        //   D: sifre         -> users.password
+        //   E: telefon       -> users.phone
+        //   F: kayit_tarihi  -> users.created_at
+        // Kurallar:
+        //   • Sayfa adı ne olursa olsun İLK çalışma sayfası okunur.
+        //   • role her zaman 'student' olarak kaydedilir.
+        //   • Başlıklarda büyük/küçük harf ve Türkçe karakter farkı tolere edilir
+        //     ("Ad Soyad" = "ad_soyad" = "AD-SOYAD" ...).
+        // ============================================================================
+        const STUDENT_IMPORT_COLS = {
+            full_name:  ['ad_soyad', 'adsoyad', 'ad_soyadi', 'isim_soyisim', 'ogrenci_adi', 'ogrenci', 'full_name', 'fullname', 'ad'],
+            class_name: ['grup', 'gruplar', 'sinif_grup', 'sinif_grubu', 'sinif', 'class_name'],
+            username:   ['kullanici_adi', 'kullaniciadi', 'kullanici', 'username', 'user_name'],
+            password:   ['sifre', 'parola', 'password'],
+            phone:      ['telefon', 'telefon_no', 'tel', 'cep', 'phone'],
+            created_at: ['kayit_tarihi', 'kayittarihi', 'kayit', 'created_at']
+        };
+
+        // Başlık normalizasyonu: BOM, büyük/küçük harf, Türkçe karakter, boşluk/tire -> altçizgi
+        function normHeaderKey(k) {
+            return normalizeKey(String(k == null ? '' : k).replace(/^\uFEFF/, ''))
+                .replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+        }
+
+        // Kayıt tarihi -> 'YYYY-MM-DD' (Excel tarih hücresi, seri numarası, GG.AA.YYYY, YYYY-AA-GG desteklenir)
+        function toCreatedAtStr(v) {
+            if (v === null || v === undefined || v === '') return null;
+            let out;
+            if (v instanceof Date) {
+                if (isNaN(v.getTime())) return null;
+                // Saat dilimi kaymasına karşı +12 saat ekleyip UTC tarihini al
+                out = new Date(v.getTime() + 12 * 3600 * 1000).toISOString().slice(0, 10);
+            } else {
+                out = toDateStr(v);
+            }
+            return (out && /^\d{4}-\d{2}-\d{2}/.test(out)) ? out.slice(0, 10) : null;
+        }
+
+        // Telefon: sadece rakam; başındaki 90 / 0 atılır (WhatsApp bağlantıları wa.me/90 + 5xx... biçimindedir)
+        function normalizePhoneStr(v) {
+            let p = String(v == null ? '' : v).replace(/\D/g, '');
+            if (p.length === 12 && p.startsWith('90')) p = p.slice(2);
+            if (p.startsWith('0')) p = p.slice(1);
+            return p;
+        }
+
+        async function importStudentsFromExcel(event) {
+            const input = event.target;
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const resetInput = () => { input.value = ''; };
+
+            if (typeof XLSX === 'undefined') { alert('Excel kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.'); resetInput(); return; }
+
+            try {
+                // 1. Dosyayı oku (CSV ise metin olarak - Türkçe karakterler bozulmasın)
+                let wb;
+                if (/\.csv$/i.test(file.name)) {
+                    const text = await file.text();
+                    wb = XLSX.read(text, { type: 'string', cellDates: true });
+                } else {
+                    const buf = await file.arrayBuffer();
+                    wb = XLSX.read(buf, { type: 'array', cellDates: true });
+                }
+
+                // 2. Sayfa adı fark etmeksizin İLK çalışma sayfası
+                const firstSheetName = (wb.SheetNames || [])[0];
+                if (!firstSheetName) { alert('Dosyada okunabilir bir çalışma sayfası bulunamadı.'); resetInput(); return; }
+                const rows = XLSX.utils.sheet_to_json(wb.Sheets[firstSheetName], { defval: '' });
+
+                if (!rows.length) {
+                    alert(`"${firstSheetName}" sayfasında veri satırı bulunamadı. İlk satırın başlıklar (ad_soyad, grup, kullanici_adi, sifre, telefon, kayit_tarihi), sonraki satırların öğrenci verisi olduğundan emin olun.`);
+                    resetInput();
+                    return;
+                }
+
+                // 3. Başlıkları normalize et ve satırları dönüştür
+                const cols = STUDENT_IMPORT_COLS;
+                const foundHeaders = Object.keys(rows[0]).map(h => String(h).trim()).filter(h => h && !/^__EMPTY/.test(h));
+                const parsed = [];
+                let emptyNameRows = 0;
+
+                rows.forEach(r => {
+                    const n = {};
+                    Object.keys(r).forEach(k => { n[normHeaderKey(k)] = r[k]; });
+
+                    const full_name = String(pick(n, cols.full_name)).replace(/\s+/g, ' ').trim();
+                    if (!full_name) {
+                        // Tamamen boş satırları sessizce atla, diğerlerini say
+                        if (Object.values(r).some(v => String(v).trim() !== '')) emptyNameRows++;
+                        return;
+                    }
+                    parsed.push({
+                        full_name,
+                        class_name: String(pick(n, cols.class_name)).trim() || null,
+                        username: String(pick(n, cols.username)).trim().toLowerCase(),
+                        password: String(pick(n, cols.password)).trim(),
+                        phone: normalizePhoneStr(pick(n, cols.phone)),
+                        created_at: toCreatedAtStr(pick(n, cols.created_at))
+                    });
+                });
+
+                if (!parsed.length) {
+                    alert(
+                        `"${firstSheetName}" sayfasında ${rows.length} satır okundu ancak "ad_soyad" sütunundan öğrenci adı alınamadı.\n\n` +
+                        `Okunan başlıklar: ${foundHeaders.length ? foundHeaders.join(', ') : '(başlık bulunamadı)'}\n\n` +
+                        `Beklenen başlıklar: ad_soyad, grup, kullanici_adi, sifre, telefon, kayit_tarihi`
+                    );
+                    resetInput();
+                    return;
+                }
+
+                // 4. Kullanıcı adı çakışmalarını önlemek için sistemdeki mevcut kullanıcı adlarını çek
+                const { data: dbUsers, error: uErr } = await _supabase.from('users').select('username');
+                if (uErr) throw uErr;
+                const usedUsernames = new Set((dbUsers || []).map(u => String(u.username || '').toLowerCase()));
+
+                const makeUsername = (fullName) => {
+                    const base = foldName(fullName).replace(/[^a-z0-9 ]/g, '').trim().replace(/\s+/g, '.') || 'ogrenci';
+                    let candidate = base, i = 2;
+                    while (usedUsernames.has(candidate)) { candidate = base + i; i++; }
+                    usedUsernames.add(candidate);
+                    return candidate;
+                };
+
+                const nowIso = new Date().toISOString();
+                const payload = [];
+                const duplicates = [];
+                let generatedUsernames = 0, defaultPasswords = 0;
+
+                parsed.forEach(p => {
+                    let username = p.username;
+                    if (!username) {
+                        username = makeUsername(p.full_name);
+                        generatedUsernames++;
+                    } else if (usedUsernames.has(username)) {
+                        duplicates.push(`${p.full_name} (${username})`);
+                        return;
+                    } else {
+                        usedUsernames.add(username);
+                    }
+                    if (!p.password) defaultPasswords++;
+
+                    payload.push({
+                        username,
+                        password: p.password || DEFAULT_STUDENT_PASSWORD,
+                        full_name: p.full_name,
+                        role: 'student',                       // her zaman öğrenci
+                        phone: p.phone,
+                        season: '2026-2027',
+                        class_name: p.class_name,
+                        created_at: p.created_at || nowIso     // boşsa şimdiki zaman (NOT NULL sütunlar için güvenli)
+                    });
+                });
+
+                if (!payload.length) {
+                    alert('Dosyadaki tüm kullanıcı adları sistemde zaten kayıtlı; eklenecek yeni öğrenci yok.\n\nÇakışanlar:\n' + duplicates.slice(0, 15).join('\n'));
+                    resetInput();
+                    return;
+                }
+
+                // 5. Onay
+                if (!confirm(
+                    `"${firstSheetName}" sayfasından ${payload.length} öğrenci sisteme EKLENECEK (rol: öğrenci).\n\n` +
+                    (duplicates.length ? `• ${duplicates.length} satır, kullanıcı adı zaten kayıtlı olduğu için atlanacak.\n` : '') +
+                    (generatedUsernames ? `• ${generatedUsernames} satırda kullanıcı adı boştu, addan otomatik üretilecek.\n` : '') +
+                    (defaultPasswords ? `• ${defaultPasswords} satırda şifre boştu, ilk şifre "${DEFAULT_STUDENT_PASSWORD}" olacak.\n` : '') +
+                    (emptyNameRows ? `• ${emptyNameRows} satırda ad_soyad boştu, atlanacak.\n` : '') +
+                    `\nDevam edilsin mi?`
+                )) { resetInput(); return; }
+
+                // 6. Supabase'e yaz (sütun yoksa opsiyonel sütunlar otomatik düşürülür)
+                const result = await bulkInsert('users', payload, ['season', 'created_at', 'class_name']);
+
+                let msg = 'İçe aktarma tamamlandı:\n\n' + result;
+                if (duplicates.length) msg += `\n\nAtlanan (kullanıcı adı zaten var) ${duplicates.length} kayıt:\n` + duplicates.slice(0, 15).join('\n') + (duplicates.length > 15 ? '\n...' : '');
+                alert(msg);
+                resetInput();
+                loadDataFromSupabase();
+            } catch (err) {
+                alert('Excel dosyası okunurken hata oluştu: ' + (err.message || err));
+                resetInput();
+            }
+        }
+
+        // --- Excel içe aktarma (Sınıflar / Ödemeler sekmeleri ve çok sayfalı yedek dosyaları): tablo tanımları ---
         // aliases: normalizeSheetName() ile karşılaştırılır (harf/Türkçe karakter/boşluk duyarsız)
         // hints: sayfa adı tanınmazsa sütun başlıklarından tabloyu anlamak için kullanılır (normalizeKey biçiminde)
         const IMPORT_TABLES = {
