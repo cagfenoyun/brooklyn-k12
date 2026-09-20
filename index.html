@@ -378,21 +378,25 @@
                         </div>
 
                         <div class="overflow-auto max-h-[28rem]">
-                            <table class="grid-table text-left">
-                                <thead class="bg-slate-100 text-slate-600 text-[11px] uppercase font-bold tracking-wider">
-                                    <tr>
-                                        <th class="px-3 py-2.5 w-12 text-center">#</th>
-                                        <th class="px-3 py-2.5">Ad Soyad <span class="text-rose-500">*</span></th>
-                                        <th class="px-3 py-2.5">Grup / Şube <span class="text-rose-500">*</span></th>
-                                        <th class="px-3 py-2.5 w-20">Yaş</th>
-                                        <th class="px-3 py-2.5">Sınıf / Düzey</th>
-                                        <th class="px-3 py-2.5">Veli Telefon</th>
-                                        <th class="px-3 py-2.5">Kullanıcı Adı</th>
-                                        <th class="px-3 py-2.5 w-10"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="gridBody" class="bg-white"></tbody>
-                            </table>
+                          <table class="grid-table text-left">
+        <thead class="bg-slate-100 text-slate-600 text-[11px] uppercase font-bold tracking-wider">
+          <tr>
+            <th class="px-3 py-2.5 w-12 text-center">#</th>
+            <th class="px-3 py-2.5">Ad Soyad <span class="text-rose-500">*</span></th>
+            <th class="px-3 py-2.5">Sube / Sinif</th>
+            <th class="px-3 py-2.5">Grup</th>
+            <th class="px-3 py-2.5">Donem</th>
+            <th class="px-3 py-2.5">Ogr. T.C.</th>
+            <th class="px-3 py-2.5">Veli Adi</th>
+            <th class="px-3 py-2.5">Veli Telefon</th>
+            <th class="px-3 py-2.5">Kurum Yili</th>
+            <th class="px-3 py-2.5">Verilen Kitaplar</th>
+            <th class="px-3 py-2.5">Kitap Durumu</th>
+            <th class="px-3 py-2.5 text-center">Islemler</th>
+          </tr>
+        </thead>
+        <tbody id="gridBody" class="bg-white"></tbody>
+      </table>
                         </div>
 
                         <div class="p-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/60">
@@ -1552,13 +1556,32 @@
             return p;
         }
 
-        const GRID_FIELDS = ['name', 'group', 'age', 'grade', 'phone', 'username'];
+        const GRID_FIELDS = ['full_name', 
+  'class_name', 
+  'group', 
+  'academic_period', 
+  'tc_no', 
+  'parent_name', 
+  'parent_phone', 
+  'year_in_institution', 
+  'books_delivered', 
+  'book_delivery_status'];
         const GRID_DEFAULT_ROWS = 5;
         let gridRows = [];
         let gridSaving = false;
 
         function newGridRow() {
-            return { name: '', group: '', age: '', grade: '', phone: '', username: '', manual: false };
+            return { full_name: '', 
+    class_name: '', 
+    group: '', 
+    academic_period: '2026-2027', 
+    tc_no: '', 
+    parent_name: '', 
+    parent_phone: '', 
+    year_in_institution: 1, 
+    books_delivered: '', 
+    book_delivery_status: 'Verilmedi', 
+    manual: false };
         }
 
         function generateUsername(fullName) {
@@ -1759,25 +1782,38 @@
 
         async function saveStudentGrid() {
             if (gridSaving) return;
-            if (!currentUser || currentUser.role !== 'admin') { showToast('Bu işlem için yönetici yetkisi gerekir.', 'error'); return; }
+  
+  // Boş olmayan satırları filtreleme
+  const validRows = gridRows.filter(r => !isGridRowEmpty(r));
 
-            const filledRows = gridRows.filter(r => !isGridRowEmpty(r));
-            if (!filledRows.length) { showToast('Kaydedilecek dolu satır yok.', 'error'); return; }
+  if (validRows.length === 0) {
+    alert('Lütfen kaydetmek için en az bir öğrenci bilgisi giriniz.');
+    return;
+  }
 
-            const body = document.getElementById('gridBody');
-            body.querySelectorAll('.grid-invalid').forEach(el => el.classList.remove('grid-invalid'));
-            let firstInvalid = null;
-            let invalidCount = 0;
-            gridRows.forEach((row, r) => {
-                if (isGridRowEmpty(row)) return;
-                [0, 1].forEach(c => {
-                    if (!String(row[GRID_FIELDS[c]] || '').trim()) {
-                        const el = body.querySelector(`[data-r="${r}"][data-c="${c}"]`);
-                        if (el) { el.classList.add('grid-invalid'); if (!firstInvalid) firstInvalid = el; }
-                        invalidCount++;
-                    }
-                });
-            });
+  // Zorunlu alan kontrolü (Ad Soyad)
+  const invalidRow = validRows.find(r => !r.full_name || !r.full_name.trim());
+  if (invalidRow) {
+    alert('Lütfen doldurulan tüm satırlarda "Ad Soyad" alanını eksiksiz giriniz.');
+    return;
+  }
+
+  gridSaving = true;
+
+  // Supabase için veri modelini hazırlama
+  const payload = validRows.map(r => ({
+    full_name: r.full_name ? r.full_name.trim() : null,
+    class_name: r.class_name ? r.class_name.trim() : null,
+    group_name: r.group ? r.group.trim() : null,
+    academic_period: r.academic_period || '2026-2027',
+    tc_no: r.tc_no ? r.tc_no.trim() : null,
+    parent_name: r.parent_name ? r.parent_name.trim() : null,
+    parent_phone: r.parent_phone ? normalizePhoneStr(r.parent_phone) : null,
+    year_in_institution: parseInt(r.year_in_institution) || 1,
+    books_delivered: r.books_delivered ? r.books_delivered.trim() : null,
+    book_delivery_status: r.book_delivery_status || 'Verilmedi',
+    role: 'student' // varsayılan rol
+  }));
             if (invalidCount) {
                 if (firstInvalid) firstInvalid.focus();
                 showToast(`${invalidCount} zorunlu hücre (Ad Soyad / Grup) boş. Kırmızı hücreleri doldurun.`, 'error');
