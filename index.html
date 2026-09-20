@@ -1835,23 +1835,34 @@
                 const dupNames = [];
 
                 validRows.forEach(row => {
-                    const fullName = row.name.replace(/\s+/g, ' ').trim();
-                    if (existingNames.has(foldName(fullName))) dupNames.push(fullName);
+                   validRows.forEach(row => {
+    const rawName = row.full_name || row.fullName || row.name || '';
+    const fullName = rawName.replace(/\s+/g, ' ').trim();
 
-                    let base = (row.manual ? row.username.trim().toLowerCase() : generateUsername(fullName)) || 'ogrenci';
-                    let candidate = base, n = 2;
-                    while (usedUsernames.has(candidate)) { candidate = base + n; n++; }
-                    usedUsernames.add(candidate);
+    if (existingNames.has(foldName(fullName))) dupNames.push(fullName);
+if (existingNames.has(foldName(fullName))) dupNames.push(fullName);
 
-                    entries.push({
-                        row,
-                        payload: {
-                            full_name: fullName,
-                            class_name: row.group,
-                            phone: normalizePhoneStr(row.phone),
-                            username: candidate,
-                            password: GRID_STUDENT_PASSWORD,
-                            role: 'student'
+let base = (row.manual && row.username ? row.username.trim().toLowerCase() : generateUsername(fullName)) || 'ogrenci';
+let candidate = base, n = 2;
+while (usedUsernames.has(candidate)) { candidate = base + n; n++; }
+usedUsernames.add(candidate);
+
+entries.push({
+  row,
+  payload: {
+    full_name: fullName,
+    class_name: row.class_name || null,
+    group_name: row.group || null,
+    academic_period: row.academic_period || '2026-2027',
+    tc_no: row.tc_no ? row.tc_no.trim() : null,
+    parent_name: row.parent_name ? row.parent_name.trim() : null,
+    phone: normalizePhoneStr(row.parent_phone || row.phone || ''),
+    year_in_institution: parseInt(row.year_in_institution) || 1,
+    books_delivered: row.books_delivered || null,
+    book_delivery_status: row.book_delivery_status || 'Verilmedi',
+    username: candidate,
+    password: GRID_STUDENT_PASSWORD,
+    role: 'student'
                         }
                     });
                 });
