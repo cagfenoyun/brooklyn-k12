@@ -311,20 +311,6 @@
                         </button>
                     </div>
 
-                    <div class="role-admin bg-white p-5 rounded-2xl border border-amber-200 shadow-sm space-y-3">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-people-group text-amber-600"></i>
-                            <h4 class="text-sm font-bold text-slate-900 brand-font">2026-2027 Grup Listesini Sisteme Yükle</h4>
-                        </div>
-                        <p class="text-xs text-slate-500 leading-relaxed" id="seedInfoText">
-                            Excel'deki A-B-C grup listesi (gruplar, gün/saat bilgileri ve öğrenciler) bu sayfaya gömülü. Yükleme sırasında
-                            sistemde zaten olan gruplar ve öğrenciler tekrar eklenmez; olan öğrencilerin sadece grup bilgisi güncellenir.
-                        </p>
-                        <button onclick="seedGroupsFromExcel()" id="btnSeedGroups" class="bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md w-fit">
-                            <i class="fa-solid fa-cloud-arrow-up"></i> Grup ve Öğrenci Listesini Yükle
-                        </button>
-                    </div>
-
                     <form id="formAddClass" onsubmit="addClass(event)" class="hidden bg-slate-100 p-5 rounded-2xl border border-slate-300/80 grid grid-cols-1 sm:grid-cols-2 gap-3 shadow-inner">
                         <input type="text" id="clsName" placeholder="Sınıf Adı (Örn: B1 Hafta Sonu)" required class="p-2.5 border rounded-xl text-sm bg-white">
                         <input type="text" id="clsLevel" placeholder="Seviye (Örn: B1 - Intermediate)" required class="p-2.5 border rounded-xl text-sm bg-white">
@@ -1448,97 +1434,6 @@
             }
         }
 
-        async function seedGroupsFromExcel() {
-            const totalStudents = new Set(GROUP_SEED.flatMap(g => g.students.map(s => foldName(s.name)))).size;
-            if (!confirm(
-                `${GROUP_SEED.length} grup ve ${totalStudents} öğrenci sisteme yüklenecek.\n\n` +
-                `• Aynı adlı grup zaten varsa tekrar eklenmez.\n` +
-                `• Aynı adlı öğrenci zaten varsa yeni kayıt açılmaz, sadece grup bilgisi eklenir.\n` +
-                `• Yeni öğrencilerin ilk şifresi: ${DEFAULT_STUDENT_PASSWORD}\n\nDevam edilsin mi?`
-            )) return;
-
-            const btn = document.getElementById('btnSeedGroups');
-            const oldHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...';
-
-            try {
-                const { data: dbClasses, error: e1 } = await _supabase.from('classes').select('*');
-                if (e1) throw e1;
-                const { data: dbUsers, error: e2 } = await _supabase.from('users').select('*');
-                if (e2) throw e2;
-
-                const summary = [];
-
-                const existingClassNames = new Set((dbClasses || []).map(c => c.class_name));
-                const newClasses = GROUP_SEED
-                    .filter(g => !existingClassNames.has(g.class_name))
-                    .map(g => ({ class_name: g.class_name, level: g.level, teacher_name: g.teacher_name, schedule: g.schedule }));
-                if (newClasses.length) summary.push(await bulkInsert('classes', newClasses, []));
-                else summary.push('classes: tüm gruplar zaten kayıtlı.');
-
-                const roster = new Map();
-                GROUP_SEED.forEach(g => g.students.forEach(s => {
-                    const key = foldName(s.name);
-                    if (!roster.has(key)) roster.set(key, { name: s.name, groups: [] });
-                    const entry = roster.get(key);
-                    if (!entry.groups.includes(g.class_name)) entry.groups.push(g.class_name);
-                }));
-
-                const existingStudents = new Map();
-                (dbUsers || []).filter(u => u.role === 'student').forEach(u => existingStudents.set(foldName(u.full_name), u));
-                const usedUsernames = new Set((dbUsers || []).map(u => String(u.username || '').toLowerCase()));
-
-                const makeUsername = (fullName) => {
-                    const base = foldName(fullName).replace(/[^a-z0-9 ]/g, '').trim().replace(/\s+/g, '.') || 'ogrenci';
-                    let candidate = base, n = 2;
-                    while (usedUsernames.has(candidate)) { candidate = base + n; n++; }
-                    usedUsernames.add(candidate);
-                    return candidate;
-                };
-
-                const newUsers = [];
-                const updates = [];
-                roster.forEach((entry, key) => {
-                    const existing = existingStudents.get(key);
-                    if (existing) {
-                        const merged = Array.from(new Set([...getUserGroups(existing), ...entry.groups]));
-                        if (merged.length !== getUserGroups(existing).length) {
-                            updates.push({ id: existing.id, class_name: merged.join(GROUP_SEP) });
-                        }
-                    } else {
-                        newUsers.push({
-                            username: makeUsername(entry.name),
-                            password: DEFAULT_STUDENT_PASSWORD,
-                            full_name: entry.name,
-                            role: 'student',
-                            phone: '',
-                            season: '2026-2027',
-                            class_name: entry.groups.join(GROUP_SEP)
-                        });
-                    }
-                });
-
-                if (newUsers.length) summary.push(await bulkInsert('users', newUsers, ['season', 'class_name']));
-                else summary.push('users: eklenecek yeni öğrenci yok.');
-
-                let updOk = 0, updErr = null;
-                for (const u of updates) {
-                    const { error } = await _supabase.from('users').update({ class_name: u.class_name }).eq('id', u.id);
-                    if (error) updErr = error; else updOk++;
-                }
-                if (updates.length) summary.push(`Mevcut öğrenci grup güncellemesi: ${updOk}/${updates.length}` + (updErr ? ` (Hata: ${updErr.message})` : ''));
-
-                alert('Yükleme tamamlandı:\n\n' + summary.join('\n'));
-                await loadDataFromSupabase();
-            } catch (err) {
-                alert('Yükleme sırasında hata oluştu: ' + (err.message || err));
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = oldHtml;
-            }
-        }
-
         function chunkArray(arr, size) {
             const out = [];
             for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
@@ -1585,7 +1480,7 @@
   'year_in_institution', 
   'books_delivered', 
   'book_delivery_status'];
-        const GRID_DEFAULT_ROWS = 5;
+        const GRID_DEFAULT_ROWS = 1;
         let gridRows = [];
         let gridSaving = false;
 
